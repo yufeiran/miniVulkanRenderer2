@@ -4,7 +4,7 @@
 
 cmake_minimum_required( VERSION 3.20)
 
-project("miniVulkanRender2")
+project("miniVulkanRenderer2")
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -16,6 +16,8 @@ add_subdirectory(third_party)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
 
 add_subdirectory(src)
+
+set_property ( DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT miniVulkanRenderer2 )
 
 find_program(GLSL_VALIDATOR glslangValidator HINTS /usr/bin /usr/local/bin $ENV{VULKAN_SDK}/Bin/ $ENV{VULKAN_SDK}/Bin32/)
 

@@ -37,3 +37,14 @@ target_sources(imgui PRIVATE
     imgui/backends/imgui_impl_glfw.cpp
 )
 target_link_libraries(imgui PUBLIC Vulkan::Vulkan glfw)
+
+# volk
+add_library(volk STATIC)
+if (WIN32)
+   set(VOLK_STATIC_DEFINES VK_USE_PLATFORM_WIN32_KHR)
+endif()
+target_link_libraries(volk PUBLIC Vulkan::Vulkan)
+target_include_directories(volk PUBLIC volk)
+target_sources(volk PRIVATE 
+    volk/volk.c
+)
