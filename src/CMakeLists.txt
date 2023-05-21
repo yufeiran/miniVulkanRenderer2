@@ -13,6 +13,8 @@ set(VULKAN_FRAMEWORK_FILES
     ./Vulkan/instance.h
     ./Vulkan/instance.cpp
     ./Vulkan/vk_common.h
+    ./Vulkan/physicalDevice.h
+    ./Vulkan/physicalDevice.cpp
 )
 
 set(COMMON_FILES

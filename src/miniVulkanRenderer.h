@@ -10,8 +10,7 @@
 #include"Common/miniLog.h"
 #include"Vulkan/instance.h"
 
-
-
+using namespace mini;
 class MiniVulkanRenderer
 {
 public:
@@ -23,5 +22,5 @@ private:
 	int mWidth, mHeight;
 
 	GLFWwindow* window = nullptr;
-    std::unique_ptr<Instance> mInstance;
+	std::unique_ptr<Instance> mInstance;
 };

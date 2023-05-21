@@ -1,6 +1,8 @@
+#include"physicalDevice.h"
+
 #include "instance.h"
 
-
+namespace mini {
 
 VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 	VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -12,10 +14,10 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 
 	}
 	else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
-		Log("validation layer : " + toString(pCallbackData->messageIdNumber) + " - " + pCallbackData->pMessageIdName + " : " + pCallbackData->pMessage,WARNING);
+		Log("validation layer : " + toString(pCallbackData->messageIdNumber) + " - " + pCallbackData->pMessageIdName + " : " + pCallbackData->pMessage, WARNING);
 	}
-	else if (messageSeverity& VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT){
-		Log("validation layer : " + toString(pCallbackData->messageIdNumber) + " - " + pCallbackData->pMessageIdName + " : " + pCallbackData->pMessage,ERROR);
+	else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
+		Log("validation layer : " + toString(pCallbackData->messageIdNumber) + " - " + pCallbackData->pMessageIdName + " : " + pCallbackData->pMessage, ERROR);
 
 	}
 	return VK_FALSE;
@@ -83,7 +85,7 @@ bool enableAllValidateLayers(const std::vector<const char*>& required,
 
 Instance::Instance(const std::vector<const char*>& requiredExtensions,
 	const std::vector<const char*>& requiredValidationLayers,
-	bool enableValidationLayers )
+	bool enableValidationLayers)
 {
 
 	VkApplicationInfo appInfo{};
@@ -187,6 +189,7 @@ Instance::Instance(const std::vector<const char*>& requiredExtensions,
 
 
 	Log("Instance created");
+	queryGpus();
 
 }
 
@@ -202,3 +205,72 @@ Instance::~Instance()
 	}
 
 }
+
+void Instance::queryGpus()
+{
+	uint32_t physicalDeviceCount = 0;
+	VK_CHECK(vkEnumeratePhysicalDevices(handle, &physicalDeviceCount, nullptr));
+
+	if (physicalDeviceCount == 0) {
+		throw Error("Couldn't find a physical device that support Vulkan.");
+	}
+
+	std::vector<VkPhysicalDevice> physicalDevices(physicalDeviceCount);
+	VK_CHECK(vkEnumeratePhysicalDevices(handle, &physicalDeviceCount, physicalDevices.data()));
+
+	// Create GPUs wrapper objects from the VkPhysicalDevice's
+	for (auto& physicalDevice : physicalDevices)
+	{
+		gpus.push_back(std::make_unique<PhysicalDevice>(*this, physicalDevice));
+	}
+}
+PhysicalDevice& Instance::getSuitableGpu(VkSurfaceKHR surface)
+{
+	if (gpus.empty()) {
+		throw Error("No Physical devices were found on the system");
+	}
+
+	// Find a discrete GPU
+	for (auto& gpu : gpus)
+	{
+		if (gpu->getProperties().deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+		{
+			size_t queueCount = gpu->getQueueFamilyProperties().size();
+			for (uint32_t queueIdx = 0; static_cast<size_t>(queueIdx) < queueCount; queueIdx++)
+			{
+				if (gpu->isPresentSupported(surface, queueIdx))
+				{
+					return *gpu;
+				}
+			}
+			
+		}
+	}
+
+	// Or just pick the first one
+	Log("Couldn't find a discrete physical device, picking default GPU", WARNING);
+	return *gpus[0];
+
+}
+PhysicalDevice& Instance::getFirstGpu()
+{
+	if (gpus.empty()) {
+		throw Error("No Physical devices were found on the system");
+	}
+
+	// Find a discrete GPU
+	for (auto& gpu : gpus)
+	{
+		if (gpu->getProperties().deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+		{
+			return *gpu;
+
+		}
+	}
+
+	// Or just pick the first one
+	Log("Couldn't find a discrete physical device, picking default GPU", WARNING);
+	return *gpus[0];
+}
+}
+

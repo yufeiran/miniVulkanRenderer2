@@ -1,5 +1,9 @@
 #include"miniVulkanRenderer.h"
 
+using namespace mini;
+
+
+
 MiniVulkanRenderer::MiniVulkanRenderer()
 {
 	volkInitialize();

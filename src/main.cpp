@@ -3,6 +3,7 @@
 #include"Common/miniLog.h"
 
 using namespace std;
+using namespace mini;
 
 int main()
 {
