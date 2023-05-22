@@ -114,6 +114,7 @@ Instance::Instance(const std::vector<const char*>& requiredExtensions,
 		enableExtension(glfwExtensions[i], avaliableInstanceExtensions, enableExtensions);
 	}
 
+
 	// enable VK_EXT_debug_utils 
 	bool hasDebugUtils = enableExtension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, avaliableInstanceExtensions, enableExtensions);
 
@@ -271,6 +272,13 @@ PhysicalDevice& Instance::getFirstGpu()
 	// Or just pick the first one
 	Log("Couldn't find a discrete physical device, picking default GPU", WARNING);
 	return *gpus[0];
+}
+bool Instance::isEnable(const char* extension) const
+{
+	return std::find_if(enableExtensions.begin(), enableExtensions.end(),
+		[extension](const char* enabledExtension) {
+			return strcmp(extension, enabledExtension) == 0;
+		}) != enableExtensions.end();
 }
 }
 

@@ -22,6 +22,8 @@ public:
 	// Tries to find the first available discrete GPU
 	PhysicalDevice& getFirstGpu();
 
+	bool isEnable(const char* extension)const;
+
 private:
 	VkInstance handle{ VK_NULL_HANDLE };
 	std::vector<const char*> enableExtensions;

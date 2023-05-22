@@ -25,6 +25,14 @@ namespace mini
 
 		VkBool32 isPresentSupported(VkSurfaceKHR surface, uint32_t queueFamilyIndex)const;
 
+		VkPhysicalDevice getHandle() const;
+
+	template<typename T>
+	T& requestExtensionFeatures(VkStructureType type)
+	{
+		// TODO: support Add features!
+	}
+
 
 	private:
 		Instance& instance;

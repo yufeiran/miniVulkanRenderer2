@@ -13,11 +13,11 @@ MiniVulkanRenderer::MiniVulkanRenderer()
 
 void MiniVulkanRenderer::init(int width, int height)
 {
-	mWidth = width;
-	mHeight = height;
+	width = width;
+	height = height;
 	glfwInit();
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	window = glfwCreateWindow(mWidth, mHeight, "miniVulkanRenderer2", nullptr, nullptr);
+	window = glfwCreateWindow(width, height, "miniVulkanRenderer2", nullptr, nullptr);
 
 
 
@@ -25,7 +25,11 @@ void MiniVulkanRenderer::init(int width, int height)
 	glm::vec4 vec;
 	auto test = matrix * vec;
 
-	mInstance = std::make_unique<Instance>();
+	instance = std::make_unique<Instance>();
+
+	auto& gpu = instance->getFirstGpu();
+
+
 }
 
 void MiniVulkanRenderer::loop()

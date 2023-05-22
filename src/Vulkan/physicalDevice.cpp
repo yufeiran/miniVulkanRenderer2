@@ -52,4 +52,9 @@ VkBool32 PhysicalDevice::isPresentSupported(VkSurfaceKHR surface, uint32_t queue
 	return presentSupported;
 }
 
+VkPhysicalDevice PhysicalDevice::getHandle() const
+{
+	return handle;
+}
+
 }

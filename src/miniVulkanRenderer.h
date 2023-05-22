@@ -9,6 +9,7 @@
 #include"glm/mat4x4.hpp"
 #include"Common/miniLog.h"
 #include"Vulkan/instance.h"
+#include"Vulkan/physicalDevice.h"
 
 using namespace mini;
 class MiniVulkanRenderer
@@ -19,8 +20,9 @@ public:
 	void loop();
 	~MiniVulkanRenderer();
 private:
-	int mWidth, mHeight;
+	int width, height;
 
 	GLFWwindow* window = nullptr;
-	std::unique_ptr<Instance> mInstance;
+	std::unique_ptr<Instance> instance;
+	std::unique_ptr<PhysicalDevice> physicalDevice;
 };
