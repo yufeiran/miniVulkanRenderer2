@@ -10,6 +10,7 @@
 #include"Common/miniLog.h"
 #include"Vulkan/instance.h"
 #include"Vulkan/physicalDevice.h"
+#include"Vulkan/device.h"
 
 using namespace mini;
 class MiniVulkanRenderer
@@ -25,4 +26,5 @@ private:
 	GLFWwindow* window = nullptr;
 	std::unique_ptr<Instance> instance;
 	std::unique_ptr<PhysicalDevice> physicalDevice;
+	std::unique_ptr<Device> device;
 };

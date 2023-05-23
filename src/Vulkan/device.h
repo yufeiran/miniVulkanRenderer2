@@ -1,6 +1,8 @@
 #pragma once
 #include"vk_common.h"
 #include"physicalDevice.h"
+#include"queue.h"
+
 // 
 namespace mini
 {
@@ -15,6 +17,11 @@ public:
 
 	bool isExtensionSupported(const std::string& extension);
 
+	const VkDevice& getHandle() const
+	{
+		return handle;
+	}
+
 private:
 	VkDevice handle{ VK_NULL_HANDLE };
 
@@ -26,7 +33,8 @@ private:
 
 	std::vector<const char*>enabledExtension{};
 
-	
+	std::unique_ptr<Queue>graphicQueue;
+
 };
 
 }

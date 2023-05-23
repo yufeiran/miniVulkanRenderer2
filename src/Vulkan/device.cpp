@@ -30,15 +30,15 @@ Device::Device(PhysicalDevice& gpu, std::vector<const char*> requestdExtensions)
 	supportDeviceExtension = std::vector<VkExtensionProperties>(deviceExtensionCount);
 	VK_CHECK(vkEnumerateDeviceExtensionProperties(gpu.getHandle(), nullptr, &deviceExtensionCount, supportDeviceExtension.data()));
 
-	// Display supported extensions
-	if (supportDeviceExtension.size() > 0)
-	{
-		Log("Device supports extension:");
-		for (const auto& extension : supportDeviceExtension)
-		{
-			Log(" " + std::string( extension.extensionName));
-		}
-	}
+	//// Display supported extensions
+	//if (supportDeviceExtension.size() > 0)
+	//{
+	//	Log("Device supports extension:");
+	//	for (const auto& extension : supportDeviceExtension)
+	//	{
+	//		Log(" " + std::string( extension.extensionName));
+	//	}
+	//}
 
 	std::vector<const char*> unsupportedExtensions{};
 	for (auto& extension : requestdExtensions)
@@ -85,11 +85,31 @@ Device::Device(PhysicalDevice& gpu, std::vector<const char*> requestdExtensions)
 	{
 		throw Error("Cannot create device");
 	}
+	
+	// find a queue can do graphic 
+
+	for (uint32_t queueFamilyIndex = 0; queueFamilyIndex < queueFamilyPropertiesCount; ++queueFamilyIndex)
+	{
+		const VkQueueFamilyProperties& queueFamilyProperty = gpu.getQueueFamilyProperties()[queueFamilyIndex];
+		if (queueFamilyProperty.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+		{
+			// TODO: check surface support
+			VkBool32 presentSupport = VK_TRUE;
+			graphicQueue = std::make_unique<Queue>(*this, queueFamilyIndex, queueFamilyProperty, presentSupport, 0);
+			Log("Graphic Queue created!");
+			break;
+		}
+	}
+
 
 }
 
 Device::~Device()
 {
+	if (handle != VK_NULL_HANDLE)
+	{
+		vkDestroyDevice(handle, nullptr);
+	}
 }
 
 bool Device::isExtensionSupported(const std::string& extension)

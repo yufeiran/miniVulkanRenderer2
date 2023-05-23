@@ -13,6 +13,7 @@ MiniVulkanRenderer::MiniVulkanRenderer()
 
 void MiniVulkanRenderer::init(int width, int height)
 {
+	Log("miniVulkanRenderer init start");
 	width = width;
 	height = height;
 	glfwInit();
@@ -28,8 +29,9 @@ void MiniVulkanRenderer::init(int width, int height)
 	instance = std::make_unique<Instance>();
 
 	auto& gpu = instance->getFirstGpu();
+	device = std::make_unique<Device>(gpu);
 
-
+	Log("miniVulkanRenderer init finish");
 }
 
 void MiniVulkanRenderer::loop()

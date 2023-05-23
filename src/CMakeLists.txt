@@ -17,6 +17,10 @@ set(VULKAN_FRAMEWORK_FILES
     ./Vulkan/physicalDevice.cpp
     ./Vulkan/queue.h 
     ./Vulkan/queue.cpp 
+    ./Vulkan/commandBuffer.h 
+    ./Vulkan/commandBuffer.cpp
+    ./Vulkan/commandPool.h 
+    ./Vulkan/commandPool.cpp 
 )
 
 set(COMMON_FILES
