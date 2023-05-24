@@ -11,13 +11,14 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 	void* pUserData
 ) {
 	if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
+		//Log("validation layer : " + toString(pCallbackData->messageIdNumber) + " - " + pCallbackData->pMessageIdName + " : " + pCallbackData->pMessage, INFO_TYPE);
 
 	}
 	else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
-		Log("validation layer : " + toString(pCallbackData->messageIdNumber) + " - " + pCallbackData->pMessageIdName + " : " + pCallbackData->pMessage, WARNING);
+		Log("validation layer : " + toString(pCallbackData->messageIdNumber) + " - " + pCallbackData->pMessageIdName + " : " + pCallbackData->pMessage, WARNING_TYPE);
 	}
 	else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
-		Log("validation layer : " + toString(pCallbackData->messageIdNumber) + " - " + pCallbackData->pMessageIdName + " : " + pCallbackData->pMessage, ERROR);
+		Log("validation layer : " + toString(pCallbackData->messageIdNumber) + " - " + pCallbackData->pMessageIdName + " : " + pCallbackData->pMessage, ERROR_TYPE);
 
 	}
 	return VK_FALSE;
@@ -42,7 +43,7 @@ bool enableExtension(const char* requiredExtName,
 		}
 		return true;
 	}
-	Log("Extension" + std::string(requiredExtName) + " not found", WARNING);
+	Log("Extension" + std::string(requiredExtName) + " not found", WARNING_TYPE);
 	return false;
 }
 
@@ -76,7 +77,7 @@ bool enableAllValidateLayers(const std::vector<const char*>& required,
 		}
 		if (!found)
 		{
-			Log("Validation Layer " + std::string(layer) + " no found", WARNING);
+			Log("Validation Layer " + std::string(layer) + " no found", WARNING_TYPE);
 			return false;
 		}
 	}
@@ -160,7 +161,7 @@ Instance::Instance(const std::vector<const char*>& requiredExtensions,
 		createInfo.enabledLayerCount = requiredValidationLayers.size();
 		createInfo.ppEnabledLayerNames = requiredValidationLayers.data();
 		if (hasDebugUtils) {
-			debugUtilsCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+			debugUtilsCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT| VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
 			debugUtilsCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 			debugUtilsCreateInfo.pfnUserCallback = debugCallback;
 			debugUtilsCreateInfo.pUserData = nullptr;
@@ -249,7 +250,7 @@ PhysicalDevice& Instance::getSuitableGpu(VkSurfaceKHR surface)
 	}
 
 	// Or just pick the first one
-	Log("Couldn't find a discrete physical device, picking default GPU", WARNING);
+	Log("Couldn't find a discrete physical device, picking default GPU", WARNING_TYPE);
 	return *gpus[0];
 
 }
@@ -270,15 +271,19 @@ PhysicalDevice& Instance::getFirstGpu()
 	}
 
 	// Or just pick the first one
-	Log("Couldn't find a discrete physical device, picking default GPU", WARNING);
+	Log("Couldn't find a discrete physical device, picking default GPU", WARNING_TYPE);
 	return *gpus[0];
 }
 bool Instance::isEnable(const char* extension) const
 {
 	return std::find_if(enableExtensions.begin(), enableExtensions.end(),
-		[extension](const char* enabledExtension) {
-			return strcmp(extension, enabledExtension) == 0;
+		[extension](const char* enabledExtensions) {
+			return strcmp(extension, enabledExtensions) == 0;
 		}) != enableExtensions.end();
+}
+VkInstance Instance::getHandle() const
+{
+	return handle;
 }
 }
 

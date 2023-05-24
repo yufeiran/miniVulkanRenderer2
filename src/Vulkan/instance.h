@@ -24,6 +24,8 @@ public:
 
 	bool isEnable(const char* extension)const;
 
+	VkInstance getHandle() const;
+
 private:
 	VkInstance handle{ VK_NULL_HANDLE };
 	std::vector<const char*> enableExtensions;

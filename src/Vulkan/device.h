@@ -12,6 +12,7 @@ class Device
 {
 public:
 	Device(PhysicalDevice& gpu,
+		VkSurfaceKHR surface,
 		std::vector<const char*> requestdExtensions = {});
 	~Device();
 
@@ -22,6 +23,11 @@ public:
 		return handle;
 	}
 
+	const PhysicalDevice& getPhysicalDevice() const;
+
+	Queue& getGraphicQueue() const;
+	Queue& getPresentQueue() const;
+
 private:
 	VkDevice handle{ VK_NULL_HANDLE };
 
@@ -31,9 +37,11 @@ private:
 
 	std::vector<VkExtensionProperties> supportDeviceExtension;
 
-	std::vector<const char*>enabledExtension{};
+	std::vector<const char*>enabledExtensions{};
 
 	std::unique_ptr<Queue>graphicQueue;
+
+	std::unique_ptr<Queue>presentQueue;
 
 };
 

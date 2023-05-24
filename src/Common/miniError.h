@@ -8,7 +8,7 @@ namespace mini
 	{
 	public:
 		Error(const char* msg) :error_message(msg) {
-			Log(msg, ERROR);
+			Log(msg, ERROR_TYPE);
 		}
 		const char* what() const noexcept override {
 			return error_message.c_str();

@@ -34,4 +34,5 @@
 /bin 
 /build 
 /.vscode 
+/.VSCodeCounter
 imgui.ini

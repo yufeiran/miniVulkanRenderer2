@@ -1,12 +1,16 @@
 #pragma once 
 #include<vector>
 #include<unordered_map>
+#include<cstdint>
+#include<limits>
+#include<algorithm>
 
-
+#define VK_USE_PLATFORM_WIN32_KHR
 #include"Volk/volk.h"
 
 
 #include"GLFW/glfw3.h"
+
 
 #include"Common/miniLog.h"
 #include"Common/miniError.h"
@@ -31,7 +35,7 @@ namespace mini
 		VkResult err = x;                                           \
 		if (err)                                                    \
 		{                                                           \
-			Log("Detected Vulkan error: "+toString(err),ERROR); \
+			Log("Detected Vulkan error: "+toString(err),ERROR_TYPE); \
 			abort();                                                \
 		}                                                           \
 	} while (0)

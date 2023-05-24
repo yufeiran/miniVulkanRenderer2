@@ -2,8 +2,11 @@
 
 namespace mini
 {
-Device::Device(PhysicalDevice& gpu, std::vector<const char*> requestdExtensions)
-	:gpu(gpu)
+Device::Device(PhysicalDevice& gpu, 
+	VkSurfaceKHR surface,
+	std::vector<const char*> requestdExtensions)
+	:gpu(gpu),
+	surface(surface)
 {
 	Log("Selected GPU: " + std::string(gpu.getProperties().deviceName));
 
@@ -45,24 +48,24 @@ Device::Device(PhysicalDevice& gpu, std::vector<const char*> requestdExtensions)
 	{
 		if (isExtensionSupported(extension))
 		{
-			enabledExtension.push_back(extension);
+			enabledExtensions.push_back(extension);
 		}
 		else {
 			unsupportedExtensions.push_back(extension);
 		}
 	}
 
-	if (enabledExtension.size() > 0)
+	if (enabledExtensions.size() > 0)
 	{
-		Log("Device support the following extension:");
-		for (const auto& it : enabledExtension)
+		Log("Device enable the following extension:");
+		for (const auto& it : enabledExtensions)
 		{
 			Log(it);
 		}
 	}
 	if (unsupportedExtensions.size() > 0)
 	{
-		Log("Following Device extension not support:", WARNING);
+		Log("Following Device extension not support:", WARNING_TYPE);
 		for (const auto& it : unsupportedExtensions)
 		{
 			Log(it);
@@ -76,7 +79,8 @@ Device::Device(PhysicalDevice& gpu, std::vector<const char*> requestdExtensions)
 	// get all feature request!
 	createInfo.pQueueCreateInfos = queueCreateInfos.data();
 	createInfo.queueCreateInfoCount = queueCreateInfos.size();
-
+	createInfo.enabledExtensionCount = enabledExtensions.size();
+	createInfo.ppEnabledExtensionNames = enabledExtensions.data();
 	createInfo.pEnabledFeatures = &gpu.getFeatures();
 
 	VkResult result = vkCreateDevice(gpu.getHandle(), &createInfo, nullptr, &handle);
@@ -94,10 +98,30 @@ Device::Device(PhysicalDevice& gpu, std::vector<const char*> requestdExtensions)
 		if (queueFamilyProperty.queueFlags & VK_QUEUE_GRAPHICS_BIT)
 		{
 			// TODO: check surface support
-			VkBool32 presentSupport = VK_TRUE;
-			graphicQueue = std::make_unique<Queue>(*this, queueFamilyIndex, queueFamilyProperty, presentSupport, 0);
-			Log("Graphic Queue created!");
+			VkBool32 presentSupport = gpu.isPresentSupported(surface, queueFamilyIndex);
+			int index = 0;
+			graphicQueue = std::make_unique<Queue>(*this, queueFamilyIndex, queueFamilyProperty, presentSupport, index);
+			Log("Graphic Queue created! queueFamilyIndex:" + toString(queueFamilyIndex)+" index:"+toString(index));
 			break;
+		}
+	}
+
+	
+	// find a queue can do present
+	for (uint32_t queueFamilyIndex = 0; queueFamilyIndex < queueFamilyPropertiesCount; ++queueFamilyIndex)
+	{
+		const VkQueueFamilyProperties& queueFamilyProperty = gpu.getQueueFamilyProperties()[queueFamilyIndex];
+		if (queueFamilyProperty.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+		{
+
+			VkBool32 presentSupport = gpu.isPresentSupported(surface, queueFamilyIndex);
+			if (presentSupport)
+			{
+				int index = 0;
+				presentQueue = std::make_unique<Queue>(*this, queueFamilyIndex, queueFamilyProperty, presentSupport, index);
+				Log("Present Queue created! queueFamilyIndex:"+toString(queueFamilyIndex) + " index:" + toString(index));
+				break;
+			}
 		}
 	}
 
@@ -122,6 +146,21 @@ bool Device::isExtensionSupported(const std::string& extension)
 		}
 	}
 	return false;
+}
+
+const PhysicalDevice& Device::getPhysicalDevice() const
+{
+	return gpu;
+}
+
+Queue& Device::getGraphicQueue() const
+{
+	return *graphicQueue;
+}
+
+Queue& Device::getPresentQueue() const
+{
+	return *presentQueue;
 }
 
 }
