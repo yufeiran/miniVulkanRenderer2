@@ -4,6 +4,7 @@
 #include<cstdint>
 #include<limits>
 #include<algorithm>
+#include<string>
 
 #define VK_USE_PLATFORM_WIN32_KHR
 #include"Volk/volk.h"

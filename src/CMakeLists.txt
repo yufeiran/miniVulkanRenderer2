@@ -27,6 +27,8 @@ set(VULKAN_FRAMEWORK_FILES
     ./Vulkan/imageView.cpp 
     ./Vulkan/image.h
     ./Vulkan/image.cpp
+    ./Vulkan/shaderModule.h 
+    ./Vulkan/shaderModule.cpp 
 
 )
 

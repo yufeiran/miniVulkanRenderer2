@@ -38,6 +38,12 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	createSwapChainImagesAndImageViews();
 
+
+
+	shaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/vertexShader.vert.spv", *device, VK_SHADER_STAGE_VERTEX_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/fragmentShader.frag.spv", *device, VK_SHADER_STAGE_FRAGMENT_BIT));
+
+	
 	Log("miniVulkanRenderer init finish");
 }
 
