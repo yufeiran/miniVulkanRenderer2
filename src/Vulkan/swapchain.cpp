@@ -6,10 +6,20 @@
 namespace mini
 {
 
-
-Swapchain::Swapchain(Device& device, VkSurfaceKHR surface, VkExtent2D extent)
-	:device(device),surface(surface)
+//把usage的flag压缩成一个flag
+void Swapchain::compImageUsageFlags()
 {
+	swapchianUsageFlags = *imageUsageFlags.begin();
+	for (auto flag : imageUsageFlags) {
+		swapchianUsageFlags =static_cast<VkImageUsageFlagBits>( swapchianUsageFlags & flag);
+	}
+
+}
+
+Swapchain::Swapchain(Device& device, VkSurfaceKHR surface, VkExtent2D extent, const std::set<VkImageUsageFlagBits>& imageUsageFlags)
+	:device(device),surface(surface),imageUsageFlags(imageUsageFlags)
+{
+	compImageUsageFlags();
 	SwapChainSupportDetails swapChainSupport = querySwapChainSupport();
 
 	VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
@@ -23,6 +33,9 @@ Swapchain::Swapchain(Device& device, VkSurfaceKHR surface, VkExtent2D extent)
 	if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount) {
 		imageCount = swapChainSupport.capabilities.maxImageCount;
 	}
+
+	VkFormatProperties formatProperties;
+	vkGetPhysicalDeviceFormatProperties(device.getPhysicalDevice().getHandle(), surfaceFormat.format, &formatProperties);
 
 	VkSwapchainCreateInfoKHR createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -153,6 +166,11 @@ VkFormat Swapchain::getImageFormat()
 VkExtent2D Swapchain::getExtent()
 {
 	return swapChainExtent;
+}
+
+VkImageUsageFlagBits Swapchain::getImageUsage()
+{
+	return swapchianUsageFlags;
 }
 
 }

@@ -4,9 +4,15 @@
 namespace mini
 {
 
-ImageView::ImageView(Image& image, VkFormat format, VkImageViewType viewType)
-	:device(image.getDevice())
+ImageView::ImageView(Image& image ,VkFormat format, VkImageViewType viewType)
+	:device(image.getDevice()),format(format),image{image}
 {
+	if (format == VK_FORMAT_UNDEFINED)
+	{
+		format = image.getFormat();
+		this->format = image.getFormat();
+	}
+
 	VkImageViewCreateInfo createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	createInfo.image = image.getHandle();
@@ -33,6 +39,16 @@ ImageView::~ImageView()
 	if (handle != VK_NULL_HANDLE) {
 		vkDestroyImageView(device.getHandle(), handle, nullptr);
 	}
+}
+
+Device& ImageView::getDevice() const
+{
+	return device;
+}
+
+Image& ImageView::getImage() const
+{
+	return image;
 }
 
 }

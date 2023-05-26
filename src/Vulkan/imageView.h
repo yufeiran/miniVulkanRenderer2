@@ -8,8 +8,11 @@ namespace mini
 	class ImageView
 	{
 	public:
-		ImageView(Image& image, VkFormat format = VK_FORMAT_UNDEFINED, VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_2D);
+		ImageView(Image& image,VkFormat format = VK_FORMAT_UNDEFINED, VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_2D);
 		~ImageView();
+		Device& getDevice() const;
+
+		Image& getImage() const;
 
 
 
@@ -21,7 +24,7 @@ namespace mini
 
 		VkFormat format{};
 
-		Image* image{};
+		Image& image;
 
 	};
 

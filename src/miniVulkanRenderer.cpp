@@ -20,9 +20,7 @@ void MiniVulkanRenderer::init(int width, int height)
 
 
 
-	glm::mat4 matrix;
-	glm::vec4 vec;
-	auto test = matrix * vec;
+
 
 	instance = std::make_unique<Instance>();
 
@@ -43,6 +41,7 @@ void MiniVulkanRenderer::init(int width, int height)
 	shaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/vertexShader.vert.spv", *device, VK_SHADER_STAGE_VERTEX_BIT));
 	shaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/fragmentShader.frag.spv", *device, VK_SHADER_STAGE_FRAGMENT_BIT));
 
+	graphicPipeline = std::make_unique<GraphicPipeline>(shaderModules, *device, swapchain->getExtent(), swapchain->getImageFormat());
 	
 	Log("miniVulkanRenderer init finish");
 }
@@ -56,13 +55,14 @@ void MiniVulkanRenderer::loop()
 
 void MiniVulkanRenderer::createSwapChainImagesAndImageViews()
 {
-	auto swapchainImagesRaw = swapchain->getImages();
+	auto &swapchainImagesRaw = swapchain->getImages();
 	auto swapchainExtent = swapchain->getExtent();
 	auto swapchianFormat = swapchain->getImageFormat();
+	auto swapchianUsage = swapchain->getImageUsage();
 
 	for (auto image : swapchainImagesRaw)
 	{
-		swapChainImages.push_back(std::make_unique<Image>(image, *device, swapchainExtent, swapchianFormat));
+		swapChainImages.push_back(std::make_unique<Image>(image, *device, swapchainExtent, swapchianFormat, swapchianUsage));
 	}
 
 	for (auto& image : swapChainImages)

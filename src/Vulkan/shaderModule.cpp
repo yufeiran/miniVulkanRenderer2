@@ -16,6 +16,11 @@ ShaderModule::ShaderModule(const std::string filename, Device& device, VkShaderS
 		throw Error("Failed to create shader Module!");
 	}
 
+	stageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	stageCreateInfo.stage = stage;
+	stageCreateInfo.module = handle;
+	stageCreateInfo.pName = "main";
+
 }
 
 ShaderModule::~ShaderModule()
@@ -33,6 +38,11 @@ VkShaderModule ShaderModule::getHandle() const
 VkShaderStageFlagBits ShaderModule::getStageFlag() const
 {
 	return stage;
+}
+
+VkPipelineShaderStageCreateInfo ShaderModule::getStageCreateInfo() const
+{
+	return stageCreateInfo;
 }
 
 

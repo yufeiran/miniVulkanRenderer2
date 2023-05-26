@@ -15,12 +15,16 @@ public:
 
 	VkShaderStageFlagBits getStageFlag() const;
 
+	VkPipelineShaderStageCreateInfo getStageCreateInfo() const;
+
 private:
 	Device& device;
 
 	std::vector<char> loadFile(std::string filename);
 
 	VkShaderModule handle{ VK_NULL_HANDLE };
+
+	VkPipelineShaderStageCreateInfo stageCreateInfo{};
 
 	std::string filename;
 

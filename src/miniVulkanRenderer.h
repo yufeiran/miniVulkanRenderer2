@@ -16,6 +16,8 @@
 #include"Vulkan/image.h"
 #include"Vulkan/swapchain.h"
 #include"Vulkan/shaderModule.h"
+#include"Vulkan/graphicPipeline.h"
+
 
 using namespace mini;
 class MiniVulkanRenderer
@@ -51,5 +53,7 @@ private:
 	std::vector<std::unique_ptr<ImageView>> swapChainImageViews;
 
 	std::vector<std::unique_ptr<ShaderModule>>shaderModules;
+
+	std::unique_ptr<GraphicPipeline>graphicPipeline;
 
 };

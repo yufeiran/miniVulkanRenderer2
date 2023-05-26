@@ -11,7 +11,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 	void* pUserData
 ) {
 	if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
-		Log("validation layer : " + toString(pCallbackData->messageIdNumber) + " - " + pCallbackData->pMessageIdName + " : " + pCallbackData->pMessage, INFO_TYPE);
+		//Log("validation layer : " + toString(pCallbackData->messageIdNumber) + " - " + pCallbackData->pMessageIdName + " : " + pCallbackData->pMessage, INFO_TYPE);
 
 	}
 	else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
