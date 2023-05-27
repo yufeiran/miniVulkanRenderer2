@@ -1,10 +1,11 @@
+#pragma once
 #include"Vulkan/vk_common.h"
+#include"Vulkan/image.h"
+#include"Vulkan/imageView.h"
 
 namespace mini
 {
 class Device;
-class Image;
-class ImageView;
 
 
 
@@ -41,12 +42,18 @@ struct Attachment
 class RenderTarget
 {
 public:
+using CreateFunc = std::function <std::unique_ptr<RenderTarget>(Image&&)>;
+
+static const CreateFunc DEFAULT_CREATE_FUNC;
 
 RenderTarget(std::vector<Image>&& images);
 
 RenderTarget(std::vector<ImageView>&& imageViews);
 
 const VkExtent2D& getExtent() const;
+
+const std::vector<ImageView>& getViews() const;
+
 
 private:
 

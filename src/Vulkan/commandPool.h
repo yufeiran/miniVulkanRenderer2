@@ -9,7 +9,8 @@ class Device;
 class CommandPool
 {
 public:
-
+	CommandPool();
+	~CommandPool();
 private:
 	Device& device;
 	VkCommandPool handle{ VK_NULL_HANDLE };

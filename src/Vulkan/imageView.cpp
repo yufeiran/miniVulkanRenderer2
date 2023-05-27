@@ -51,4 +51,9 @@ Image& ImageView::getImage() const
 	return image;
 }
 
+VkImageView ImageView::getHandle() const
+{
+	return handle;
+}
+
 }

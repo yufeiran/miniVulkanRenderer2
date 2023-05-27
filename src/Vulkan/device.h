@@ -25,6 +25,8 @@ public:
 
 	const PhysicalDevice& getPhysicalDevice() const;
 
+	VkResult waitIdle() const;
+
 	Queue& getGraphicQueue() const;
 	Queue& getPresentQueue() const;
 

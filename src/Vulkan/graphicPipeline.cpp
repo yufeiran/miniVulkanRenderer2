@@ -1,6 +1,7 @@
 #include"graphicPipeline.h"
 #include"shaderModule.h"
 #include"device.h"
+#include"Rendering/renderPass.h"
 
 namespace mini
 {
@@ -109,7 +110,8 @@ GraphicPipeline::GraphicPipeline(std::vector<std::unique_ptr<ShaderModule>>& sha
 		throw Error("Failed to crate pipeline layout");
 	}
 	Log("GraphicPipeline layout created!");
-	createRenderPass();
+
+	renderPass = std::make_unique<RenderPass>(device, swapChainImageFormat);
 
 	VkGraphicsPipelineCreateInfo pipelineInfo{};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -126,7 +128,7 @@ GraphicPipeline::GraphicPipeline(std::vector<std::unique_ptr<ShaderModule>>& sha
 
 	pipelineInfo.layout = pipelineLayout;
 
-	pipelineInfo.renderPass = renderPass;
+	pipelineInfo.renderPass = renderPass->getHandle();
 	pipelineInfo.subpass = 0;
 	
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
@@ -147,47 +149,13 @@ GraphicPipeline::~GraphicPipeline()
 	if (pipelineLayout != VK_NULL_HANDLE) {
 		vkDestroyPipelineLayout(device.getHandle(), pipelineLayout, nullptr);
 	}
-	if (renderPass != VK_NULL_HANDLE) {
-		vkDestroyRenderPass(device.getHandle(), renderPass, nullptr);
-	}
+
 }
 
-void GraphicPipeline::createRenderPass()
+
+RenderPass& GraphicPipeline::getRenderPass() const
 {
-	VkAttachmentDescription colorAttachment{};
-	colorAttachment.format = swapChainImageFormat;
-	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-
-	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-
-	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-
-	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-	VkAttachmentReference colorAttachmentRef{};
-	colorAttachmentRef.attachment = 0;
-	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-	VkSubpassDescription subpass{};
-	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-	subpass.colorAttachmentCount = 1;
-	subpass.pColorAttachments = &colorAttachmentRef;
-
-
-	VkRenderPassCreateInfo renderPassInfo{};
-	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	renderPassInfo.attachmentCount = 1;
-	renderPassInfo.pAttachments = &colorAttachment;
-	renderPassInfo.subpassCount = 1;
-	renderPassInfo.pSubpasses = &subpass;
-
-	if (vkCreateRenderPass(device.getHandle(), &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
-		throw Error("Failed to create render pass");
-	}
-
+	return *renderPass;
 }
 
 }

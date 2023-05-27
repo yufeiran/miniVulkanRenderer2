@@ -17,6 +17,7 @@
 #include"Vulkan/swapchain.h"
 #include"Vulkan/shaderModule.h"
 #include"Vulkan/graphicPipeline.h"
+#include"Rendering/renderContext.h"
 
 
 using namespace mini;
@@ -46,11 +47,13 @@ private:
 
 	std::unique_ptr<Device> device;
 
+	std::unique_ptr<RenderContext> renderContext;
+
 	std::unique_ptr<Swapchain> swapchain;
 
-	std::vector<std::unique_ptr<Image>> swapChainImages;
+	std::vector<std::unique_ptr<mini::Image>> swapChainImages;
 
-	std::vector<std::unique_ptr<ImageView>> swapChainImageViews;
+	std::vector<std::unique_ptr<mini::ImageView>> swapChainImageViews;
 
 	std::vector<std::unique_ptr<ShaderModule>>shaderModules;
 

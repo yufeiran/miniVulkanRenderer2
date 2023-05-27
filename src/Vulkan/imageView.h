@@ -1,3 +1,4 @@
+#pragma once
 #include"vk_common.h"
 
 namespace mini
@@ -14,7 +15,7 @@ namespace mini
 
 		Image& getImage() const;
 
-
+		VkImageView getHandle() const;
 
 	private:
 

@@ -1,3 +1,4 @@
+#pragma once
 #include"vk_common.h"
 
 namespace mini
@@ -10,8 +11,8 @@ class Device;
 class Image
 {
 public:
-	Image( VkImage handle, Device& device, const VkExtent2D& extent, VkFormat format,
-		VkImageUsageFlagBits imageUsage,VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT);
+	Image(Device& device, VkImage handle, const VkExtent2D& extent, VkFormat format,
+		VkImageUsageFlags imageUsage,VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT);
 	VkImage getHandle() const;
 
 	Device& getDevice() const;

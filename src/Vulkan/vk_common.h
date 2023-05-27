@@ -6,6 +6,7 @@
 #include<algorithm>
 #include<string>
 #include<set>
+#include<functional>
 
 #define VK_USE_PLATFORM_WIN32_KHR
 #include"Volk/volk.h"

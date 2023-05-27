@@ -19,11 +19,26 @@ struct SwapChainSupportDetails {
 	std::vector<VkPresentModeKHR> presentModes;
 };
 
+struct SwapchainProperties
+{
+	VkSwapchainKHR oldSwapchain;
+	uint32_t imageCount{ 3 };
+	VkExtent2D extent{};
+	VkSurfaceFormatKHR surfaceFormat{};
+	uint32_t arrayLayers;
+	VkImageUsageFlags imageUsage;
+	VkSurfaceTransformFlagBitsKHR preTransform;
+	VkCompositeAlphaFlagBitsKHR compositeAlpha;
+	VkPresentModeKHR presentMode;
+};
+
 class Swapchain
 {
 public:
 	Swapchain(Device&device , VkSurfaceKHR surface,VkExtent2D extent,
 		const std::set<VkImageUsageFlagBits>&imageUsageFlags ={VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,VK_IMAGE_USAGE_TRANSFER_SRC_BIT});
+
+	void create();
 
 	~Swapchain();
 
@@ -41,13 +56,13 @@ public:
 
 	VkExtent2D getExtent();
 
-	VkImageUsageFlagBits getImageUsage();
+	VkImageUsageFlags getImageUsage();
 
-
+	
 
 
 private:
-	void compImageUsageFlags();
+	VkImageUsageFlagBits compImageUsageFlags();
 	Device& device;
 
 	VkSurfaceKHR surface{ VK_NULL_HANDLE };
@@ -64,7 +79,8 @@ private:
 
 	std::vector<VkPresentModeKHR> presentModes{};
 
-	VkImageUsageFlagBits swapchianUsageFlags;
+	SwapchainProperties properties;
+
 
 	// A list for present modes in order of priority ( 0 is highest)
 	std::vector<VkPresentModeKHR> presentModePriorityList = {

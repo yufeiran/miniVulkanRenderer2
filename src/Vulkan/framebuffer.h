@@ -4,11 +4,13 @@
 namespace mini
 {
 class Device;
+class RenderTarget;
+class RenderPass;
 
 class Framebuffer
 {
 public:
-	Framebuffer();
+	Framebuffer(Device& device,RenderTarget&renderTarget,RenderPass&renderPass);
 
 	~Framebuffer();
 
@@ -20,7 +22,6 @@ private:
 
 	VkExtent2D extent{};
 };
-
 
 
 }

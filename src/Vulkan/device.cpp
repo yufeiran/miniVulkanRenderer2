@@ -153,6 +153,11 @@ const PhysicalDevice& Device::getPhysicalDevice() const
 	return gpu;
 }
 
+VkResult Device::waitIdle() const
+{
+	return vkDeviceWaitIdle(handle);
+}
+
 Queue& Device::getGraphicQueue() const
 {
 	return *graphicQueue;

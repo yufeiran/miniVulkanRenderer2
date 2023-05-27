@@ -57,6 +57,8 @@ set(RENDERING_FILES
     ./Rendering/renderTarget.cpp 
     ./Rendering/renderFrame.h 
     ./Rendering/renderFrame.cpp 
+    ./Rendering/renderPass.h 
+    ./Rendering/renderPass.cpp 
 )
 
 source_group("\\" FILES ${RENDERER_FILES})

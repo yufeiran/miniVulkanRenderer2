@@ -32,16 +32,16 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	device = std::make_unique<Device>(gpu, surface, deviceExtension);
 
-	swapchain = std::make_unique<Swapchain>(*device, surface, window->getExtent());
+	renderContext = std::make_unique<RenderContext>(*device, surface, *window);
 
-	createSwapChainImagesAndImageViews();
+	renderContext->prepare();
 
 
 
 	shaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/vertexShader.vert.spv", *device, VK_SHADER_STAGE_VERTEX_BIT));
 	shaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/fragmentShader.frag.spv", *device, VK_SHADER_STAGE_FRAGMENT_BIT));
 
-	graphicPipeline = std::make_unique<GraphicPipeline>(shaderModules, *device, swapchain->getExtent(), swapchain->getImageFormat());
+	graphicPipeline = std::make_unique<GraphicPipeline>(shaderModules, *device, renderContext->getSurfaceExtent(), renderContext->getFormat());
 	
 	Log("miniVulkanRenderer init finish");
 }
@@ -62,7 +62,7 @@ void MiniVulkanRenderer::createSwapChainImagesAndImageViews()
 
 	for (auto image : swapchainImagesRaw)
 	{
-		swapChainImages.push_back(std::make_unique<Image>(image, *device, swapchainExtent, swapchianFormat, swapchianUsage));
+		swapChainImages.push_back(std::make_unique<Image>(*device,image,  swapchainExtent, swapchianFormat, swapchianUsage));
 	}
 
 	for (auto& image : swapChainImages)

@@ -18,7 +18,16 @@ Attachment::Attachment(VkFormat format, VkSampleCountFlagBits samples, VkImageUs
     samples(samples),
     usage(usage)
 {
+
+
 }
+
+const RenderTarget::CreateFunc RenderTarget::DEFAULT_CREATE_FUNC = [](Image&& swapchainImage)->std::unique_ptr<RenderTarget> {
+    std::vector<Image> images;
+    images.push_back(std::move(swapchainImage));
+
+    return std::make_unique<RenderTarget>(std::move(images));
+};
 
 RenderTarget::RenderTarget(std::vector<Image>&& images):
     device(images.back().getDevice()),
@@ -30,7 +39,7 @@ RenderTarget::RenderTarget(std::vector<Image>&& images):
 
     std::set<VkExtent2D, CompareExtent2D> uniqueExtent;
 
-    for (const auto& image : images)
+    for (const auto& image : this->images)
     {
         uniqueExtent.insert(image.getExtent());
     }
@@ -78,6 +87,16 @@ RenderTarget::RenderTarget(std::vector<ImageView>&& imageViews)
         attachments.emplace_back(Attachment{ image.getFormat(),image.getSampleCount(),image.getUsage() });
     }
 
+}
+
+const VkExtent2D& RenderTarget::getExtent() const
+{
+    return extent;
+}
+
+const std::vector<ImageView>& RenderTarget::getViews() const
+{
+    return views;
 }
 
 }

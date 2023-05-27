@@ -5,8 +5,8 @@ namespace mini
 
 
 
-	Image::Image(VkImage handle, Device& device, const VkExtent2D& extent, VkFormat format, 
-		VkImageUsageFlagBits imageUsage, VkSampleCountFlagBits sampleCount):
+	Image::Image( Device& device, VkImage handle, const VkExtent2D& extent, VkFormat format,
+		VkImageUsageFlags imageUsage, VkSampleCountFlagBits sampleCount):
 		device(device),handle(handle),extent(extent),format(format), usage(imageUsage),sampleCount(sampleCount)
 	{
 	}

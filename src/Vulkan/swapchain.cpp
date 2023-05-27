@@ -7,19 +7,20 @@ namespace mini
 {
 
 //把usage的flag压缩成一个flag
-void Swapchain::compImageUsageFlags()
+VkImageUsageFlagBits Swapchain::compImageUsageFlags()
 {
-	swapchianUsageFlags = *imageUsageFlags.begin();
+	VkImageUsageFlagBits flags{};
 	for (auto flag : imageUsageFlags) {
-		swapchianUsageFlags =static_cast<VkImageUsageFlagBits>( swapchianUsageFlags & flag);
+		flags =static_cast<VkImageUsageFlagBits>(flags & flag);
 	}
+	return flags;
 
 }
 
 Swapchain::Swapchain(Device& device, VkSurfaceKHR surface, VkExtent2D extent, const std::set<VkImageUsageFlagBits>& imageUsageFlags)
 	:device(device),surface(surface),imageUsageFlags(imageUsageFlags)
 {
-	compImageUsageFlags();
+
 	SwapChainSupportDetails swapChainSupport = querySwapChainSupport();
 
 	VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
@@ -37,13 +38,32 @@ Swapchain::Swapchain(Device& device, VkSurfaceKHR surface, VkExtent2D extent, co
 	VkFormatProperties formatProperties;
 	vkGetPhysicalDeviceFormatProperties(device.getPhysicalDevice().getHandle(), surfaceFormat.format, &formatProperties);
 
+	properties.imageCount = imageCount;
+	properties.extent = surfaceExtent;
+	properties.arrayLayers = 1;
+	properties.surfaceFormat = surfaceFormat;
+	properties.imageUsage = compImageUsageFlags();
+	properties.preTransform = swapChainSupport.capabilities.currentTransform;
+	properties.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+	properties.oldSwapchain = VK_NULL_HANDLE;
+	properties.presentMode = presentMode;
+
+	imageFormat = surfaceFormat.format;
+	swapChainExtent = surfaceExtent;
+
+	
+
+
+}
+void Swapchain::create()
+{
 	VkSwapchainCreateInfoKHR createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 	createInfo.surface = surface;
-	createInfo.minImageCount = imageCount;
-	createInfo.imageColorSpace = surfaceFormat.colorSpace;
-	createInfo.imageFormat = surfaceFormat.format;
-	createInfo.imageExtent = surfaceExtent;
+	createInfo.minImageCount = properties.imageCount;
+	createInfo.imageColorSpace = properties.surfaceFormat.colorSpace;
+	createInfo.imageFormat = properties.surfaceFormat.format;
+	createInfo.imageExtent = properties.extent;
 	createInfo.imageArrayLayers = 1;
 	createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
@@ -54,23 +74,21 @@ Swapchain::Swapchain(Device& device, VkSurfaceKHR surface, VkExtent2D extent, co
 	createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	createInfo.queueFamilyIndexCount = 0;
 	createInfo.pQueueFamilyIndices = nullptr;
-	createInfo.preTransform = swapChainSupport.capabilities.currentTransform;
-	createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-	createInfo.presentMode = presentMode;
+	createInfo.preTransform = properties.preTransform;
+	createInfo.compositeAlpha = properties.compositeAlpha;
+	createInfo.presentMode = properties.presentMode;
 	createInfo.clipped = VK_TRUE;
-	createInfo.oldSwapchain = VK_NULL_HANDLE;
+	createInfo.oldSwapchain = properties.oldSwapchain;
 
 	if (vkCreateSwapchainKHR(device.getHandle(), &createInfo, nullptr, &handle) != VK_SUCCESS) {
 		throw Error("failed to create swap chain!");
 	}
 	Log("Swapchain created!");
 
-	vkGetSwapchainImagesKHR(device.getHandle(), handle, &imageCount, nullptr);
-	images.resize(imageCount);
-	vkGetSwapchainImagesKHR(device.getHandle(), handle, &imageCount, images.data());
+	vkGetSwapchainImagesKHR(device.getHandle(), handle, &properties.imageCount, nullptr);
+	images.resize(properties.imageCount);
+	vkGetSwapchainImagesKHR(device.getHandle(), handle, &properties.imageCount, images.data());
 
-	imageFormat = surfaceFormat.format;
-	swapChainExtent = surfaceExtent;
 
 
 }
@@ -168,9 +186,9 @@ VkExtent2D Swapchain::getExtent()
 	return swapChainExtent;
 }
 
-VkImageUsageFlagBits Swapchain::getImageUsage()
+VkImageUsageFlags Swapchain::getImageUsage()
 {
-	return swapchianUsageFlags;
+	return properties.imageUsage;
 }
 
 }
