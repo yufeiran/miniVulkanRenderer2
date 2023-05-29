@@ -18,6 +18,11 @@
 #include"Vulkan/shaderModule.h"
 #include"Vulkan/graphicPipeline.h"
 #include"Rendering/renderContext.h"
+#include"Vulkan/commandPool.h"
+#include"Vulkan/commandBuffer.h"
+#include"Vulkan/framebuffer.h"
+#include"Vulkan/fence.h"
+#include"Vulkan/semaphore.h"
 
 
 using namespace mini;
@@ -26,16 +31,26 @@ class MiniVulkanRenderer
 public:
 	MiniVulkanRenderer();
 
+	~MiniVulkanRenderer();
+
 	void init(int width = 1024, int height = 768);
 
 	void loop();
 
-	void createSwapChainImagesAndImageViews();
+	void drawFrame();
 
-	~MiniVulkanRenderer();
+	void recordCommandBuffer(CommandBuffer& cmd, FrameBuffer& frameBuffer);
+
+	double calFps();
+
+	void handleSizeChange();
+
+
 
 private:
 	int width, height;
+
+	long long frameCount=0;
 	
 	std::unique_ptr<Instance> instance;
 
@@ -43,17 +58,11 @@ private:
 
 	std::unique_ptr<PhysicalDevice> physicalDevice;
 
-	VkSurfaceKHR surface;
+	VkSurfaceKHR surface{};
 
 	std::unique_ptr<Device> device;
 
 	std::unique_ptr<RenderContext> renderContext;
-
-	std::unique_ptr<Swapchain> swapchain;
-
-	std::vector<std::unique_ptr<mini::Image>> swapChainImages;
-
-	std::vector<std::unique_ptr<mini::ImageView>> swapChainImageViews;
 
 	std::vector<std::unique_ptr<ShaderModule>>shaderModules;
 

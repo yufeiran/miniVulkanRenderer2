@@ -118,7 +118,7 @@ struct ImGui_ImplVulkanH_Frame
     VkFence             Fence;
     VkImage             Backbuffer;
     VkImageView         BackbufferView;
-    VkFramebuffer       Framebuffer;
+    VkFramebuffer       FrameBuffer;
 };
 
 struct ImGui_ImplVulkanH_FrameSemaphores

@@ -152,6 +152,11 @@ GraphicPipeline::~GraphicPipeline()
 
 }
 
+VkPipeline GraphicPipeline::getHandle() const
+{
+	return handle;
+}
+
 
 RenderPass& GraphicPipeline::getRenderPass() const
 {

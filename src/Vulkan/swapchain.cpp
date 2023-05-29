@@ -1,6 +1,8 @@
 #include"swapchain.h"
 #include"device.h"
 #include"imageView.h"
+#include"semaphore.h"
+#include"fence.h"
 
 
 namespace mini
@@ -189,6 +191,18 @@ VkExtent2D Swapchain::getExtent()
 VkImageUsageFlags Swapchain::getImageUsage()
 {
 	return properties.imageUsage;
+}
+
+VkSwapchainKHR Swapchain::getHandle() const
+{
+	return handle;
+}
+
+VkResult Swapchain::acquireNextImage(uint32_t&imageIndex,VkSemaphore semaphore,VkFence fence)
+{
+	uint32_t ;
+	auto result= vkAcquireNextImageKHR(device.getHandle(), handle, UINT64_MAX, semaphore, fence, &imageIndex);
+	return result;
 }
 
 }

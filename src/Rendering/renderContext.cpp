@@ -1,11 +1,17 @@
 #include"renderContext.h"
 #include"Platform/glfwWindow.h"
+#include"Vulkan/commandPool.h"
+#include"Vulkan/commandBuffer.h"
 #include"Vulkan/device.h"
 #include"Vulkan/swapchain.h"
 #include"Vulkan/image.h"
 #include"Vulkan/imageView.h"
+#include"Vulkan/semaphore.h"
+#include"Vulkan/fence.h"
 #include"renderFrame.h"	
 #include"renderTarget.h"
+
+
 
 namespace mini
 {
@@ -21,7 +27,7 @@ RenderContext::RenderContext(Device& device, VkSurfaceKHR surface, const GlfwWin
 	}
 }
 
-void RenderContext::prepare(RenderTarget::CreateFunc createRenderTargetFunc)
+void RenderContext::prepare(const RenderPass& renderPass, RenderTarget::CreateFunc createRenderTargetFunc)
 {
 	device.waitIdle();
 
@@ -39,11 +45,26 @@ void RenderContext::prepare(RenderTarget::CreateFunc createRenderTargetFunc)
 				swapchain->getImageUsage());
 
 			auto renderTarget = createRenderTargetFunc(std::move( swapchainImage));
-			frames.emplace_back(std::make_unique<RenderFrame>(device, std::move(renderTarget)));
+			frames.emplace_back(std::make_unique<RenderFrame>(device, std::move(renderTarget), renderPass));
 
 		}
 
+		commandPool = std::make_unique<CommandPool>(device);
+
+		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		{
+
+			imageAvailableSemaphores.emplace_back(std::make_unique<Semaphore>(device));
+			renderFinishedSemaphores.emplace_back(std::make_unique<Semaphore>(device));
+
+			inFlightFences.emplace_back(std::make_unique<Fence>(device, VK_FENCE_CREATE_SIGNALED_BIT));
+
+			commandBuffers.emplace_back(std::move(commandPool->createCommandBuffer()));
+		}
+
+		
 	}
+
 }
 
 VkExtent2D const& RenderContext::getSurfaceExtent() const
@@ -60,5 +81,115 @@ VkFormat RenderContext::getFormat() const
 	}
 	return format;
 }
+
+RenderFrame& RenderContext::getActiveFrame()
+{
+	assert(frameActive && "Frame is not active, call begin_frame");
+	assert(activeFrameIndex < frames.size());
+	return *frames[activeFrameIndex];
+}
+
+VkResult RenderContext::beginFrame()
+{
+	assert(!frameActive && "Frame is still active, call endFrame");
+	assert(activeFrameIndex < frames.size());
+
+
+	auto& imageAvailableSemaphore = imageAvailableSemaphores[currentFrames];
+	auto& inFlightFence = inFlightFences[currentFrames];
+
+
+	inFlightFence->wait();
+
+	VkResult result=VK_SUCCESS;
+	if (swapchain)
+	{
+		result = swapchain->acquireNextImage(activeFrameIndex, imageAvailableSemaphore->getHandle(), VK_NULL_HANDLE);
+
+	}
+	//Log("now active frame index is " + toString(activeFrameIndex));
+
+	frameActive = true;
+
+
+
+	waitFrame();
+
+	inFlightFence->reset();
+	return result;
+
+}
+
+void RenderContext::submit(const Queue& queue, const CommandBuffer* cmd)
+{
+	VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
+
+	auto& imageAvailableSemaphore = imageAvailableSemaphores[currentFrames];
+	auto& renderFinishedSemaphore = renderFinishedSemaphores[currentFrames];
+	auto& inFlightFence = inFlightFences[currentFrames];
+
+
+
+
+	VkCommandBuffer cmdBuffer =commandBuffers[currentFrames]->getHandle();
+
+	VkSemaphore waitSemaphores[] = { imageAvailableSemaphore->getHandle()};
+	VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+	submitInfo.waitSemaphoreCount = 1;
+	submitInfo.pWaitSemaphores = waitSemaphores;
+	submitInfo.pWaitDstStageMask = waitStages;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &cmdBuffer;
+
+	VkSemaphore singnalSemaphores[] = { renderFinishedSemaphore->getHandle()};
+	submitInfo.signalSemaphoreCount = 1;
+	submitInfo.pSignalSemaphores = singnalSemaphores;
+
+	if (vkQueueSubmit(device.getGraphicQueue().getHandle(), 1, &submitInfo, inFlightFence->getHandle()) != VK_SUCCESS) {
+		throw Error("Failed to submit draw command buffer!");
+	}
+
+}
+
+
+void RenderContext::endFrame()
+{
+	auto& imageAvailableSemaphore = imageAvailableSemaphores[currentFrames];
+	auto& renderFinishedSemaphore = renderFinishedSemaphores[currentFrames];
+	auto& inFlightFence = inFlightFences[currentFrames];
+
+	assert(frameActive && "Frame is not active, call beginFrame");
+	if (swapchain)
+	{
+		VkPresentInfoKHR presentInfo{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
+		VkSemaphore signalSemaphores[] = { renderFinishedSemaphore->getHandle() };
+		presentInfo.waitSemaphoreCount = 1;
+		presentInfo.pWaitSemaphores = signalSemaphores;
+		VkSwapchainKHR swapChains[] = { swapchain->getHandle() };
+		presentInfo.swapchainCount = 1;
+		presentInfo.pSwapchains = swapChains;
+		presentInfo.pImageIndices = &activeFrameIndex;
+
+		presentInfo.pResults = nullptr;
+
+		vkQueuePresentKHR(device.getPresentQueue().getHandle(), &presentInfo);
+	}
+	frameActive = false;
+
+	currentFrames = (currentFrames + 1) % MAX_FRAMES_IN_FLIGHT;
+}
+
+void RenderContext::waitFrame()
+{
+	RenderFrame& frame = getActiveFrame();
+	frame.reset();
+}
+
+CommandBuffer& RenderContext::getCurrentCommandBuffer()
+{
+	return *commandBuffers[currentFrames];
+}
+
+
 
 }

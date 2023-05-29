@@ -19,10 +19,15 @@ public:
 
 	VkExtent2D getExtent() const;
 
+	void setTitle(const char* name);
+
 	bool shouldClose() const;
 
-	void processEvent() const;
+	void processEvents() const;
 
+	void waitEvents() const;
+
+	void loadIcon(const char* filename);
 
 
 private:
@@ -31,6 +36,8 @@ private:
 	GLFWwindow* handle = nullptr;
 
 	VkSurfaceKHR surface{ VK_NULL_HANDLE };
+
+	GLFWimage iconImage{};
 
 
 	int width;

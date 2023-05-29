@@ -1,6 +1,7 @@
 #include "glfwWindow.h"
 #include"Vulkan/instance.h"
-
+#define STB_IMAGE_IMPLEMENTATION
+#include"stb_image.h"
 
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include"GLFW/glfw3native.h"
@@ -12,7 +13,10 @@ GlfwWindow::GlfwWindow(int width, int height, const char* title)
 {
 	glfwInit();
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+
 	handle = glfwCreateWindow(width, height, "miniVulkanRenderer2", nullptr, nullptr);
+	loadIcon("../../assets/logo.png");
+	
 }
 
 GlfwWindow::~GlfwWindow()
@@ -23,7 +27,10 @@ GlfwWindow::~GlfwWindow()
 	}
 	glfwDestroyWindow(handle);
 
-
+	if (iconImage.pixels != nullptr) 
+	{
+		stbi_image_free(iconImage.pixels);
+	}
 
 	glfwTerminate();
 }
@@ -64,15 +71,32 @@ VkExtent2D GlfwWindow::getExtent() const
 	return VkExtent2D{ static_cast<uint32_t>( width),static_cast<uint32_t>( height) };
 }
 
+void GlfwWindow::setTitle(const char* name)
+{
+	glfwSetWindowTitle(handle, name);
+}
+
 bool GlfwWindow::shouldClose() const
 {
 	return glfwWindowShouldClose(handle);
 
 }
 
-void GlfwWindow::processEvent() const
+void GlfwWindow::processEvents() const
 {
 	glfwPollEvents();
+}
+
+void GlfwWindow::waitEvents() const
+{
+	glfwWaitEvents();
+}
+
+void GlfwWindow::loadIcon(const char* filename)
+{
+	
+	iconImage.pixels = stbi_load(filename, &iconImage.width, &iconImage.height, 0,4);
+	glfwSetWindowIcon(handle, 1, &iconImage);
 }
 
 }

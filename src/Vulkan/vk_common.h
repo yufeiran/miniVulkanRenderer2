@@ -7,6 +7,7 @@
 #include<string>
 #include<set>
 #include<functional>
+#include<assert.h>
 
 #define VK_USE_PLATFORM_WIN32_KHR
 #include"Volk/volk.h"

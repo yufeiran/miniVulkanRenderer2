@@ -4,15 +4,23 @@
 namespace mini
 {
 class Device;
-
+class CommandBuffer;
 
 class CommandPool
 {
 public:
-	CommandPool();
+	CommandPool(Device& device);
+
 	~CommandPool();
+
+	Device& getDevice() const;
+
+	VkCommandPool getHandle() const;
+
+	std::unique_ptr<CommandBuffer>createCommandBuffer();
 private:
 	Device& device;
+
 	VkCommandPool handle{ VK_NULL_HANDLE };
 };
 

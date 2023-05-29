@@ -7,12 +7,14 @@ class Device;
 class RenderTarget;
 class RenderPass;
 
-class Framebuffer
+class FrameBuffer
 {
 public:
-	Framebuffer(Device& device,RenderTarget&renderTarget,RenderPass&renderPass);
+	FrameBuffer(Device& device,RenderTarget&renderTarget,const RenderPass&renderPass);
 
-	~Framebuffer();
+	~FrameBuffer();
+
+	VkExtent2D getExtent() const;
 
 	VkFramebuffer getHandle() const;
 private:

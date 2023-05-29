@@ -14,6 +14,8 @@ public:
 		VkFormat swapChainImageFormat);
 	~GraphicPipeline();
 
+	VkPipeline getHandle() const;
+
 	RenderPass& getRenderPass() const;
 private:
 	Device& device;

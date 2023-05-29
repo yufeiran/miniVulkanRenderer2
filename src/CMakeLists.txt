@@ -33,6 +33,10 @@ set(VULKAN_FRAMEWORK_FILES
     ./Vulkan/graphicPipeline.cpp 
     ./Vulkan/framebuffer.h 
     ./Vulkan/framebuffer.cpp
+    ./Vulkan/semaphore.h 
+    ./Vulkan/semaphore.cpp 
+    ./Vulkan/fence.h 
+    ./Vulkan/fence.cpp 
 
 )
 

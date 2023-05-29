@@ -6,8 +6,8 @@
 
 namespace mini
 {
-Framebuffer::Framebuffer(Device& device, RenderTarget& renderTarget, RenderPass& renderPass)
-	:device(device)
+FrameBuffer::FrameBuffer(Device& device, RenderTarget& renderTarget,const RenderPass& renderPass)
+	:device(device),extent(renderTarget.getExtent())
 {
 
 	extent = renderTarget.getExtent();
@@ -33,14 +33,19 @@ Framebuffer::Framebuffer(Device& device, RenderTarget& renderTarget, RenderPass&
 
 }
 
-Framebuffer::~Framebuffer()
+FrameBuffer::~FrameBuffer()
 {
 	if (handle != VK_NULL_HANDLE) {
 		vkDestroyFramebuffer(device.getHandle(), handle, nullptr);
 	}
 }
 
-VkFramebuffer Framebuffer::getHandle() const
+VkExtent2D FrameBuffer::getExtent() const
+{
+	return extent;
+}
+
+VkFramebuffer FrameBuffer::getHandle() const
 {
 	return handle;
 }

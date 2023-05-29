@@ -6,6 +6,7 @@ namespace mini
 {
 class Device;
 class ImageView;
+class Semaphore;
 
 enum ImageFormat
 {
@@ -58,7 +59,9 @@ public:
 
 	VkImageUsageFlags getImageUsage();
 
-	
+	VkSwapchainKHR getHandle() const;
+
+	VkResult acquireNextImage(uint32_t& imageIndex,VkSemaphore semaphore,VkFence fence);
 
 
 private:
