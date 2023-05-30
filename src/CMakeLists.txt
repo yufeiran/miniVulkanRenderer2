@@ -37,6 +37,10 @@ set(VULKAN_FRAMEWORK_FILES
     ./Vulkan/semaphore.cpp 
     ./Vulkan/fence.h 
     ./Vulkan/fence.cpp 
+    ./Vulkan/buffer.cpp 
+    ./Vulkan/buffer.h
+    ./Vulkan/deviceMemory.h 
+    ./Vulkan/deviceMemory.cpp 
 
 )
 
@@ -65,11 +69,19 @@ set(RENDERING_FILES
     ./Rendering/renderPass.cpp 
 )
 
+set(RESOURCE_MANAGEMENT_FILES
+    ./ResourceManagement/resourceManagement.h 
+    ./ResourceManagement/resourceManagement.cpp 
+    ./ResourceManagement/model.cpp 
+    ./ResourceManagement/model.h 
+)
+
 source_group("\\" FILES ${RENDERER_FILES})
 source_group("Common\\" FILES ${COMMON_FILES})
 source_group("Platform\\" FILES ${PLATFORM_FILES})
 source_group("Vulkan\\" FILES ${VULKAN_FRAMEWORK_FILES})
 source_group("Rendering\\" FILES ${RENDERING_FILES})
+source_group("ResourceManagement\\" FILES ${RESOURCE_MANAGEMENT_FILES})
 
 
 # Add source to this project's executable.
@@ -79,6 +91,7 @@ add_executable(miniVulkanRenderer2
     ${VULKAN_FRAMEWORK_FILES}
     ${PLATFORM_FILES}
     ${RENDERING_FILES}
+    ${RESOURCE_MANAGEMENT_FILES}
 )
 
 

@@ -23,6 +23,7 @@
 #include"Vulkan/framebuffer.h"
 #include"Vulkan/fence.h"
 #include"Vulkan/semaphore.h"
+#include"ResourceManagement/resourceManagement.h"
 
 
 using namespace mini;
@@ -67,5 +68,7 @@ private:
 	std::vector<std::unique_ptr<ShaderModule>>shaderModules;
 
 	std::unique_ptr<GraphicPipeline>graphicPipeline;
+
+	std::unique_ptr<ResourceManagement> resourceManagement;
 
 };

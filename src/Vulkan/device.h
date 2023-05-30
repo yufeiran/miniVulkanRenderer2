@@ -7,6 +7,8 @@
 namespace mini
 {
 class PhysicalDevice;
+class CommandPool;
+class Buffer;
 
 class Device
 {
@@ -30,6 +32,8 @@ public:
 	Queue& getGraphicQueue() const;
 	Queue& getPresentQueue() const;
 
+	void copyBuffer(Buffer& srcBuffer, Buffer& dstBuffer, VkDeviceSize size);
+
 private:
 	VkDevice handle{ VK_NULL_HANDLE };
 
@@ -44,6 +48,8 @@ private:
 	std::unique_ptr<Queue>graphicQueue;
 
 	std::unique_ptr<Queue>presentQueue;
+
+	std::unique_ptr<CommandPool> commandPoolForTransfer;
 
 };
 

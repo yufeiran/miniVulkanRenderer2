@@ -4,6 +4,8 @@
 #include"device.h"
 #include"Rendering/renderPass.h"
 #include"graphicPipeline.h"
+#include"buffer.h"
+#include"ResourceManagement/model.h"
 
 namespace mini
 {
@@ -21,10 +23,10 @@ CommandBuffer::CommandBuffer(CommandPool& commandPool)
     }
 }
 
-void CommandBuffer::begin()
+void CommandBuffer::begin(VkCommandBufferUsageFlags flag)
 {
     VkCommandBufferBeginInfo beginInfo{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
-    beginInfo.flags = 0;
+    beginInfo.flags = flag;
     beginInfo.pInheritanceInfo = nullptr;
 
     if (vkBeginCommandBuffer(handle, &beginInfo) != VK_SUCCESS) {
@@ -69,6 +71,31 @@ void CommandBuffer::setViewPortAndScissor(VkExtent2D extent)
     vkCmdSetScissor(handle, 0, 1, &scissor);
 }
 
+void CommandBuffer::bindVertexBuffer(Buffer& vertexBuffer)
+{
+    VkBuffer vertexBuffers[] = { vertexBuffer.getHandle() };
+    VkDeviceSize offsets[] = { 0 };
+    vkCmdBindVertexBuffers(handle, 0, 1, vertexBuffers, offsets);
+}
+
+void CommandBuffer::bindIndexBuffer(Buffer& indexBuffer)
+{
+    // TODO: 类型有可能是UINT32 或 UINT16
+    vkCmdBindIndexBuffer(handle, indexBuffer.getHandle(), 0, VK_INDEX_TYPE_UINT16);
+}
+
+void CommandBuffer::drawModel(Model& model)
+{
+    auto& vertexBuffer = model.getVertexBuffer();
+    auto& indexBuffer = model.getIndexBuffer();
+
+    bindVertexBuffer(vertexBuffer);
+    bindIndexBuffer(indexBuffer);
+
+    vkCmdDrawIndexed(handle, model.getIndexSum(), 1, 0, 0, 0);
+
+}
+
 void CommandBuffer::draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance)
 {
     vkCmdDraw(handle, vertexCount, instanceCount, firstVertex, firstInstance);
@@ -89,6 +116,15 @@ void CommandBuffer::end()
 void CommandBuffer::reset()
 {
     vkResetCommandBuffer(handle, 0);
+}
+
+void CommandBuffer::copy(Buffer& srcBuffer, Buffer& dstBuffer, VkDeviceSize size)
+{
+    VkBufferCopy copyRegion{};
+    copyRegion.srcOffset = 0;
+    copyRegion.dstOffset = 0;
+    copyRegion.size = size;
+    vkCmdCopyBuffer(handle, srcBuffer.getHandle(), dstBuffer.getHandle(), 1, &copyRegion);
 }
 
 VkCommandBuffer CommandBuffer::getHandle() const

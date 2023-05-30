@@ -9,7 +9,7 @@ class CommandBuffer;
 class CommandPool
 {
 public:
-	CommandPool(Device& device);
+	CommandPool(Device& device, VkCommandPoolCreateFlags flag = {});
 
 	~CommandPool();
 

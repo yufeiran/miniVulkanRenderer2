@@ -2,11 +2,12 @@
 #include"shaderModule.h"
 #include"device.h"
 #include"Rendering/renderPass.h"
+#include"buffer.h"
+#include"ResourceManagement/model.h"
+
 
 namespace mini
 {
-
-
 
 GraphicPipeline::GraphicPipeline(std::vector<std::unique_ptr<ShaderModule>>& shaderModules, Device& device,VkExtent2D extent,
 	VkFormat swapChainImageFormat)
@@ -28,10 +29,14 @@ GraphicPipeline::GraphicPipeline(std::vector<std::unique_ptr<ShaderModule>>& sha
 	dynamicState.pDynamicStates = dynamicStates.data();
 
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo{ VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
-	vertexInputInfo.vertexBindingDescriptionCount = 0;
-	vertexInputInfo.pVertexBindingDescriptions = nullptr;
-	vertexInputInfo.vertexAttributeDescriptionCount = 0;
-	vertexInputInfo.pVertexAttributeDescriptions = nullptr;
+
+	auto bindingDescription = Vertex::getBindingDescription();
+	auto attributeDescriptions = Vertex::getAttributeDescriptions();
+
+	vertexInputInfo.vertexBindingDescriptionCount = 1;
+	vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+	vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+	vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
 	VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
 	inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;

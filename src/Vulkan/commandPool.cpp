@@ -4,11 +4,11 @@
 
 namespace mini
 {
-CommandPool::CommandPool(Device& device)
+CommandPool::CommandPool(Device& device, VkCommandPoolCreateFlags flag)
     :device(device)
 {
     VkCommandPoolCreateInfo poolInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
-    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    poolInfo.flags = flag| VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     poolInfo.queueFamilyIndex = device.getGraphicQueue().getFamilyIndex();
 
     if (vkCreateCommandPool(device.getHandle(), &poolInfo, nullptr, &handle) != VK_SUCCESS) {

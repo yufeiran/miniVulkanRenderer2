@@ -1,4 +1,6 @@
 #include "device.h"
+#include"commandPool.h"
+#include"commandBuffer.h"
 
 namespace mini
 {
@@ -125,11 +127,12 @@ Device::Device(PhysicalDevice& gpu,
 		}
 	}
 
-
+	commandPoolForTransfer = std::make_unique<CommandPool>(*this,VK_COMMAND_POOL_CREATE_TRANSIENT_BIT);
 }
 
 Device::~Device()
 {
+	commandPoolForTransfer.reset();
 	if (handle != VK_NULL_HANDLE)
 	{
 		vkDestroyDevice(handle, nullptr);
@@ -166,6 +169,28 @@ Queue& Device::getGraphicQueue() const
 Queue& Device::getPresentQueue() const
 {
 	return *presentQueue;
+}
+
+void Device::copyBuffer(Buffer& srcBuffer, Buffer& dstBuffer, VkDeviceSize size)
+{
+	auto &cmd= commandPoolForTransfer->createCommandBuffer();
+
+	cmd->begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+
+	cmd->copy(srcBuffer, dstBuffer, size);
+
+	cmd->end();
+
+	auto cmdHandle = cmd->getHandle();
+
+	VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &cmdHandle;
+
+	vkQueueSubmit(graphicQueue->getHandle(), 1, &submitInfo, VK_NULL_HANDLE);
+	vkQueueWaitIdle(graphicQueue->getHandle());
+
+	vkFreeCommandBuffers(handle, commandPoolForTransfer->getHandle(), 1, &cmdHandle);
 }
 
 }

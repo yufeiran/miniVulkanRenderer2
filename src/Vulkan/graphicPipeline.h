@@ -6,6 +6,7 @@ namespace mini
 class Device;
 class ShaderModule;
 class RenderPass;
+class Buffer;
 
 class GraphicPipeline
 {
@@ -23,6 +24,7 @@ private:
 	std::unique_ptr<RenderPass> renderPass;
 	VkPipeline handle{ VK_NULL_HANDLE };
 	VkPipelineLayout pipelineLayout{ VK_NULL_HANDLE };
+	std::unique_ptr<Buffer> vertexBuffer;
 
 	VkFormat swapChainImageFormat;
 };

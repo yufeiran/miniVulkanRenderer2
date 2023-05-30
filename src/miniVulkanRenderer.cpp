@@ -35,6 +35,8 @@ void MiniVulkanRenderer::init(int width, int height)
 	
 	renderContext->prepare(graphicPipeline->getRenderPass());
 
+	resourceManagement = std::make_unique<ResourceManagement>(*device);
+
 	Log("miniVulkanRenderer init finish");
 }
 
@@ -77,12 +79,18 @@ void MiniVulkanRenderer::drawFrame()
 
 void MiniVulkanRenderer::recordCommandBuffer(CommandBuffer& cmd, FrameBuffer& frameBuffer)
 {
+
+	auto& model = resourceManagement->getModelByName("triangle");
 	cmd.reset();
 	cmd.begin();
 	cmd.beginRenderPass(graphicPipeline->getRenderPass(), frameBuffer);
 	cmd.bindPipeline(*graphicPipeline);
+
 	cmd.setViewPortAndScissor(frameBuffer.getExtent());
-	cmd.draw(3, 1, 0, 0);
+
+	cmd.drawModel(model);
+
+	//cmd.draw(3, 1, 0, 0);
 	cmd.endRenderPass();
 	cmd.end();
 

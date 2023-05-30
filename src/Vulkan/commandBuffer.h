@@ -11,19 +11,27 @@ class RenderPass;
 class FrameBuffer;
 class GraphicPipeline;
 class RenderFrame;
+class Buffer;
+class Model;
 
 class CommandBuffer
 {
 public:
 	CommandBuffer(CommandPool &commandPool);
 
-	void begin();
+	void begin(VkCommandBufferUsageFlags flag = {});
 
 	void beginRenderPass(RenderPass& renderPass,FrameBuffer& frameBuffer,const VkClearValue &clearColor={{{0.0f,0.0f,0.0f,1.0f}}});
 
 	void bindPipeline(GraphicPipeline& pipeline);
 
 	void setViewPortAndScissor(VkExtent2D extent);
+
+	void bindVertexBuffer(Buffer& vertexBuffer);
+
+	void bindIndexBuffer(Buffer& indexBuffer);
+
+	void drawModel(Model& model);
 
 	void draw(uint32_t vertexCount,uint32_t instanceCount,uint32_t firstVertex,uint32_t firstInstance);
 
@@ -32,6 +40,8 @@ public:
 	void end();
 
 	void reset();
+
+	void copy(Buffer& srcBuffer, Buffer& dstBuffer, VkDeviceSize size);
 
 	VkCommandBuffer getHandle() const;
 private:
