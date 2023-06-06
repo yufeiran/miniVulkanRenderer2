@@ -10,6 +10,9 @@ namespace mini
 		Error(const char* msg) :error_message(msg) {
 			Log(msg, ERROR_TYPE);
 		}
+		Error(const std::string& msg) :error_message(msg) {
+			Log(msg, ERROR_TYPE);
+		}
 		const char* what() const noexcept override {
 			return error_message.c_str();
 		}

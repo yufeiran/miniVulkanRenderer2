@@ -30,10 +30,23 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	shaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/vertexShader.vert.spv", *device, VK_SHADER_STAGE_VERTEX_BIT));
 	shaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/fragmentShader.frag.spv", *device, VK_SHADER_STAGE_FRAGMENT_BIT));
-
-	graphicPipeline = std::make_unique<GraphicPipeline>(shaderModules, *device, renderContext->getSurfaceExtent(), renderContext->getFormat());
 	
-	renderContext->prepare(graphicPipeline->getRenderPass());
+	
+	VkDescriptorSetLayoutBinding uboLayoutBinding{};
+	uboLayoutBinding.binding = 0;
+	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	uboLayoutBinding.descriptorCount = 1;
+	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	uboLayoutBinding.pImmutableSamplers = nullptr;
+
+	std::vector< VkDescriptorSetLayoutBinding>layoutBindings{ uboLayoutBinding };
+
+	descriptorSetLayouts.push_back(std::make_unique<DescriptorSetLayout>(*device, layoutBindings));
+
+	graphicPipeline = std::make_unique<GraphicPipeline>(shaderModules,descriptorSetLayouts, *device, renderContext->getSurfaceExtent(), renderContext->getFormat());
+	
+
+	renderContext->prepare(graphicPipeline->getRenderPass(),descriptorSetLayouts);
 
 	resourceManagement = std::make_unique<ResourceManagement>(*device);
 
@@ -60,6 +73,8 @@ void MiniVulkanRenderer::loop()
 
 void MiniVulkanRenderer::drawFrame()
 {
+
+
 	auto result= renderContext->beginFrame();
 	if (result == VK_ERROR_OUT_OF_DATE_KHR)
 	{
@@ -69,17 +84,19 @@ void MiniVulkanRenderer::drawFrame()
 
 	auto& cmd = renderContext->getCurrentCommandBuffer();
 	auto& frame = renderContext->getActiveFrame();
+
+	frame.updateUniformBuffer();
 	
-	recordCommandBuffer(cmd, frame.getFrameBuffer());
+	recordCommandBuffer(cmd, frame);
 
 	renderContext->submit(device->getGraphicQueue(), &cmd);
 
 	renderContext->endFrame();
 }
 
-void MiniVulkanRenderer::recordCommandBuffer(CommandBuffer& cmd, FrameBuffer& frameBuffer)
+void MiniVulkanRenderer::recordCommandBuffer(CommandBuffer& cmd, RenderFrame& renderFrame)
 {
-
+	auto& frameBuffer = renderFrame.getFrameBuffer();
 	auto& model = resourceManagement->getModelByName("triangle");
 	cmd.reset();
 	cmd.begin();
@@ -87,6 +104,7 @@ void MiniVulkanRenderer::recordCommandBuffer(CommandBuffer& cmd, FrameBuffer& fr
 	cmd.bindPipeline(*graphicPipeline);
 
 	cmd.setViewPortAndScissor(frameBuffer.getExtent());
+	cmd.bindDescriptorSet(renderFrame.getDescriptorSets());
 
 	cmd.drawModel(model);
 
@@ -126,9 +144,9 @@ void MiniVulkanRenderer::handleSizeChange()
 	renderContext = std::make_unique<RenderContext>(*device, surface, *window);
 
 	graphicPipeline.reset();
-	graphicPipeline = std::make_unique<GraphicPipeline>(shaderModules, *device, renderContext->getSurfaceExtent(), renderContext->getFormat());
+	graphicPipeline = std::make_unique<GraphicPipeline>(shaderModules,descriptorSetLayouts, *device, renderContext->getSurfaceExtent(), renderContext->getFormat());
 
-	renderContext->prepare(graphicPipeline->getRenderPass());
+	renderContext->prepare(graphicPipeline->getRenderPass(),descriptorSetLayouts);
 
 }
 

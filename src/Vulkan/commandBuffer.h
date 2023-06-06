@@ -13,6 +13,7 @@ class GraphicPipeline;
 class RenderFrame;
 class Buffer;
 class Model;
+class DescriptorSet;
 
 class CommandBuffer
 {
@@ -26,6 +27,8 @@ public:
 	void bindPipeline(GraphicPipeline& pipeline);
 
 	void setViewPortAndScissor(VkExtent2D extent);
+
+	void bindDescriptorSet(const std::vector<std::unique_ptr<DescriptorSet>>& descriptorSets);
 
 	void bindVertexBuffer(Buffer& vertexBuffer);
 
@@ -48,6 +51,8 @@ private:
 	VkCommandBuffer handle;
 	Device& device;
 	CommandPool& commandPool;
+	VkPipeline pipeline;
+	VkPipelineLayout pipelineLayout;
 	
 };
 }

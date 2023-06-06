@@ -41,6 +41,12 @@ set(VULKAN_FRAMEWORK_FILES
     ./Vulkan/buffer.h
     ./Vulkan/deviceMemory.h 
     ./Vulkan/deviceMemory.cpp 
+    ./Vulkan/descriptorSet.h 
+    ./Vulkan/descriptorSet.cpp 
+    ./Vulkan/descriptorSetLayout.h 
+    ./Vulkan/descriptorSetLayout.cpp 
+    ./Vulkan/descriptorPool.h 
+    ./Vulkan/descriptorPool.cpp 
 
 )
 
@@ -48,6 +54,7 @@ set(COMMON_FILES
     ./Common/miniLog.h 
     ./Common/miniLog.cpp 
     ./Common/miniError.h
+    ./Common/deviceDataStruct.h
 )
 
 set(PLATFORM_FILES

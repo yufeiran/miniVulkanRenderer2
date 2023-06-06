@@ -10,6 +10,10 @@
 #include"Vulkan/fence.h"
 #include"renderFrame.h"	
 #include"renderTarget.h"
+#include"Vulkan/descriptorPool.h"
+#include"Vulkan/descriptorSet.h"
+#include"Vulkan/descriptorSetLayout.h"
+#include"Vulkan/buffer.h"
 
 
 
@@ -27,7 +31,7 @@ RenderContext::RenderContext(Device& device, VkSurfaceKHR surface, const GlfwWin
 	}
 }
 
-void RenderContext::prepare(const RenderPass& renderPass, RenderTarget::CreateFunc createRenderTargetFunc)
+void RenderContext::prepare(const RenderPass& renderPass, std::vector<std::unique_ptr<DescriptorSetLayout>>& descriptorSetLayouts, RenderTarget::CreateFunc createRenderTargetFunc)
 {
 	device.waitIdle();
 
@@ -45,8 +49,7 @@ void RenderContext::prepare(const RenderPass& renderPass, RenderTarget::CreateFu
 				swapchain->getImageUsage());
 
 			auto renderTarget = createRenderTargetFunc(std::move( swapchainImage));
-			frames.emplace_back(std::make_unique<RenderFrame>(device, std::move(renderTarget), renderPass));
-
+			frames.emplace_back(std::make_unique<RenderFrame>(device, std::move(renderTarget), renderPass, descriptorSetLayouts));
 		}
 
 		commandPool = std::make_unique<CommandPool>(device);
@@ -188,6 +191,11 @@ void RenderContext::waitFrame()
 CommandBuffer& RenderContext::getCurrentCommandBuffer()
 {
 	return *commandBuffers[currentFrames];
+}
+
+uint32_t RenderContext::getCurrentFrames()
+{
+	return currentFrames;
 }
 
 

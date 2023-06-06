@@ -6,6 +6,9 @@
 #include"graphicPipeline.h"
 #include"buffer.h"
 #include"ResourceManagement/model.h"
+#include"Vulkan/descriptorPool.h"
+#include"Vulkan/descriptorSet.h"
+#include"Vulkan/descriptorSetLayout.h"
 
 namespace mini
 {
@@ -52,6 +55,8 @@ void CommandBuffer::beginRenderPass(RenderPass& renderPass, FrameBuffer& frameBu
 void CommandBuffer::bindPipeline(GraphicPipeline& pipeline)
 {
     vkCmdBindPipeline(handle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getHandle());
+    this->pipeline = pipeline.getHandle();
+    this->pipelineLayout = pipeline.getPipelineLayout();
 }
 
 void CommandBuffer::setViewPortAndScissor(VkExtent2D extent)
@@ -69,6 +74,16 @@ void CommandBuffer::setViewPortAndScissor(VkExtent2D extent)
     scissor.offset = { 0,0 };
     scissor.extent = extent;
     vkCmdSetScissor(handle, 0, 1, &scissor);
+}
+
+void CommandBuffer::bindDescriptorSet(const std::vector<std::unique_ptr<DescriptorSet>>& descriptorSets)
+{
+    std::vector<VkDescriptorSet> vkDescriptorSets;
+    for (auto& it : descriptorSets)
+    {
+        vkDescriptorSets.emplace_back(it->getHandle());
+    }
+    vkCmdBindDescriptorSets(handle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, vkDescriptorSets.size(), vkDescriptorSets.data(), 0, 0);
 }
 
 void CommandBuffer::bindVertexBuffer(Buffer& vertexBuffer)

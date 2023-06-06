@@ -6,6 +6,12 @@ cmake_minimum_required( VERSION 3.20)
 
 project("miniVulkanRenderer2")
 
+#设置多线程编译
+if (MSVC)
+add_definitions("/MP")
+endif()
+
+
 set(CMAKE_CXX_STANDARD 17)
 
 find_package(Vulkan REQUIRED)
@@ -42,7 +48,9 @@ foreach(GLSL ${GLSL_SOURCE_FILES})
 endforeach(GLSL)
 
 
-    add_custom_target(
-        Shaders 
-        DEPENDS ${SPIRV_BINARY_FILES}
-    )
+  add_custom_target(
+      Shaders 
+      DEPENDS ${SPIRV_BINARY_FILES}
+  )
+
+ 

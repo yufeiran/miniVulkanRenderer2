@@ -4,14 +4,17 @@
 #include"Rendering/renderPass.h"
 #include"buffer.h"
 #include"ResourceManagement/model.h"
+#include"descriptorSetLayout.h"
+#include"Common/deviceDataStruct.h"
 
 
 namespace mini
 {
 
-GraphicPipeline::GraphicPipeline(std::vector<std::unique_ptr<ShaderModule>>& shaderModules, Device& device,VkExtent2D extent,
+GraphicPipeline::GraphicPipeline(std::vector<std::unique_ptr<ShaderModule>>& shaderModules, std::vector<std::unique_ptr<DescriptorSetLayout>>& descriptorSetLayouts,
+	Device& device,VkExtent2D extent,
 	VkFormat swapChainImageFormat)
-	:shaderModules(shaderModules),device(device),swapChainImageFormat(swapChainImageFormat)
+	:shaderModules(shaderModules), descriptorSetLayouts(descriptorSetLayouts), device(device), swapChainImageFormat(swapChainImageFormat)
 {
 
 	std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
@@ -104,10 +107,17 @@ GraphicPipeline::GraphicPipeline(std::vector<std::unique_ptr<ShaderModule>>& sha
 	colorBlending.blendConstants[2] = 0.0f;
 	colorBlending.blendConstants[3] = 0.0f;
 
+	std::vector<VkDescriptorSetLayout> vkDescriptorSetLayouts;
+
+	for (const auto& it : descriptorSetLayouts)
+	{
+		vkDescriptorSetLayouts.push_back(it->getHandle());
+	}
+
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutInfo.setLayoutCount = 0;
-	pipelineLayoutInfo.pSetLayouts = nullptr;
+	pipelineLayoutInfo.setLayoutCount = vkDescriptorSetLayouts.size();
+	pipelineLayoutInfo.pSetLayouts = vkDescriptorSetLayouts.data();
 	pipelineLayoutInfo.pushConstantRangeCount = 0;
 	pipelineLayoutInfo.pPushConstantRanges = nullptr;
 
@@ -156,6 +166,13 @@ GraphicPipeline::~GraphicPipeline()
 	}
 
 }
+
+VkPipelineLayout GraphicPipeline::getPipelineLayout() const
+{
+	return pipelineLayout;
+}
+
+
 
 VkPipeline GraphicPipeline::getHandle() const
 {

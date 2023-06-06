@@ -24,7 +24,14 @@
 #include"Vulkan/fence.h"
 #include"Vulkan/semaphore.h"
 #include"ResourceManagement/resourceManagement.h"
+#include"Vulkan/descriptorSetLayout.h"
+#include"Vulkan/descriptorPool.h"
+#include"Vulkan/descriptorSet.h"
+#include"Vulkan/buffer.h"
 
+//这是miniVulkanRenderer2
+/* 一个基础的
+*/
 
 using namespace mini;
 class MiniVulkanRenderer
@@ -40,12 +47,11 @@ public:
 
 	void drawFrame();
 
-	void recordCommandBuffer(CommandBuffer& cmd, FrameBuffer& frameBuffer);
+	void recordCommandBuffer(CommandBuffer& cmd, RenderFrame& renderFrame);
 
 	double calFps();
 
 	void handleSizeChange();
-
 
 
 private:
@@ -67,8 +73,13 @@ private:
 
 	std::vector<std::unique_ptr<ShaderModule>>shaderModules;
 
+	std::vector<std::unique_ptr<DescriptorSetLayout>> descriptorSetLayouts;
+
 	std::unique_ptr<GraphicPipeline>graphicPipeline;
 
 	std::unique_ptr<ResourceManagement> resourceManagement;
+
+
+
 
 };

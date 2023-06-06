@@ -11,17 +11,22 @@ class Semaphore;
 class Fence;
 class CommandPool;
 class CommandBuffer;
+class DescriptorPool;
+class DescriptorSet;
+class DescriptorSetLayout;
+class Buffer;
 
 /*
 * Render Frame is a container for per-frame data, including BufferPool objects, synchronization primitives (semaphores , fences) and the swapchain RenderTarget.
-* 
+* 每个Frame都存一个自己的DescriptorPool 和 DescriptorSets
 * 
 */
 class RenderFrame
 {
 public:
 
-	RenderFrame(Device& device,std::unique_ptr<RenderTarget>&& renderTarget,const RenderPass& renderPass);
+	RenderFrame(Device& device,std::unique_ptr<RenderTarget>&& renderTarget,const RenderPass& renderPass, 
+		std::vector<std::unique_ptr<DescriptorSetLayout>>& descriptorSetLayouts);
 
 	Device& getDevice();
 
@@ -29,16 +34,29 @@ public:
 
 	void reset();
 
+	void createUniformBuffer();
 
+	void updateUniformBuffer();
+
+	void createDescriptorSets();
+
+	const VkExtent2D getExtent() const;
+
+	std::vector<std::unique_ptr<DescriptorSet>>& getDescriptorSets();
 
 private:
 	Device& device;
 
 	std::unique_ptr<RenderTarget> renderTarget;
+
 	std::unique_ptr<FrameBuffer> frameBuffer;
 
+	std::unique_ptr<DescriptorPool> descriptorPool;
 
+	std::vector<std::unique_ptr<DescriptorSetLayout>>& descriptorSetLayouts;
 
+	std::vector<std::unique_ptr<Buffer>>uniformBuffers;
 
+	BindingMap<VkDescriptorBufferInfo> bufferInfos;
 };
 }

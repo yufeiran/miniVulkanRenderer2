@@ -10,8 +10,11 @@
 #include<functional>
 #include<assert.h>
 #include<array>
+#include<chrono>
 
 #include<glm/glm.hpp>
+#include<glm/gtc/matrix_transform.hpp>
+
 
 #define VK_USE_PLATFORM_WIN32_KHR
 #include"Volk/volk.h"
@@ -25,6 +28,8 @@
 
 namespace mini
 {
+
+	const int MAX_FRAMES_IN_FLIGHT = 3;
 
 
 	template<class T>
@@ -48,6 +53,7 @@ namespace mini
 		}                                                           \
 	} while (0)
 
-
+template<class T>
+using BindingMap = std::map<uint32_t, std::map<uint32_t, T>>;
 
 } // namespace mini
