@@ -9,6 +9,7 @@
 #include"Vulkan/descriptorPool.h"
 #include"Vulkan/descriptorSet.h"
 #include"Vulkan/descriptorSetLayout.h"
+#include"Vulkan/queue.h"
 
 namespace mini
 {
@@ -128,6 +129,18 @@ void CommandBuffer::end()
     }
 }
 
+void CommandBuffer::beginSingleTime()
+{
+    begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+}
+
+void CommandBuffer::endSingleTime(Queue& queue)
+{
+    end();
+
+    submitAndWaitIdle(queue);
+}
+
 void CommandBuffer::reset()
 {
     vkResetCommandBuffer(handle, 0);
@@ -140,6 +153,16 @@ void CommandBuffer::copy(Buffer& srcBuffer, Buffer& dstBuffer, VkDeviceSize size
     copyRegion.dstOffset = 0;
     copyRegion.size = size;
     vkCmdCopyBuffer(handle, srcBuffer.getHandle(), dstBuffer.getHandle(), 1, &copyRegion);
+}
+
+void CommandBuffer::submitAndWaitIdle(Queue& queue)
+{
+    VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &handle;
+    vkQueueSubmit(queue.getHandle(), 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(queue.getHandle());
+
 }
 
 VkCommandBuffer CommandBuffer::getHandle() const

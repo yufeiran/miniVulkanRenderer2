@@ -34,6 +34,8 @@ public:
 
 	void copyBuffer(Buffer& srcBuffer, Buffer& dstBuffer, VkDeviceSize size);
 
+	CommandPool& getCommandPoolForTransfer();
+
 private:
 	VkDevice handle{ VK_NULL_HANDLE };
 

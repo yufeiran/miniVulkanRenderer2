@@ -14,12 +14,14 @@ class RenderFrame;
 class Buffer;
 class Model;
 class DescriptorSet;
+class Queue;
 
 class CommandBuffer
 {
 public:
 	CommandBuffer(CommandPool &commandPool);
 
+	//==============================Rendering=================================
 	void begin(VkCommandBufferUsageFlags flag = {});
 
 	void beginRenderPass(RenderPass& renderPass,FrameBuffer& frameBuffer,const VkClearValue &clearColor={{{0.0f,0.0f,0.0f,1.0f}}});
@@ -42,9 +44,20 @@ public:
 
 	void end();
 
+	//==============================Rendering=================================
+
+	//==============================Transmition===============================
+	void beginSingleTime();
+
+	void endSingleTime(Queue& queue);
+
+	//==============================Transmition===============================
+
 	void reset();
 
 	void copy(Buffer& srcBuffer, Buffer& dstBuffer, VkDeviceSize size);
+
+	void submitAndWaitIdle(Queue& queue);
 
 	VkCommandBuffer getHandle() const;
 private:

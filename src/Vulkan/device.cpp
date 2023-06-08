@@ -193,5 +193,10 @@ void Device::copyBuffer(Buffer& srcBuffer, Buffer& dstBuffer, VkDeviceSize size)
 	vkFreeCommandBuffers(handle, commandPoolForTransfer->getHandle(), 1, &cmdHandle);
 }
 
+CommandPool& Device::getCommandPoolForTransfer()
+{
+	return *commandPoolForTransfer;
+}
+
 }
 

@@ -1,6 +1,6 @@
 #pragma once
 #include"vk_common.h"
-
+#include"deviceMemory.h"
 
 namespace mini
 {

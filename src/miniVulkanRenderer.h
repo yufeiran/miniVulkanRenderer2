@@ -11,6 +11,7 @@
 #include"Platform/glfwWindow.h"
 #include"Vulkan/instance.h"
 #include"Vulkan/physicalDevice.h"
+#include"Vulkan/deviceMemory.h"
 #include"Vulkan/device.h"
 #include"Vulkan/imageView.h"
 #include"Vulkan/image.h"

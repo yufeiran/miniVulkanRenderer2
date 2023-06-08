@@ -1,6 +1,7 @@
 #include "deviceMemory.h"
-#include"buffer.h"
-#include"device.h"
+#include "buffer.h"
+#include "image.h"
+#include "device.h"
 
 namespace mini
 {
@@ -26,6 +27,22 @@ DeviceMemory::DeviceMemory(Device& device,Buffer& buffer, VkMemoryPropertyFlags 
 {
 	VkMemoryRequirements memRequirements;
 	vkGetBufferMemoryRequirements(device.getHandle(), buffer.getHandle(), &memRequirements);
+
+	VkMemoryAllocateInfo allocInfo{ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
+	allocInfo.allocationSize = memRequirements.size;
+	allocInfo.memoryTypeIndex = findMemoryType(device, memRequirements.memoryTypeBits, properties);
+
+	if (vkAllocateMemory(device.getHandle(), &allocInfo, nullptr, &handle) != VK_SUCCESS)
+	{
+		throw Error("Failed to allocate device memory");
+	}
+}
+
+DeviceMemory::DeviceMemory(Device& device, Image& image, VkMemoryPropertyFlags properties) :
+	device(device)
+{
+	VkMemoryRequirements memRequirements;
+	vkGetImageMemoryRequirements(device.getHandle(), image.getHandle(), &memRequirements);
 
 	VkMemoryAllocateInfo allocInfo{ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
 	allocInfo.allocationSize = memRequirements.size;
