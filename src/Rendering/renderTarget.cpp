@@ -22,9 +22,15 @@ Attachment::Attachment(VkFormat format, VkSampleCountFlagBits samples, VkImageUs
 
 }
 
-const RenderTarget::CreateFunc RenderTarget::DEFAULT_CREATE_FUNC = [](Image&& swapchainImage)->std::unique_ptr<RenderTarget> {
+const RenderTarget::CreateFunc RenderTarget::DEFAULT_CREATE_FUNC = [](Image&& image)->std::unique_ptr<RenderTarget> {
     std::vector<Image> images;
-    images.push_back(std::move(swapchainImage));
+
+    auto depthFormat = image.getDevice().getPhysicalDevice().findDepthFormat();
+    std::unique_ptr<Image> depthImage = std::make_unique<Image>(image.getDevice(),
+        image.getExtent(), depthFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+
+    images.push_back(std::move(image));
+    images.push_back(std::move(*depthImage));
 
     return std::make_unique<RenderTarget>(std::move(images));
 };
@@ -53,7 +59,10 @@ RenderTarget::RenderTarget(std::vector<Image>&& images):
 
     for (auto& image : this->images)
     {
-        views.emplace_back(image);
+        //´´½¨imageViews
+        ImageView imageView(image, image.getFormat());
+
+        views.emplace_back(std::move(imageView));
 
         attachments.emplace_back(Attachment{ image.getFormat(),image.getSampleCount(),image.getUsage() });
     }

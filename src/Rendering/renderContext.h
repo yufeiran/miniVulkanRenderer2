@@ -66,6 +66,8 @@ private:
 
 	std::vector<std::unique_ptr<RenderFrame>> frames;
 
+	std::unique_ptr<RenderTarget> depthRenderTarget;
+
 	// Current active frame index 
 	uint32_t activeFrameIndex{ 0 };
 

@@ -27,6 +27,12 @@ namespace mini
 
 		VkPhysicalDevice getHandle() const;
 
+		VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)const;
+
+		VkFormat findDepthFormat()const;
+
+		bool hasStencilComponent(VkFormat format) const; 
+
 	template<typename T>
 	T& requestExtensionFeatures(VkStructureType type)
 	{

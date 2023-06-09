@@ -37,7 +37,6 @@ FrameBuffer::~FrameBuffer()
 {
 	if (handle != VK_NULL_HANDLE) {
 		vkDestroyFramebuffer(device.getHandle(), handle, nullptr);
-		Log("Framebuffer desctory!");
 	}
 }
 

@@ -57,7 +57,7 @@ const std::vector<ImageView>& getViews() const;
 
 private:
 
-Device const& device;
+Device& device;
 
 VkExtent2D extent{};
 

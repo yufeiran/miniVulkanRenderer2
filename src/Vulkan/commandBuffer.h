@@ -24,7 +24,8 @@ public:
 	//==============================Rendering=================================
 	void begin(VkCommandBufferUsageFlags flag = {});
 
-	void beginRenderPass(RenderPass& renderPass,FrameBuffer& frameBuffer,const VkClearValue &clearColor={{{0.0f,0.0f,0.0f,1.0f}}});
+	void beginRenderPass(RenderPass& renderPass, FrameBuffer& frameBuffer, 
+		const std::vector<VkClearValue>& clearColor);
 
 	void bindPipeline(GraphicPipeline& pipeline);
 

@@ -38,7 +38,7 @@ void CommandBuffer::begin(VkCommandBufferUsageFlags flag)
     }
 }
 
-void CommandBuffer::beginRenderPass(RenderPass& renderPass, FrameBuffer& frameBuffer,const VkClearValue& clearColor)
+void CommandBuffer::beginRenderPass(RenderPass& renderPass, FrameBuffer& frameBuffer,const std::vector<VkClearValue>& clearColor)
 {
     VkRenderPassBeginInfo renderPassBeginInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
     renderPassBeginInfo.renderPass = renderPass.getHandle();
@@ -46,8 +46,8 @@ void CommandBuffer::beginRenderPass(RenderPass& renderPass, FrameBuffer& frameBu
     renderPassBeginInfo.renderArea.offset = { 0,0 };
     renderPassBeginInfo.renderArea.extent = frameBuffer.getExtent();
 
-    renderPassBeginInfo.clearValueCount = 1;
-    renderPassBeginInfo.pClearValues = &clearColor;
+    renderPassBeginInfo.clearValueCount = clearColor.size();
+    renderPassBeginInfo.pClearValues = clearColor.data();
 
     vkCmdBeginRenderPass(handle, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 

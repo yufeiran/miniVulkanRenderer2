@@ -118,7 +118,12 @@ void MiniVulkanRenderer::recordCommandBuffer(CommandBuffer& cmd, RenderFrame& re
 	auto& model = resourceManagement->getModelByName("triangle");
 	cmd.reset();
 	cmd.begin();
-	cmd.beginRenderPass(graphicPipeline->getRenderPass(), frameBuffer);
+
+	std::vector<VkClearValue> clearValues(2);
+	clearValues[0].color = {0.0f,0.0f,0.0f,1.0f};
+	clearValues[1].depthStencil = { 1.0f,0 };
+
+	cmd.beginRenderPass(graphicPipeline->getRenderPass(), frameBuffer,clearValues);
 	cmd.bindPipeline(*graphicPipeline);
 
 	cmd.setViewPortAndScissor(frameBuffer.getExtent());
@@ -129,7 +134,6 @@ void MiniVulkanRenderer::recordCommandBuffer(CommandBuffer& cmd, RenderFrame& re
 	//cmd.draw(3, 1, 0, 0);
 	cmd.endRenderPass();
 	cmd.end();
-
 
 }
 
@@ -157,6 +161,7 @@ void MiniVulkanRenderer::handleSizeChange()
 	}
 	width = extent.width;
 	height = extent.height;
+	frameCount = 0;
 
 	renderContext.reset();
 	renderContext = std::make_unique<RenderContext>(*device, surface, *window);
