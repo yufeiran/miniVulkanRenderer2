@@ -39,23 +39,32 @@ void MiniVulkanRenderer::init(int width, int height)
 	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 	uboLayoutBinding.pImmutableSamplers = nullptr;
 
-	std::vector< VkDescriptorSetLayoutBinding>layoutBindings{ uboLayoutBinding };
+	VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+	samplerLayoutBinding.binding = 1;
+	samplerLayoutBinding.descriptorCount = 1;
+	samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	samplerLayoutBinding.pImmutableSamplers = nullptr;
+	samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+	std::vector< VkDescriptorSetLayoutBinding>layoutBindings{ uboLayoutBinding ,samplerLayoutBinding };
 
 	descriptorSetLayouts.push_back(std::make_unique<DescriptorSetLayout>(*device, layoutBindings));
 
 	graphicPipeline = std::make_unique<GraphicPipeline>(shaderModules,descriptorSetLayouts, *device, renderContext->getSurfaceExtent(), renderContext->getFormat());
 	
-
-	renderContext->prepare(graphicPipeline->getRenderPass(),descriptorSetLayouts);
-
 	resourceManagement = std::make_unique<ResourceManagement>(*device);
+
+	renderContext->prepare(graphicPipeline->getRenderPass(),*resourceManagement,descriptorSetLayouts);
+
+
 
 	Log("miniVulkanRenderer init finish");
 }
 
 void MiniVulkanRenderer::loop()
 {
-
+	double lastFps = 0;
+	double avgFps = 0;
 	while(!window->shouldClose()){
 
 		window->processEvents();
@@ -63,8 +72,17 @@ void MiniVulkanRenderer::loop()
 
 		frameCount++;
 
-		std::string title = "miniVulkanRenderer2 fps:";
-		title += toString(calFps());
+		std::string title = "miniVulkanRenderer2 avg fps:";
+		double fps = calFps();
+		if (frameCount % 1000 == 0)
+		{
+			avgFps = lastFps * (frameCount - 1) / (frameCount)+fps / frameCount;
+		}
+
+		lastFps = fps;
+		title += toString(avgFps);
+		title += " fps:";
+		title += toString(fps);
 		window->setTitle(title.c_str());
 
 	}
@@ -146,7 +164,7 @@ void MiniVulkanRenderer::handleSizeChange()
 	graphicPipeline.reset();
 	graphicPipeline = std::make_unique<GraphicPipeline>(shaderModules,descriptorSetLayouts, *device, renderContext->getSurfaceExtent(), renderContext->getFormat());
 
-	renderContext->prepare(graphicPipeline->getRenderPass(),descriptorSetLayouts);
+	renderContext->prepare(graphicPipeline->getRenderPass(),*resourceManagement,descriptorSetLayouts);
 
 }
 

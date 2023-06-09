@@ -3,6 +3,8 @@
 #include"Vulkan/physicalDevice.h"
 #include"model.h"
 #include"Vulkan/image.h"
+#include"Vulkan/imageView.h"
+#include"Vulkan/sampler.h"
 
 namespace mini
 {
@@ -14,6 +16,9 @@ namespace mini
 	{
 		modelMap["triangle"] = std::make_unique<Model>(device,"triangle",nowModelIndex++);
 		imageMap["yamato"] = std::make_unique<Image>(device, "../../assets/images/yamato.jpg");
+		imageViewMap["yamato"] = std::make_unique<ImageView>(*imageMap["yamato"]);
+
+		defaultSampler = std::make_unique<Sampler>(device);
 	}
 
 	ResourceManagement::~ResourceManagement()
@@ -47,6 +52,19 @@ namespace mini
 			return *imageMap[name];
 		}
 		throw Error("Can't find image by name:" + name);
+	}
+
+	ImageView& ResourceManagement::getImageViewByName(const std::string& name)
+	{
+		if (imageViewMap.find(name) != imageViewMap.end()) {
+			return *imageViewMap[name];
+		}
+		throw Error("Can't find image by name:" + name);
+	}
+
+	Sampler& ResourceManagement::getDefaultSampler()
+	{
+		return *defaultSampler;
 	}
 
 }

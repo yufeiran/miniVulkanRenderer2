@@ -31,7 +31,9 @@ RenderContext::RenderContext(Device& device, VkSurfaceKHR surface, const GlfwWin
 	}
 }
 
-void RenderContext::prepare(const RenderPass& renderPass, std::vector<std::unique_ptr<DescriptorSetLayout>>& descriptorSetLayouts, RenderTarget::CreateFunc createRenderTargetFunc)
+void RenderContext::prepare(const RenderPass& renderPass, 
+	ResourceManagement& resourceManagement,
+	std::vector<std::unique_ptr<DescriptorSetLayout>>& descriptorSetLayouts, RenderTarget::CreateFunc createRenderTargetFunc)
 {
 	device.waitIdle();
 
@@ -49,7 +51,7 @@ void RenderContext::prepare(const RenderPass& renderPass, std::vector<std::uniqu
 				swapchain->getImageUsage());
 
 			auto renderTarget = createRenderTargetFunc(std::move( swapchainImage));
-			frames.emplace_back(std::make_unique<RenderFrame>(device, std::move(renderTarget), renderPass, descriptorSetLayouts));
+			frames.emplace_back(std::make_unique<RenderFrame>(device, resourceManagement, std::move(renderTarget), renderPass, descriptorSetLayouts));
 		}
 
 		commandPool = std::make_unique<CommandPool>(device);

@@ -47,6 +47,8 @@ set(VULKAN_FRAMEWORK_FILES
     ./Vulkan/descriptorSetLayout.cpp 
     ./Vulkan/descriptorPool.h 
     ./Vulkan/descriptorPool.cpp 
+    ./Vulkan/sampler.h 
+    ./Vulkan/sampler.cpp 
 
 )
 

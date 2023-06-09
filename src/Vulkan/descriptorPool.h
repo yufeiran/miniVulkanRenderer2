@@ -17,7 +17,9 @@ public:
 	VkDescriptorPool getHandle();
 	Device& getDevice();
 
-	DescriptorSet& allocate(DescriptorSetLayout& descriptorSetLayout, const BindingMap<VkDescriptorBufferInfo>& bufferInfo = {});
+	DescriptorSet& allocate(DescriptorSetLayout& descriptorSetLayout,
+		const BindingMap<VkDescriptorBufferInfo>& bufferInfo = {},
+		const BindingMap<VkDescriptorImageInfo>& imageInfo = {});
 	std::vector<std::unique_ptr< DescriptorSet>>& getDescriptorSets();
 
 private:

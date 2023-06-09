@@ -12,22 +12,26 @@
 #include"Vulkan/commandPool.h"
 
 
+
 #include"Common/deviceDataStruct.h"
 #include"Vulkan/buffer.h"
-
+#include"ResourceManagement/resourceManagement.h"
+#include"Vulkan/sampler.h"
 
 
 namespace mini
 {
-RenderFrame::RenderFrame(Device& device, std::unique_ptr<RenderTarget>&& renderTarget, const RenderPass& renderPass,
+RenderFrame::RenderFrame(Device& device, ResourceManagement& resourceManagement, std::unique_ptr<RenderTarget>&& renderTarget, const RenderPass& renderPass,
 	std::vector<std::unique_ptr<DescriptorSetLayout>>& descriptorSetLayouts) :
-	device(device), renderTarget(std::move(renderTarget)),descriptorSetLayouts(descriptorSetLayouts)
+	device(device), renderTarget(std::move(renderTarget)),descriptorSetLayouts(descriptorSetLayouts), resourceManagement(resourceManagement)
 {
 	frameBuffer = std::make_unique<FrameBuffer>(device, *this->renderTarget, renderPass);
 
 	descriptorPool = std::make_unique<DescriptorPool>(device);
 
 	createUniformBuffer();
+
+	setImageInfos();
 
 	createDescriptorSets();
 }
@@ -65,6 +69,17 @@ void RenderFrame::createUniformBuffer()
 
 }
 
+void RenderFrame::setImageInfos()
+{
+
+	VkDescriptorImageInfo imageInfo{};
+	imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imageInfo.imageView = resourceManagement.getImageViewByName("yamato").getHandle();
+	imageInfo.sampler = resourceManagement.getDefaultSampler().getHandle();
+
+	imageInfos[0][1] = imageInfo;
+}
+
 void RenderFrame::updateUniformBuffer()
 {
 	static auto startTime = std::chrono::high_resolution_clock::now();
@@ -84,9 +99,11 @@ void RenderFrame::updateUniformBuffer()
 
 }
 
+
+
 void RenderFrame::createDescriptorSets()
 {
-	descriptorPool->allocate(*descriptorSetLayouts[0],bufferInfos);
+	descriptorPool->allocate(*descriptorSetLayouts[0],bufferInfos,imageInfos);
 }
 
 const VkExtent2D RenderFrame::getExtent() const

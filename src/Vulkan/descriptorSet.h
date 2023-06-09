@@ -12,7 +12,8 @@ class DescriptorSet
 {
 public:
 	DescriptorSet(DescriptorPool& descriptorPool, DescriptorSetLayout& descriptorSetLayout,
-		const BindingMap<VkDescriptorBufferInfo>& bufferInfo = {});
+		const BindingMap<VkDescriptorBufferInfo>& bufferInfo = {},
+		const BindingMap<VkDescriptorImageInfo>& imageInfo = {});
 	~DescriptorSet();
 
 	VkDescriptorSet getHandle();

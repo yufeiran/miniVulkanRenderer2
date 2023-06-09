@@ -10,12 +10,15 @@ namespace mini
 
 DescriptorPool::DescriptorPool(Device& device):device(device)
 {
-	VkDescriptorPoolSize poolSize{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER };
-	poolSize.descriptorCount = 1;
+	std::array< VkDescriptorPoolSize, 2> poolSizes{};
+	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	poolSizes[0].descriptorCount = 1000;
+	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	poolSizes[1].descriptorCount = 1000;
 
 	VkDescriptorPoolCreateInfo poolInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
-	poolInfo.poolSizeCount = 1;
-	poolInfo.pPoolSizes = &poolSize;
+	poolInfo.poolSizeCount = poolSizes.size();
+	poolInfo.pPoolSizes = poolSizes.data();
 	poolInfo.maxSets = 1;
 
 	if (vkCreateDescriptorPool(device.getHandle(), &poolInfo, nullptr, &handle) != VK_SUCCESS)
@@ -42,10 +45,12 @@ Device& DescriptorPool::getDevice()
 	return device;
 }
 
-DescriptorSet& DescriptorPool::allocate(DescriptorSetLayout& descriptorSetLayout, const BindingMap<VkDescriptorBufferInfo>& bufferInfo)
+DescriptorSet& DescriptorPool::allocate(DescriptorSetLayout& descriptorSetLayout, 
+	const BindingMap<VkDescriptorBufferInfo>& bufferInfo,
+	const BindingMap<VkDescriptorImageInfo>& imageInfo)
 {
 
-	std::unique_ptr<DescriptorSet> set = std::make_unique<DescriptorSet>(*this, descriptorSetLayout, bufferInfo);
+	std::unique_ptr<DescriptorSet> set = std::make_unique<DescriptorSet>(*this, descriptorSetLayout, bufferInfo, imageInfo);
 	descriptorSets.push_back(std::move(set));
 	return *descriptorSets.back();
 }
