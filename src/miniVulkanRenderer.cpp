@@ -92,7 +92,6 @@ void MiniVulkanRenderer::loop()
 void MiniVulkanRenderer::drawFrame()
 {
 
-
 	auto result= renderContext->beginFrame();
 	if (result == VK_ERROR_OUT_OF_DATE_KHR)
 	{

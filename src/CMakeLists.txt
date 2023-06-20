@@ -50,6 +50,7 @@ set(VULKAN_FRAMEWORK_FILES
     ./Vulkan/sampler.h 
     ./Vulkan/sampler.cpp 
 
+
 )
 
 set(COMMON_FILES
@@ -57,6 +58,10 @@ set(COMMON_FILES
     ./Common/miniLog.cpp 
     ./Common/miniError.h
     ./Common/deviceDataStruct.h
+    ./Common/material.h
+    ./Common/material.cpp 
+    ./Common/Vertex.h 
+    ./Common/Vertex.cpp 
 )
 
 set(PLATFORM_FILES
@@ -83,6 +88,10 @@ set(RESOURCE_MANAGEMENT_FILES
     ./ResourceManagement/resourceManagement.cpp 
     ./ResourceManagement/model.cpp 
     ./ResourceManagement/model.h 
+    ./ResourceManagement/texture.h 
+    ./ResourceManagement/texture.cpp 
+    ./ResourceManagement/shape.h 
+    ./ResourceManagement/shape.cpp 
 )
 
 source_group("\\" FILES ${RENDERER_FILES})

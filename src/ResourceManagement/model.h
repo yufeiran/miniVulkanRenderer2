@@ -1,79 +1,55 @@
 #pragma once 
 #include"Vulkan/vk_common.h"
+#include"Common/vertex.h"
+#include"Common/material.h"
+#include"shape.h"
 
 namespace mini
 {
 
 
 
-struct Vertex {
-	glm::vec3 pos;
-	glm::vec3 color;
-	glm::vec2 texCoord;
-
-	static VkVertexInputBindingDescription getBindingDescription() {
-		VkVertexInputBindingDescription bindingDescription{};
-		bindingDescription.binding = 0;
-		bindingDescription.stride = sizeof(Vertex);
-		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-		return bindingDescription;
-	}
-
-	static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
-		std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
-		attributeDescriptions[0].binding = 0;
-		attributeDescriptions[0].location = 0;
-		attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-		attributeDescriptions[0].offset = offsetof(Vertex, pos);
-
-		attributeDescriptions[1].binding = 0;
-		attributeDescriptions[1].location = 1;
-		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-		attributeDescriptions[1].offset = offsetof(Vertex, color);
-
-		attributeDescriptions[2].binding = 0;
-		attributeDescriptions[2].location = 2;
-		attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-		attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
-
-
-		return attributeDescriptions;
-	}
-};
 
 class Buffer;
 class Device;
+class Image;
+class ImageView;
 
+
+//要改成多shape
 class Model
 {
 public:
-	Model(Device&device,const std::string& name,uint32_t id);
+	Model(Device&device,const std::string& filePath, const std::string& name,uint32_t id);
 	~Model();
 	
-
-
 	std::string getName() const;
 
 	uint32_t getID() const;
 
-	Buffer& getVertexBuffer();
-	Buffer& getIndexBuffer();
+	const std::map<std::string, std::unique_ptr<Shape>>& getShape()const;
 
-	uint32_t getVertexSum();
-	uint32_t getIndexSum();
-
-
+	void loadImage(const std::string& name);
 
 private:
+	std::string filePath;
+	std::string baseDirPath;
 	std::string name;
 	uint32_t id;
 	Device& device;
-	std::unique_ptr<Buffer> vertexBuffer;
-	std::unique_ptr<Buffer> indexBuffer;
 
-	uint32_t vertexSum;
-	uint32_t indexSum;
+
+
+	std::map<std::string, Material> materials;
+
+
+
+	std::map<std::string, std::unique_ptr<Shape>> shapeMap;
+
+
+	std::map<std::string, std::unique_ptr<Image>>imageMap;
+	std::map<std::string, std::unique_ptr<ImageView>>imageViewMap;
+
 
 };
 

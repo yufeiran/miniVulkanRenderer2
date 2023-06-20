@@ -1,0 +1,64 @@
+# Blender MTL File: 'BattleCruiser.blend'
+# Material Count: 5
+
+newmtl 15_-_Default_04
+Ns 575.999996
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Ke Flare1_Orange4.png
+
+newmtl Standard_8_02
+Ns 575.999996
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Ke Battlecruiser_Emissive.png
+map_Ks Battlecruiser_specular.png
+map_Kd Battlecruiser_diffuse.png
+
+newmtl Standard_8_02.001
+Ns 575.999996
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Ke Battlecruiser_Emissive.png
+map_Ks Battlecruiser_specular.png
+map_Kd Battlecruiser_diffuse.png
+
+newmtl Standard_8_02.002
+Ns 575.999996
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Ke Battlecruiser_Emissive.png
+map_Ks Battlecruiser_specular.png
+map_Kd Battlecruiser_diffuse.png
+
+newmtl wewew_02
+Ns 575.999996
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd WarpLine2_Orange.png
+map_Ke WarpLine2_Orange.png

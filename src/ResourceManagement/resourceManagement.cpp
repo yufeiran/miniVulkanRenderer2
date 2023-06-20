@@ -14,8 +14,8 @@ namespace mini
 	ResourceManagement::ResourceManagement(Device& device):
 		device(device), nowModelIndex(0)
 	{
-		modelMap["triangle"] = std::make_unique<Model>(device,"triangle",nowModelIndex++);
-		imageMap["yamato"] = std::make_unique<Image>(device, "../../assets/images/yamato.jpg");
+		modelMap["triangle"] = std::make_unique<Model>(device,"../../assets/BattleCruiser/BattleCruiser.obj", "triangle", nowModelIndex++);
+		imageMap["yamato"] = std::make_unique<Image>(device, "../../assets/BattleCruiser/battlecruiser_diffuse.png");
 		imageViewMap["yamato"] = std::make_unique<ImageView>(*imageMap["yamato"]);
 
 		defaultSampler = std::make_unique<Sampler>(device);

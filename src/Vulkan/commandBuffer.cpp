@@ -102,13 +102,18 @@ void CommandBuffer::bindIndexBuffer(Buffer& indexBuffer)
 
 void CommandBuffer::drawModel(Model& model)
 {
-    auto& vertexBuffer = model.getVertexBuffer();
-    auto& indexBuffer = model.getIndexBuffer();
+    for (const auto& s : model.getShape())
+    {
+        const auto& shape = s.second;
+        auto& vertexBuffer = shape->getVertexBuffer();
+        auto& indexBuffer = shape->getIndexBuffer();
 
-    bindVertexBuffer(vertexBuffer);
-    bindIndexBuffer(indexBuffer);
+        bindVertexBuffer(vertexBuffer);
+        bindIndexBuffer(indexBuffer);
 
-    vkCmdDrawIndexed(handle, model.getIndexSum(), 1, 0, 0, 0);
+        vkCmdDrawIndexed(handle, shape->getIndexSum(), 1, 0, 0, 0);
+    }
+   
 
 }
 
