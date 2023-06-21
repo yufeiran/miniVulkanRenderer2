@@ -17,12 +17,16 @@
 #include"Vulkan/buffer.h"
 #include"ResourceManagement/resourceManagement.h"
 #include"Vulkan/sampler.h"
+#include"ResourceManagement/model.h"
+#include"Vulkan/shaderInfo.h"
+#include"ResourceManagement/model.h"
+
 
 
 namespace mini
 {
 RenderFrame::RenderFrame(Device& device, ResourceManagement& resourceManagement, std::unique_ptr<RenderTarget>&& renderTarget, const RenderPass& renderPass,
-	std::vector<std::unique_ptr<DescriptorSetLayout>>& descriptorSetLayouts) :
+	std::vector<std::unique_ptr<DescriptorSetLayout>>& descriptorSetLayouts, ShaderInfo& shaderInfo) :
 	device(device), renderTarget(std::move(renderTarget)),descriptorSetLayouts(descriptorSetLayouts), resourceManagement(resourceManagement)
 {
 	frameBuffer = std::make_unique<FrameBuffer>(device, *this->renderTarget, renderPass);
@@ -31,9 +35,9 @@ RenderFrame::RenderFrame(Device& device, ResourceManagement& resourceManagement,
 
 	createUniformBuffer();
 
-	setImageInfos();
+	//setImageInfos();
 
-	createDescriptorSets();
+	createDescriptorSets(resourceManagement, shaderInfo);
 }
 
 Device& RenderFrame::getDevice()
@@ -101,9 +105,47 @@ void RenderFrame::updateUniformBuffer()
 
 
 
-void RenderFrame::createDescriptorSets()
+void RenderFrame::createDescriptorSets(ResourceManagement& resourceManagement,ShaderInfo& shaderInfo)
 {
-	descriptorPool->allocate(*descriptorSetLayouts[0],bufferInfos,imageInfos);
+
+	//为每个模型的每个shape都创建一个descriptorset
+
+	auto& modelMap = resourceManagement.getModelMap();
+	for (auto& m : modelMap)
+	{
+		auto& shapeMap = m.second->getShapeMap();
+		for (auto& s : shapeMap)
+		{
+			//在shaderInfo里找对应纹理的槽位
+			auto diffusePos = shaderInfo.findTexturePos(DIFFUSE);
+
+
+			auto& textureInfo= s.second->getTextureInfos();
+
+			auto diffuseTextureInfo = s.second->findTextureInfo(DIFFUSE);
+			VkDescriptorImageInfo imageInfo{};
+			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			//如果shape中有diffuse贴图就用模型中的贴图
+			if (diffuseTextureInfo.type != NONE)
+			{
+				imageInfo.imageView = m.second->getImageViewByName(diffuseTextureInfo.name).getHandle();
+			}
+			//如果没有，就用默认全黑贴图
+			else {
+				imageInfo.imageView = resourceManagement.getDefaultImageView().getHandle();
+			}
+			imageInfo.sampler = resourceManagement.getDefaultSampler().getHandle();
+			imageInfos[diffusePos.first][diffusePos.second] = imageInfo;
+			auto& descripotrSet = descriptorPool->allocate(*descriptorSetLayouts[0], bufferInfos, imageInfos);
+
+			descriptorSetMap[m.second->getName()][s.second->getName()] = { descripotrSet.getHandle() };
+			
+		}
+
+	}
+
+	
+
 }
 
 const VkExtent2D RenderFrame::getExtent() const
@@ -111,9 +153,9 @@ const VkExtent2D RenderFrame::getExtent() const
 	return renderTarget->getExtent();
 }
 
-std::vector<std::unique_ptr<DescriptorSet>>& RenderFrame::getDescriptorSets()
+std::vector<VkDescriptorSet>& RenderFrame::getDescriptorSet(Model& m, Shape& s)
 {
-	return descriptorPool->getDescriptorSets();
+	return descriptorSetMap[m.getName()][s.getName()];
 }
 
 }

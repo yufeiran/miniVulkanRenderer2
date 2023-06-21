@@ -1,5 +1,7 @@
 #include"miniVulkanRenderer.h"
 #include<chrono>
+#include"Vulkan/shaderInfo.h"
+#include"ResourceManagement/texture.h"
 
 using namespace mini;
 using namespace std::chrono;
@@ -28,8 +30,15 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	renderContext = std::make_unique<RenderContext>(*device, surface, *window);
 
+	ShaderInfo shaderInfo;
+	shaderInfo.bindingInfoMap[0][1] = BindingInfo{ TEXTURE_BINDING_TYPE,DIFFUSE };
+
 	shaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/vertexShader.vert.spv", *device, VK_SHADER_STAGE_VERTEX_BIT));
 	shaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/fragmentShader.frag.spv", *device, VK_SHADER_STAGE_FRAGMENT_BIT));
+	
+	for (auto& s : shaderModules) {
+		s->setShaderInfo(shaderInfo);
+	}
 	
 	
 	VkDescriptorSetLayoutBinding uboLayoutBinding{};
@@ -54,7 +63,8 @@ void MiniVulkanRenderer::init(int width, int height)
 	
 	resourceManagement = std::make_unique<ResourceManagement>(*device);
 
-	renderContext->prepare(graphicPipeline->getRenderPass(),*resourceManagement,descriptorSetLayouts);
+	renderContext->prepare(graphicPipeline->getRenderPass(),*resourceManagement,descriptorSetLayouts,
+		graphicPipeline->getShaderModules().front()->getShaderInfo());
 
 
 
@@ -114,7 +124,7 @@ void MiniVulkanRenderer::drawFrame()
 void MiniVulkanRenderer::recordCommandBuffer(CommandBuffer& cmd, RenderFrame& renderFrame)
 {
 	auto& frameBuffer = renderFrame.getFrameBuffer();
-	auto& model = resourceManagement->getModelByName("triangle");
+	auto& model = resourceManagement->getModelByName("BattleCruiser");
 	cmd.reset();
 	cmd.begin();
 
@@ -126,9 +136,8 @@ void MiniVulkanRenderer::recordCommandBuffer(CommandBuffer& cmd, RenderFrame& re
 	cmd.bindPipeline(*graphicPipeline);
 
 	cmd.setViewPortAndScissor(frameBuffer.getExtent());
-	cmd.bindDescriptorSet(renderFrame.getDescriptorSets());
 
-	cmd.drawModel(model);
+	cmd.drawModel(model,renderFrame);
 
 	//cmd.draw(3, 1, 0, 0);
 	cmd.endRenderPass();
@@ -168,7 +177,8 @@ void MiniVulkanRenderer::handleSizeChange()
 	graphicPipeline.reset();
 	graphicPipeline = std::make_unique<GraphicPipeline>(shaderModules,descriptorSetLayouts, *device, renderContext->getSurfaceExtent(), renderContext->getFormat());
 
-	renderContext->prepare(graphicPipeline->getRenderPass(),*resourceManagement,descriptorSetLayouts);
+	renderContext->prepare(graphicPipeline->getRenderPass(),*resourceManagement,descriptorSetLayouts
+	, graphicPipeline->getShaderModules().front()->getShaderInfo());
 
 }
 

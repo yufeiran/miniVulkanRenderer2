@@ -14,6 +14,7 @@
 #include"Vulkan/descriptorSet.h"
 #include"Vulkan/descriptorSetLayout.h"
 #include"Vulkan/buffer.h"
+#include"Vulkan/shaderInfo.h"
 
 
 
@@ -33,7 +34,9 @@ RenderContext::RenderContext(Device& device, VkSurfaceKHR surface, const GlfwWin
 
 void RenderContext::prepare(const RenderPass& renderPass, 
 	ResourceManagement& resourceManagement,
-	std::vector<std::unique_ptr<DescriptorSetLayout>>& descriptorSetLayouts, RenderTarget::CreateFunc createRenderTargetFunc)
+	std::vector<std::unique_ptr<DescriptorSetLayout>>& descriptorSetLayouts,
+	ShaderInfo& shaderInfo,
+	RenderTarget::CreateFunc createRenderTargetFunc)
 {
 	device.waitIdle();
 
@@ -51,7 +54,8 @@ void RenderContext::prepare(const RenderPass& renderPass,
 				swapchain->getImageUsage());
 
 			auto renderTarget = createRenderTargetFunc(std::move( swapchainImage));
-			frames.emplace_back(std::make_unique<RenderFrame>(device, resourceManagement, std::move(renderTarget), renderPass, descriptorSetLayouts));
+			frames.emplace_back(std::make_unique<RenderFrame>(device, resourceManagement, std::move(renderTarget), renderPass,
+				descriptorSetLayouts,shaderInfo));
 		}
 
 		commandPool = std::make_unique<CommandPool>(device);

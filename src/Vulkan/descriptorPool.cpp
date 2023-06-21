@@ -19,7 +19,7 @@ DescriptorPool::DescriptorPool(Device& device):device(device)
 	VkDescriptorPoolCreateInfo poolInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
 	poolInfo.poolSizeCount = poolSizes.size();
 	poolInfo.pPoolSizes = poolSizes.data();
-	poolInfo.maxSets = 1;
+	poolInfo.maxSets = 1000;
 
 	if (vkCreateDescriptorPool(device.getHandle(), &poolInfo, nullptr, &handle) != VK_SUCCESS)
 	{

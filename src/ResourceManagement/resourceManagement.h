@@ -26,6 +26,10 @@ public:
 
 	Sampler& getDefaultSampler();
 
+	ImageView& getDefaultImageView();
+
+	std::map<std::string, std::unique_ptr<Model>>& getModelMap();
+
 private:
 	Device& device;
 

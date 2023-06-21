@@ -14,7 +14,11 @@ namespace mini
 	ResourceManagement::ResourceManagement(Device& device):
 		device(device), nowModelIndex(0)
 	{
-		modelMap["triangle"] = std::make_unique<Model>(device,"../../assets/BattleCruiser/BattleCruiser.obj", "triangle", nowModelIndex++);
+		modelMap["BattleCruiser"] = std::make_unique<Model>(device,"../../assets/BattleCruiser/BattleCruiser.obj", "BattleCruiser", nowModelIndex++);
+		imageMap["defaultTexture"] = std::make_unique<Image>(device, "../../assets/defaultTexture.png");
+		imageViewMap["defaultTexture"] = std::make_unique<ImageView>(*imageMap["defaultTexture"]);
+
+
 		imageMap["yamato"] = std::make_unique<Image>(device, "../../assets/BattleCruiser/battlecruiser_diffuse.png");
 		imageViewMap["yamato"] = std::make_unique<ImageView>(*imageMap["yamato"]);
 
@@ -65,6 +69,16 @@ namespace mini
 	Sampler& ResourceManagement::getDefaultSampler()
 	{
 		return *defaultSampler;
+	}
+
+	ImageView& ResourceManagement::getDefaultImageView()
+	{
+		return *imageViewMap["defaultTexture"];
+	}
+
+	std::map<std::string, std::unique_ptr<Model>>& ResourceManagement::getModelMap()
+	{
+		return modelMap;
 	}
 
 }

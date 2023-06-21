@@ -45,6 +45,16 @@ VkPipelineShaderStageCreateInfo ShaderModule::getStageCreateInfo() const
 	return stageCreateInfo;
 }
 
+void ShaderModule::setShaderInfo(ShaderInfo& s)
+{
+	shaderInfo = s;
+}
+
+ShaderInfo& ShaderModule::getShaderInfo()
+{
+	return shaderInfo;
+}
+
 
 
 std::vector<char> ShaderModule::loadFile(std::string filename)

@@ -17,7 +17,7 @@ class CommandPool;
 class CommandBuffer;
 class DescriptorPool;
 class DescriptorSetLayout;
-
+class ShaderInfo;
 /* RenderContext acts as a frame manager 
 *  用来接管swapchain，负责创建renderFrame并且管理renderFrame的生命周期
 *  
@@ -33,6 +33,7 @@ public:
 	void prepare(const RenderPass& renderPass,
 		ResourceManagement& resourceManagement,
 		std::vector<std::unique_ptr<DescriptorSetLayout>>& descriptorSetLayouts,
+		ShaderInfo& shaderInfo,
 		RenderTarget::CreateFunc createRenderTargetFunc= RenderTarget::DEFAULT_CREATE_FUNC
 		);
 

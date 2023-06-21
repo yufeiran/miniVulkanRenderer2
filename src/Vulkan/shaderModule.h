@@ -1,8 +1,12 @@
+#pragma once
 #include"vk_common.h"
+#include"shaderInfo.h"
+
 
 namespace mini
 {
 class Device;
+class ShaderInfo;
 
 class ShaderModule
 {
@@ -17,7 +21,13 @@ public:
 
 	VkPipelineShaderStageCreateInfo getStageCreateInfo() const;
 
+	void setShaderInfo(ShaderInfo& s);
+
+	ShaderInfo& getShaderInfo();
+
 private:
+	ShaderInfo shaderInfo;
+
 	Device& device;
 
 	std::vector<char> loadFile(std::string filename);

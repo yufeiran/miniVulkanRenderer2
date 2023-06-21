@@ -7,7 +7,8 @@ namespace mini
 
 enum TEXTURE_TYPE
 {
-	AMBIENT = 0,
+	NONE=0,
+	AMBIENT,
 	DIFFUSE,
 	SPECULAR,
 	SPECULAR_HIGHLIGHT

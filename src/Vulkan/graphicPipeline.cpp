@@ -199,4 +199,9 @@ RenderPass& GraphicPipeline::getRenderPass() const
 	return *renderPass;
 }
 
+std::vector<std::unique_ptr<ShaderModule>>& GraphicPipeline::getShaderModules() const
+{
+	return shaderModules;
+}
+
 }

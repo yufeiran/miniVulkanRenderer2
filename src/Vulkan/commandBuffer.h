@@ -15,6 +15,7 @@ class Buffer;
 class Model;
 class DescriptorSet;
 class Queue;
+class Shape;
 
 class CommandBuffer
 {
@@ -33,11 +34,13 @@ public:
 
 	void bindDescriptorSet(const std::vector<std::unique_ptr<DescriptorSet>>& descriptorSets);
 
+	void bindDescriptorSet(const std::vector<VkDescriptorSet>& descriptorSets);
+
 	void bindVertexBuffer(Buffer& vertexBuffer);
 
 	void bindIndexBuffer(Buffer& indexBuffer);
 
-	void drawModel(Model& model);
+	void drawModel(Model& model,RenderFrame& renderFrame);
 
 	void draw(uint32_t vertexCount,uint32_t instanceCount,uint32_t firstVertex,uint32_t firstInstance);
 

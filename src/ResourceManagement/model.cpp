@@ -167,19 +167,27 @@ uint32_t Model::getID() const
 	return id;
 }
 
-const std::map<std::string, std::unique_ptr<Shape>>& Model::getShape() const
+const std::map<std::string, std::unique_ptr<Shape>>& Model::getShapeMap() const
 {
 	return shapeMap;
 }
 
 void Model::loadImage(const std::string& name)
 {
-	if (imageMap.find(name) != imageMap.end()) {
+	if (imageMap.find(name) == imageMap.end()) {
 		std::string filePath = baseDirPath + name;
 		imageMap[name] = std::make_unique<Image>(device, filePath);
 		imageViewMap[name] = std::make_unique<ImageView>(*imageMap[name]);
 		Log("load image:" + name);
 	}
+}
+
+ImageView& Model::getImageViewByName(const std::string& name)
+{
+	if (imageViewMap.find(name) != imageViewMap.end()) {
+		return *imageViewMap[name];
+	}
+	throw Error("Can't find image by name:" + name);
 }
 
 

@@ -27,9 +27,11 @@ public:
 
 	uint32_t getID() const;
 
-	const std::map<std::string, std::unique_ptr<Shape>>& getShape()const;
+	const std::map<std::string, std::unique_ptr<Shape>>& getShapeMap()const;
 
 	void loadImage(const std::string& name);
+
+	ImageView& getImageViewByName(const std::string& name);
 
 private:
 	std::string filePath;

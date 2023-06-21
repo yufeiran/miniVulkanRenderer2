@@ -36,9 +36,14 @@ public:
 
 	uint32_t getVertexSum() const;
 	uint32_t getIndexSum() const;
+	std::string getName() const;
+
+	std::vector<Texture>& getTextureInfos();
 
 	std::vector<Texture> textureInfos;
 
+	
+	Texture findTextureInfo(TEXTURE_TYPE type);
 private:
 
 

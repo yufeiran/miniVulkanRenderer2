@@ -23,6 +23,9 @@ public:
 	VkPipeline getHandle() const;
 
 	RenderPass& getRenderPass() const;
+
+	std::vector<std::unique_ptr<ShaderModule>>& getShaderModules()const;
+
 private:
 	Device& device;
 	std::vector<std::unique_ptr<ShaderModule>>& shaderModules;

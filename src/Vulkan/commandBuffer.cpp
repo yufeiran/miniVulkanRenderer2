@@ -10,6 +10,7 @@
 #include"Vulkan/descriptorSet.h"
 #include"Vulkan/descriptorSetLayout.h"
 #include"Vulkan/queue.h"
+#include"Rendering/renderFrame.h"
 
 namespace mini
 {
@@ -84,7 +85,13 @@ void CommandBuffer::bindDescriptorSet(const std::vector<std::unique_ptr<Descript
     {
         vkDescriptorSets.emplace_back(it->getHandle());
     }
-    vkCmdBindDescriptorSets(handle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, vkDescriptorSets.size(), vkDescriptorSets.data(), 0, 0);
+    bindDescriptorSet(vkDescriptorSets);
+}
+
+void CommandBuffer::bindDescriptorSet(const std::vector<VkDescriptorSet>& descriptorSets)
+{
+    vkCmdBindDescriptorSets(handle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, descriptorSets.size(), descriptorSets.data(), 0, 0);
+
 }
 
 void CommandBuffer::bindVertexBuffer(Buffer& vertexBuffer)
@@ -100,13 +107,16 @@ void CommandBuffer::bindIndexBuffer(Buffer& indexBuffer)
     vkCmdBindIndexBuffer(handle, indexBuffer.getHandle(), 0, VK_INDEX_TYPE_UINT16);
 }
 
-void CommandBuffer::drawModel(Model& model)
+void CommandBuffer::drawModel(Model& model, RenderFrame& renderFrame)
 {
-    for (const auto& s : model.getShape())
+    for (const auto& s : model.getShapeMap())
     {
         const auto& shape = s.second;
         auto& vertexBuffer = shape->getVertexBuffer();
         auto& indexBuffer = shape->getIndexBuffer();
+
+        auto& descriptorSet = renderFrame.getDescriptorSet(model, *shape);
+        bindDescriptorSet(descriptorSet);
 
         bindVertexBuffer(vertexBuffer);
         bindIndexBuffer(indexBuffer);

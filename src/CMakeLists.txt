@@ -49,6 +49,8 @@ set(VULKAN_FRAMEWORK_FILES
     ./Vulkan/descriptorPool.cpp 
     ./Vulkan/sampler.h 
     ./Vulkan/sampler.cpp 
+    ./Vulkan/shaderInfo.h 
+    ./Vulkan/shaderInfo.cpp 
 
 
 )
