@@ -1,6 +1,6 @@
 #pragma once
 #include<iostream>
-#include"Vulkan/vk_common.h"
+#include"Common/common.h"
 
 
 #define GLM_FORCE_RADIANS
@@ -8,6 +8,7 @@
 #include"glm/vec4.hpp"
 #include"glm/mat4x4.hpp"
 #include"Common/miniLog.h"
+#include"Common/camera.h"
 #include"Platform/glfwWindow.h"
 #include"Vulkan/instance.h"
 #include"Vulkan/physicalDevice.h"
@@ -29,6 +30,11 @@
 #include"Vulkan/descriptorPool.h"
 #include"Vulkan/descriptorSet.h"
 #include"Vulkan/buffer.h"
+#include"Sprite/sprite.h"
+#include"Sprite/spriteList.h"
+
+
+
 
 //这是miniVulkanRenderer2
 /* 一个基础的
@@ -46,13 +52,19 @@ public:
 
 	void loop();
 
+	void keyControl();
+
 	void drawFrame();
 
 	void recordCommandBuffer(CommandBuffer& cmd, RenderFrame& renderFrame);
 
+	static void mouseCallBack(GLFWwindow* window, double xpos, double ypos);
+
 	double calFps();
 
 	void handleSizeChange();
+
+	Camera& getCamera();
 
 
 private:
@@ -80,7 +92,11 @@ private:
 
 	std::unique_ptr<ResourceManagement> resourceManagement;
 
+	SpriteList spriteList;
 
+	Camera  camera;
 
 
 };
+
+extern MiniVulkanRenderer miniRenderer;

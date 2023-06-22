@@ -1,10 +1,16 @@
 #pragma once
-#include"Vulkan/vk_common.h"
+#include"Common/common.h"
 
 namespace mini
 {
 
 class Instance;
+
+enum CURSOR_MODE {
+	DISABLED_CURSOR,
+	HIDDEN_CURSOR,
+	NORMAL_CURSOR
+};
 
 class GlfwWindow
 {
@@ -20,6 +26,12 @@ public:
 	VkExtent2D getExtent() const;
 
 	void setTitle(const char* name);
+
+	void setMouseCallBack(GLFWcursorposfun callback);
+
+	void setCursorMode(CURSOR_MODE mode);
+
+	CURSOR_MODE getCursorMode();
 
 	bool shouldClose() const;
 
@@ -38,6 +50,8 @@ private:
 	VkSurfaceKHR surface{ VK_NULL_HANDLE };
 
 	GLFWimage iconImage{};
+
+	CURSOR_MODE nowCursorMode = NORMAL_CURSOR;
 
 
 	int width;

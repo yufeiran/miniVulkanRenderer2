@@ -3,6 +3,7 @@
 #include"Vulkan/shaderInfo.h"
 #include"ResourceManagement/texture.h"
 
+
 using namespace mini;
 using namespace std::chrono;
 
@@ -17,6 +18,7 @@ void MiniVulkanRenderer::init(int width, int height)
 	width = width;
 	height = height;
 	window = std::make_unique<GlfwWindow>(width, height, "miniVulkanRenderer2");
+	window->setMouseCallBack(mouseCallBack);
 
 	instance = std::make_unique<Instance>();
 
@@ -63,9 +65,16 @@ void MiniVulkanRenderer::init(int width, int height)
 	
 	resourceManagement = std::make_unique<ResourceManagement>(*device);
 
+	resourceManagement->loadModel("BattleCruiser", "../../assets/BattleCruiser/BattleCruiser.obj");
+
 	renderContext->prepare(graphicPipeline->getRenderPass(),*resourceManagement,descriptorSetLayouts,
 		graphicPipeline->getShaderModules().front()->getShaderInfo());
 
+	for (int i = 0; i < 10; i++)
+	{
+		spriteList.addSprite(resourceManagement->getModelByName("BattleCruiser"), -1, -1, -5 * i + 25, 1, 0, 90, 0);
+
+	}
 
 
 	Log("miniVulkanRenderer init finish");
@@ -75,8 +84,9 @@ void MiniVulkanRenderer::loop()
 {
 	double lastFps = 0;
 	double avgFps = 0;
-	while(!window->shouldClose()){
 
+	while(!window->shouldClose()){
+		keyControl();
 		window->processEvents();
 		drawFrame();
 
@@ -99,6 +109,55 @@ void MiniVulkanRenderer::loop()
 	device->waitIdle();
 }
 
+
+
+void MiniVulkanRenderer::keyControl()
+{
+	const auto& win = window->getHandle();
+	static auto startTime = std::chrono::high_resolution_clock::now();
+
+	auto currentTime = std::chrono::high_resolution_clock::now();
+
+	float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+	static float lastFrame = glfwGetTime();
+
+	float currentFrame = glfwGetTime();
+	float deltaTime = currentFrame - lastFrame;
+	lastFrame = currentFrame;
+
+	if (glfwGetKey(win,GLFW_KEY_W) == GLFW_PRESS)
+	{
+		camera.move(UP_DIR, deltaTime);
+	}
+	if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS)
+	{
+		camera.move(DOWN_DIR, deltaTime);
+	}
+	if (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS)
+	{
+		camera.move(LEFT_DIR, deltaTime);
+	}
+	if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS)
+	{
+		camera.move(RIGHT_DIR, deltaTime);
+	}
+	if (glfwGetKey(win, GLFW_KEY_SPACE) == GLFW_PRESS)
+	{
+		camera.move(FRONT_DIR, deltaTime);
+	}
+	if (glfwGetKey(win, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+	{
+		camera.move(END_DIR, deltaTime);
+	}
+	if (glfwGetKey(win, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	{
+		glfwSetWindowShouldClose(win, GLFW_TRUE);
+	}
+
+}
+
+
 void MiniVulkanRenderer::drawFrame()
 {
 
@@ -112,7 +171,7 @@ void MiniVulkanRenderer::drawFrame()
 	auto& cmd = renderContext->getCurrentCommandBuffer();
 	auto& frame = renderContext->getActiveFrame();
 
-	frame.updateUniformBuffer();
+	frame.updateUniformBuffer(camera);
 	
 	recordCommandBuffer(cmd, frame);
 
@@ -124,7 +183,7 @@ void MiniVulkanRenderer::drawFrame()
 void MiniVulkanRenderer::recordCommandBuffer(CommandBuffer& cmd, RenderFrame& renderFrame)
 {
 	auto& frameBuffer = renderFrame.getFrameBuffer();
-	auto& model = resourceManagement->getModelByName("BattleCruiser");
+
 	cmd.reset();
 	cmd.begin();
 
@@ -137,11 +196,58 @@ void MiniVulkanRenderer::recordCommandBuffer(CommandBuffer& cmd, RenderFrame& re
 
 	cmd.setViewPortAndScissor(frameBuffer.getExtent());
 
-	cmd.drawModel(model,renderFrame);
+	for (auto& s : spriteList.sprites)
+	{
+		cmd.drawSprite(s, renderFrame);
+	}
 
-	//cmd.draw(3, 1, 0, 0);
 	cmd.endRenderPass();
 	cmd.end();
+
+}
+
+void MiniVulkanRenderer::mouseCallBack(GLFWwindow* window, double xpos, double ypos)
+{
+	static bool firstMouse = true;
+
+
+	static double lastX, lastY;
+
+	glfwGetCursorPos(window, &xpos, &ypos);
+
+	if (firstMouse)
+	{
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos;
+	lastX = xpos;
+	lastY = ypos;
+
+	auto& camera = miniRenderer.getCamera();
+
+
+	camera.changeDir(xoffset, yoffset);
+
+	//if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+	//{
+	//	camera.changeDir(0, 1);
+	//}
+	//if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+	//{
+	//	camera.changeDir(0, -1);
+	//}
+	//if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+	//{
+	//	camera.changeDir(-1, 0);
+	//}
+	//if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+	//{
+	//	camera.changeDir(1, 0);
+	//}
 
 }
 
@@ -180,6 +286,11 @@ void MiniVulkanRenderer::handleSizeChange()
 	renderContext->prepare(graphicPipeline->getRenderPass(),*resourceManagement,descriptorSetLayouts
 	, graphicPipeline->getShaderModules().front()->getShaderInfo());
 
+}
+
+Camera& MiniVulkanRenderer::getCamera()
+{
+	return camera;
 }
 
 

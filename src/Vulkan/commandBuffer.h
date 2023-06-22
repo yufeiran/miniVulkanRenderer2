@@ -1,7 +1,8 @@
 #pragma once
 
-#include"vk_common.h"
+#include"Common/common.h"
 #include"framebuffer.h"
+#include"Common/deviceDataStruct.h"
 
 namespace mini
 {
@@ -16,6 +17,7 @@ class Model;
 class DescriptorSet;
 class Queue;
 class Shape;
+class Sprite;
 
 class CommandBuffer
 {
@@ -40,7 +42,9 @@ public:
 
 	void bindIndexBuffer(Buffer& indexBuffer);
 
-	void drawModel(Model& model,RenderFrame& renderFrame);
+	void pushConstant(PushConstantsMesh& pushConstantsMesh,VkShaderStageFlagBits stage);
+
+	void drawSprite(Sprite& sprite,RenderFrame& renderFrame);
 
 	void draw(uint32_t vertexCount,uint32_t instanceCount,uint32_t firstVertex,uint32_t firstInstance);
 

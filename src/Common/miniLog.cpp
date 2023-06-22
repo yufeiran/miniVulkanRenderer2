@@ -1,39 +1,39 @@
 #include "miniLog.h"
 #include<Windows.h>
 
-namespace mini
+namespace mini {
+
+const char LOG_TYPE_STR[3][10] = {
+	"INFO","ERROR","WARN"
+};
+
+const int LOG_TYPE_COLOR[LOG_TYPE_SUM] = {
+	0xA,
+	4,
+	6
+};
+
+HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+
+
+
+void Log(const char* message, LOG_TYPE logType)
 {
 
-	const std::string LOG_TYPE_STRING[LOG_TYPE_SUM] = {
-		"INFO","ERROR","WARN"
-	};
-
-	const int LOG_TYPE_COLOR[LOG_TYPE_SUM] = {
-		0xA,
-		4,
-		6
-	};
-
-	HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+	std::cout << "[";
 
 
+	SetConsoleTextAttribute(handle, FOREGROUND_INTENSITY | LOG_TYPE_COLOR[logType]);
 
-	void Log(const char* message, LOG_TYPE logType)
-	{
+	std::cout << LOG_TYPE_STR[logType];
+	SetConsoleTextAttribute(handle, FOREGROUND_INTENSITY | 7);
 
-		std::cout << "[";
-
-
-		SetConsoleTextAttribute(handle, FOREGROUND_INTENSITY | LOG_TYPE_COLOR[logType]);
-
-		std::cout << LOG_TYPE_STRING[logType];
-		SetConsoleTextAttribute(handle, FOREGROUND_INTENSITY | 7);
-
-		std::cout << "] " << message << std::endl;
-	}
-
-	void Log(const std::string message, LOG_TYPE logType)
-	{
-		Log(message.c_str(), logType);
-	}
+	std::cout << "] " << message << std::endl;
 }
+
+void Log(const std::string message, LOG_TYPE logType)
+{
+	Log(message.c_str(), logType);
+}
+}
+

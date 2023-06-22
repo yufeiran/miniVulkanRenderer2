@@ -20,7 +20,7 @@
 #include"ResourceManagement/model.h"
 #include"Vulkan/shaderInfo.h"
 #include"ResourceManagement/model.h"
-
+#include"Common/camera.h"
 
 
 namespace mini
@@ -34,8 +34,6 @@ RenderFrame::RenderFrame(Device& device, ResourceManagement& resourceManagement,
 	descriptorPool = std::make_unique<DescriptorPool>(device);
 
 	createUniformBuffer();
-
-	//setImageInfos();
 
 	createDescriptorSets(resourceManagement, shaderInfo);
 }
@@ -73,18 +71,7 @@ void RenderFrame::createUniformBuffer()
 
 }
 
-void RenderFrame::setImageInfos()
-{
-
-	VkDescriptorImageInfo imageInfo{};
-	imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imageInfo.imageView = resourceManagement.getImageViewByName("yamato").getHandle();
-	imageInfo.sampler = resourceManagement.getDefaultSampler().getHandle();
-
-	imageInfos[0][1] = imageInfo;
-}
-
-void RenderFrame::updateUniformBuffer()
+void RenderFrame::updateUniformBuffer(Camera& c)
 {
 	static auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -96,8 +83,8 @@ void RenderFrame::updateUniformBuffer()
 
 	UniformBufferObject ubo{};
 	ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.proj = glm::perspective(glm::radians(45.0f), (float)extent.width / (float)extent.height, 0.1f, 10.0f);
+	ubo.view = c.getViewMat();
+	ubo.proj = glm::perspective(glm::radians(45.0f), (float)extent.width / (float)extent.height, 0.1f, 1000.0f);
 	ubo.proj[1][1] *= -1;
 	memcpy(uniformBuffers[0]->getMapAddress(), &ubo, sizeof(ubo));
 

@@ -17,7 +17,10 @@ GlfwWindow::GlfwWindow(int width, int height, const char* title)
 	handle = glfwCreateWindow(width, height, "miniVulkanRenderer2", nullptr, nullptr);
 	loadIcon("../../assets/logo.png");
 	
+	setCursorMode(DISABLED_CURSOR);
 }
+
+
 
 GlfwWindow::~GlfwWindow()
 {
@@ -75,6 +78,35 @@ void GlfwWindow::setTitle(const char* name)
 {
 	glfwSetWindowTitle(handle, name);
 }
+
+void GlfwWindow::setMouseCallBack(GLFWcursorposfun callback)
+{
+	glfwSetCursorPosCallback(handle, callback);
+}
+
+void GlfwWindow::setCursorMode(CURSOR_MODE mode)
+{
+	int value;
+	if (mode == DISABLED_CURSOR) {
+		value = GLFW_CURSOR_DISABLED;
+	}
+	else if (mode == HIDDEN_CURSOR) {
+		value = GLFW_CURSOR_HIDDEN;
+	}
+	else if (mode == NORMAL_CURSOR) {
+		value = GLFW_CURSOR_NORMAL;
+	}
+	glfwSetInputMode(handle, GLFW_CURSOR, value);
+	nowCursorMode = mode;
+
+}
+
+CURSOR_MODE GlfwWindow::getCursorMode()
+{
+	return nowCursorMode;
+}
+
+
 
 bool GlfwWindow::shouldClose() const
 {

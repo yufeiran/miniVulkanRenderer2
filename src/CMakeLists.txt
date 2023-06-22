@@ -12,7 +12,6 @@ set(VULKAN_FRAMEWORK_FILES
     ./Vulkan/device.cpp
     ./Vulkan/instance.h
     ./Vulkan/instance.cpp
-    ./Vulkan/vk_common.h
     ./Vulkan/physicalDevice.h
     ./Vulkan/physicalDevice.cpp
     ./Vulkan/queue.h 
@@ -64,6 +63,9 @@ set(COMMON_FILES
     ./Common/material.cpp 
     ./Common/Vertex.h 
     ./Common/Vertex.cpp 
+    ./Common/camera.h 
+    ./Common/camera.cpp 
+    ./Common/common.h
 )
 
 set(PLATFORM_FILES
@@ -94,6 +96,14 @@ set(RESOURCE_MANAGEMENT_FILES
     ./ResourceManagement/texture.cpp 
     ./ResourceManagement/shape.h 
     ./ResourceManagement/shape.cpp 
+
+)
+
+set(SPIRITE_FILES 
+    ./Sprite/sprite.h 
+    ./Sprite/sprite.cpp 
+    ./Sprite/spriteList.h 
+    ./Sprite/spriteList.cpp 
 )
 
 source_group("\\" FILES ${RENDERER_FILES})
@@ -102,6 +112,7 @@ source_group("Platform\\" FILES ${PLATFORM_FILES})
 source_group("Vulkan\\" FILES ${VULKAN_FRAMEWORK_FILES})
 source_group("Rendering\\" FILES ${RENDERING_FILES})
 source_group("ResourceManagement\\" FILES ${RESOURCE_MANAGEMENT_FILES})
+source_group("Sprite\\" FILES ${SPIRITE_FILES})
 
 
 # Add source to this project's executable.
@@ -112,6 +123,7 @@ add_executable(miniVulkanRenderer2
     ${PLATFORM_FILES}
     ${RENDERING_FILES}
     ${RESOURCE_MANAGEMENT_FILES}
+    ${SPIRITE_FILES}
 )
 
 

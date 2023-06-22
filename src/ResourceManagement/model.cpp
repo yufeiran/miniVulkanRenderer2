@@ -50,15 +50,6 @@ Model::Model(Device& device, const std::string& filePath,const std::string& name
 	baseDirPath += "/";
 
 
-	//load img 
-	for (const auto& m : materials)
-	{
-
-		imageMap["yamato"] = std::make_unique<Image>(device, "../../assets/images/yamato.jpg");
-		imageViewMap["yamato"] = std::make_unique<ImageView>(*imageMap["yamato"]);
-
-	}
-
 
 	std::string warn, err;
 
@@ -133,8 +124,12 @@ Model::Model(Device& device, const std::string& filePath,const std::string& name
 			shape->textureInfos.push_back({ DIFFUSE,mat.diffuse_texname });
 			loadImage(mat.diffuse_texname);
 		}
+		if (mat.emission_texname != std::string()) {
+			shape->textureInfos.push_back({ SPECULAR,mat.emission_texname });
+			loadImage(mat.emission_texname);
+		}
 		if (mat.specular_texname != std::string()) {
-			shape->textureInfos.push_back({ SPECULAR,mat.specular_texname });
+			shape->textureInfos.push_back({ EMISSION,mat.specular_texname });
 			loadImage(mat.specular_texname);
 		}
 		if (mat.specular_highlight_texname != std::string()) {

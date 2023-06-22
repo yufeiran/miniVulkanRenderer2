@@ -1,5 +1,5 @@
 #pragma once 
-#include"Vulkan/vk_common.h"
+#include"Common/common.h"
 
 
 namespace mini
@@ -10,6 +10,7 @@ enum TEXTURE_TYPE
 	NONE=0,
 	AMBIENT,
 	DIFFUSE,
+	EMISSION,
 	SPECULAR,
 	SPECULAR_HIGHLIGHT
 };

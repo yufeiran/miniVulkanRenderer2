@@ -1,5 +1,5 @@
 #pragma once
-#include"Vulkan/vk_common.h"
+#include"Common/common.h"
 
 namespace mini
 {
@@ -15,6 +15,8 @@ class ResourceManagement
 public:
 	ResourceManagement(Device&device);
 	~ResourceManagement();
+
+	void loadModel( std::string name,std::string path );
 
 	Model& getModelByName(const std::string &name);
 

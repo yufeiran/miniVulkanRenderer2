@@ -1,5 +1,5 @@
 #pragma once
-#include"Vulkan/vk_common.h"
+#include"Common/common.h"
 #include"Vulkan/framebuffer.h"
 
 namespace mini
@@ -19,6 +19,7 @@ class ResourceManagement;
 class ShaderInfo;
 class Model;
 class Shape;
+class Camera;
 
 /*
 * Render Frame is a container for per-frame data, including BufferPool objects, synchronization primitives (semaphores , fences) and the swapchain RenderTarget.
@@ -40,9 +41,9 @@ public:
 
 	void createUniformBuffer();
 
-	void setImageInfos();
 
-	void updateUniformBuffer();
+
+	void updateUniformBuffer(Camera &c);
 
 
 

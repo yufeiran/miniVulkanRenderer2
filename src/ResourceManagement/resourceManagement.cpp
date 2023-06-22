@@ -14,19 +14,26 @@ namespace mini
 	ResourceManagement::ResourceManagement(Device& device):
 		device(device), nowModelIndex(0)
 	{
-		modelMap["BattleCruiser"] = std::make_unique<Model>(device,"../../assets/BattleCruiser/BattleCruiser.obj", "BattleCruiser", nowModelIndex++);
 		imageMap["defaultTexture"] = std::make_unique<Image>(device, "../../assets/defaultTexture.png");
 		imageViewMap["defaultTexture"] = std::make_unique<ImageView>(*imageMap["defaultTexture"]);
-
-
-		imageMap["yamato"] = std::make_unique<Image>(device, "../../assets/BattleCruiser/battlecruiser_diffuse.png");
-		imageViewMap["yamato"] = std::make_unique<ImageView>(*imageMap["yamato"]);
 
 		defaultSampler = std::make_unique<Sampler>(device);
 	}
 
 	ResourceManagement::~ResourceManagement()
 	{
+
+	}
+
+	void ResourceManagement::loadModel( std::string name, std::string path)
+	{
+		if (modelMap.find(name) == modelMap.end())
+		{
+			modelMap[name] = std::make_unique<Model>(device, path, name, nowModelIndex++);
+		}
+		else {
+			Log("model name " + name + " is already load", ERROR_TYPE);
+		}
 
 	}
 

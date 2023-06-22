@@ -1,5 +1,5 @@
 #pragma once 
-#include"Vulkan/vk_common.h"
+#include"Common/common.h"
 #include"tiny_obj_loader.h"
 
 namespace mini
@@ -19,6 +19,7 @@ struct Material
 
 	std::string ambient_texname;                // map_Ka
 	std::string diffuse_texname;                // map_Kd
+	std::string emission_texname;               // map_Ke
 	std::string specular_texname;               // map_Ks
 	std::string specular_highlight_texname;     // map_Ns
 };

@@ -18,6 +18,7 @@ namespace mini {
 		mat.dissolve = m.dissolve;
 		mat.ambient_texname = m.ambient_texname;
 		mat.diffuse_texname = m.diffuse_texname;
+		mat.emission_texname = m.emissive_texname;
 		mat.specular_texname = m.specular_texname;
 		mat.specular_highlight_texname = m.specular_highlight_texname;
 

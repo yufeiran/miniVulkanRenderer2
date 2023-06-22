@@ -5,11 +5,13 @@
 using namespace std;
 using namespace mini;
 
+MiniVulkanRenderer miniRenderer;
+
 int main()
 {
 
 	Log("Hello World!");
-	MiniVulkanRenderer miniRenderer;
+
 	try {
 		miniRenderer.init();
 

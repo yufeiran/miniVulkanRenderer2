@@ -128,12 +128,20 @@ GraphicPipeline::GraphicPipeline(std::vector<std::unique_ptr<ShaderModule>>& sha
 		vkDescriptorSetLayouts.push_back(it->getHandle());
 	}
 
+	std::vector<VkPushConstantRange> pushConstants;
+	VkPushConstantRange pushConstant;
+	pushConstant.offset = 0;
+	pushConstant.size = sizeof(PushConstantsMesh);
+	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	pushConstants.push_back(pushConstant);
+
+
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineLayoutInfo.setLayoutCount = vkDescriptorSetLayouts.size();
 	pipelineLayoutInfo.pSetLayouts = vkDescriptorSetLayouts.data();
-	pipelineLayoutInfo.pushConstantRangeCount = 0;
-	pipelineLayoutInfo.pPushConstantRanges = nullptr;
+	pipelineLayoutInfo.pushConstantRangeCount = pushConstants.size();
+	pipelineLayoutInfo.pPushConstantRanges = pushConstants.data();
 
 	if (vkCreatePipelineLayout(device.getHandle(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
 		throw Error("Failed to crate pipeline layout");

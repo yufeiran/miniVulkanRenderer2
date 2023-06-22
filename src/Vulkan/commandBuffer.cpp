@@ -11,6 +11,7 @@
 #include"Vulkan/descriptorSetLayout.h"
 #include"Vulkan/queue.h"
 #include"Rendering/renderFrame.h"
+#include"Sprite/sprite.h"
 
 namespace mini
 {
@@ -107,8 +108,16 @@ void CommandBuffer::bindIndexBuffer(Buffer& indexBuffer)
     vkCmdBindIndexBuffer(handle, indexBuffer.getHandle(), 0, VK_INDEX_TYPE_UINT16);
 }
 
-void CommandBuffer::drawModel(Model& model, RenderFrame& renderFrame)
+void CommandBuffer::pushConstant(PushConstantsMesh& pushConstant,VkShaderStageFlagBits stage)
 {
+    vkCmdPushConstants(handle, pipelineLayout, stage, 0, sizeof(PushConstantsMesh), &pushConstant);
+}
+
+void CommandBuffer::drawSprite(Sprite& sprite, RenderFrame& renderFrame)
+{
+    auto& model = sprite.getModel();
+    PushConstantsMesh pushConstantMesh;
+    pushConstantMesh.mesh_matrix = sprite.getModelMat();
     for (const auto& s : model.getShapeMap())
     {
         const auto& shape = s.second;
@@ -116,6 +125,9 @@ void CommandBuffer::drawModel(Model& model, RenderFrame& renderFrame)
         auto& indexBuffer = shape->getIndexBuffer();
 
         auto& descriptorSet = renderFrame.getDescriptorSet(model, *shape);
+
+        pushConstant(pushConstantMesh, VK_SHADER_STAGE_VERTEX_BIT);
+
         bindDescriptorSet(descriptorSet);
 
         bindVertexBuffer(vertexBuffer);
