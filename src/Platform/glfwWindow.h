@@ -19,6 +19,8 @@ public:
 
 	~GlfwWindow();
 
+	void joystickInput();
+
 	GLFWwindow* getHandle() const;
 
 	VkSurfaceKHR createSurface(VkInstance instance);
@@ -28,6 +30,8 @@ public:
 	void setTitle(const char* name);
 
 	void setMouseCallBack(GLFWcursorposfun callback);
+
+	void setJoystickCallBack(GLFWjoystickfun callback);
 
 	void setCursorMode(CURSOR_MODE mode);
 

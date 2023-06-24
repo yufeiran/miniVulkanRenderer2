@@ -19,6 +19,7 @@ void MiniVulkanRenderer::init(int width, int height)
 	height = height;
 	window = std::make_unique<GlfwWindow>(width, height, "miniVulkanRenderer2");
 	window->setMouseCallBack(mouseCallBack);
+	window->setJoystickCallBack(joystickCallback);
 
 	instance = std::make_unique<Instance>();
 
@@ -87,6 +88,7 @@ void MiniVulkanRenderer::loop()
 
 	while(!window->shouldClose()){
 		keyControl();
+		joystickControl();
 		window->processEvents();
 		drawFrame();
 
@@ -104,6 +106,8 @@ void MiniVulkanRenderer::loop()
 		title += " fps:";
 		title += toString(fps);
 		window->setTitle(title.c_str());
+
+		
 
 	}
 	device->waitIdle();
@@ -154,6 +158,91 @@ void MiniVulkanRenderer::keyControl()
 	{
 		glfwSetWindowShouldClose(win, GLFW_TRUE);
 	}
+
+}
+
+void MiniVulkanRenderer::joystickControl()
+{
+	const auto& win = window->getHandle();
+	auto& camera = miniRenderer.getCamera();
+	static float lastFrame = glfwGetTime();
+
+	float currentFrame = glfwGetTime();
+	float deltaTime = currentFrame - lastFrame;
+	lastFrame = currentFrame;
+
+	int present = glfwJoystickPresent(GLFW_JOYSTICK_1);
+	//Log("Joystick/Gamepad 1 status" + toString(present));
+	if (1 == present)
+	{
+		if (glfwJoystickIsGamepad(GLFW_JOYSTICK_1))
+		{
+			double sensitivity = 3;
+			GLFWgamepadstate state;
+			if (glfwGetGamepadState(GLFW_JOYSTICK_1, &state))
+			{
+				if (state.buttons[GLFW_GAMEPAD_BUTTON_A])
+				{
+					//Log("Press A");
+					camera.move(FRONT_DIR, deltaTime* sensitivity);
+				}
+				if (state.buttons[GLFW_GAMEPAD_BUTTON_B])
+				{
+					//Log("Press B");
+					camera.move(END_DIR, deltaTime* sensitivity);
+				}
+				if (state.buttons[GLFW_GAMEPAD_BUTTON_START])
+				{
+					glfwSetWindowShouldClose(win, GLFW_TRUE);
+				}
+
+
+			}
+			double upSpeed;
+			double sideSpeed;
+			double cameraUpSpeed;
+			double cameraSideSpeed;
+			upSpeed = state.axes[GLFW_GAMEPAD_AXIS_LEFT_Y];
+			sideSpeed = state.axes[GLFW_GAMEPAD_AXIS_LEFT_X];
+			cameraUpSpeed = state.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y];
+			cameraSideSpeed = state.axes[GLFW_GAMEPAD_AXIS_RIGHT_X];
+			double threshold=0.2;
+
+			if (abs(upSpeed) > threshold)
+			{
+				if (upSpeed > 0)
+				{
+					camera.move(DOWN_DIR, abs(upSpeed) * deltaTime* sensitivity);
+				}
+				else
+				{
+					camera.move(UP_DIR, abs(upSpeed) * deltaTime* sensitivity);
+				}
+			}
+			if (abs(sideSpeed) > threshold)
+			{
+				if (sideSpeed > 0)
+				{
+					camera.move(RIGHT_DIR, abs(sideSpeed) * deltaTime* sensitivity);
+				}
+				else
+				{
+					camera.move(LEFT_DIR, abs(sideSpeed) * deltaTime* sensitivity);
+				}
+			}
+			if (abs(cameraUpSpeed) > threshold|| abs(cameraSideSpeed) > threshold)
+			{
+				camera.changeDir(cameraSideSpeed*1000* deltaTime, -cameraUpSpeed*1000* deltaTime);
+			
+			}
+
+			
+		}
+		
+
+
+	}
+
 
 }
 
@@ -248,6 +337,24 @@ void MiniVulkanRenderer::mouseCallBack(GLFWwindow* window, double xpos, double y
 	//{
 	//	camera.changeDir(1, 0);
 	//}
+
+}
+
+void MiniVulkanRenderer::joystickCallback(int jid, int event)
+{
+
+
+	if (event == GLFW_CONNECTED)
+	{
+		const char* name = glfwGetJoystickName(jid);
+		Log("Joystick #" + toString(jid) + " name:" + name + " is CONNECTED!");
+	}
+	else if (event == GLFW_DISCONNECTED)
+	{
+		const char* name = glfwGetJoystickName(jid);
+		Log("Joystick #" + toString(jid) + " name:" + name + " is DISCONNECTED!");
+	}
+
 
 }
 

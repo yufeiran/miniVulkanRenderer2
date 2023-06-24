@@ -54,11 +54,15 @@ public:
 
 	void keyControl();
 
+	void joystickControl();
+
 	void drawFrame();
 
 	void recordCommandBuffer(CommandBuffer& cmd, RenderFrame& renderFrame);
 
 	static void mouseCallBack(GLFWwindow* window, double xpos, double ypos);
+
+	static void joystickCallback(int jid, int event);
 
 	double calFps();
 

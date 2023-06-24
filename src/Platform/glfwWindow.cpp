@@ -6,6 +6,9 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include"GLFW/glfw3native.h"
 
+#include<fstream>
+
+
 namespace mini
 {
 
@@ -18,6 +21,8 @@ GlfwWindow::GlfwWindow(int width, int height, const char* title)
 	loadIcon("../../assets/logo.png");
 	
 	setCursorMode(DISABLED_CURSOR);
+
+	joystickInput();
 }
 
 
@@ -36,6 +41,29 @@ GlfwWindow::~GlfwWindow()
 	}
 
 	glfwTerminate();
+}
+
+void GlfwWindow::joystickInput()
+{
+	int present = glfwJoystickPresent(GLFW_JOYSTICK_1);
+
+	const char* name = glfwGetJoystickName(GLFW_JOYSTICK_1);
+
+	int count;
+	const unsigned char* buttons = glfwGetJoystickButtons(GLFW_JOYSTICK_1, &count);
+
+
+	
+	const char* mappings;
+	
+	std::ifstream infile("../../assets/gamecontrollerdb.txt", std::ios::out | std::ios::in);
+
+	std::ostringstream tmp;
+	tmp << infile.rdbuf();
+	std::string str = tmp.str();
+
+	glfwUpdateGamepadMappings(str.c_str());
+
 }
 
 GLFWwindow* GlfwWindow::getHandle() const
@@ -82,6 +110,11 @@ void GlfwWindow::setTitle(const char* name)
 void GlfwWindow::setMouseCallBack(GLFWcursorposfun callback)
 {
 	glfwSetCursorPosCallback(handle, callback);
+}
+
+void GlfwWindow::setJoystickCallBack(GLFWjoystickfun callback)
+{
+	glfwSetJoystickCallback(callback);
 }
 
 void GlfwWindow::setCursorMode(CURSOR_MODE mode)
