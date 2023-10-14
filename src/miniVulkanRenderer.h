@@ -9,7 +9,7 @@
 #include"glm/mat4x4.hpp"
 #include"Common/miniLog.h"
 #include"Common/camera.h"
-#include"Platform/glfwWindow.h"
+#include"Platform/GUIWindow.h"
 #include"Vulkan/instance.h"
 #include"Vulkan/physicalDevice.h"
 #include"Vulkan/deviceMemory.h"
@@ -48,11 +48,13 @@ public:
 
 	~MiniVulkanRenderer();
 
-	void init(int width = 1024, int height = 768);
+	void init(int width = 1920, int height = 1080);
 
 	void loop();
 
 	void keyControl();
+
+	void mouseControl();
 
 	void joystickControl();
 
@@ -61,6 +63,8 @@ public:
 	void recordCommandBuffer(CommandBuffer& cmd, RenderFrame& renderFrame);
 
 	static void mouseCallBack(GLFWwindow* window, double xpos, double ypos);
+
+	static void mouseButtonCallbcak(GLFWwindow* window, int button, int action, int mods);
 
 	static void joystickCallback(int jid, int event);
 
@@ -72,13 +76,15 @@ public:
 
 
 private:
+
+	
 	int width, height;
 
 	long long frameCount=0;
 	
 	std::unique_ptr<Instance> instance;
 
-	std::unique_ptr<GlfwWindow> window;
+	std::unique_ptr<GUIWindow> window;
 
 	std::unique_ptr<PhysicalDevice> physicalDevice;
 

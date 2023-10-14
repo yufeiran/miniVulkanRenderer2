@@ -6,7 +6,7 @@
 namespace mini
 {
 class Device;
-class GlfwWindow;
+class GUIWindow;
 class RenderFrame;
 class Queue;
 class Swapchain;
@@ -28,7 +28,7 @@ public:
 
 	static VkFormat DEFAULT_VK_FORMAT;
 
-	RenderContext(Device& device, VkSurfaceKHR surface, const GlfwWindow& window);
+	RenderContext(Device& device, VkSurfaceKHR surface, const GUIWindow& window);
 
 	void prepare(const RenderPass& renderPass,
 		ResourceManagement& resourceManagement,
@@ -59,7 +59,7 @@ public:
 private:
 	Device& device;
 
-	const GlfwWindow& window;
+	const GUIWindow& window;
 
 	const Queue& queue;
 

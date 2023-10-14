@@ -20,7 +20,7 @@ class ImageView;
 class Model
 {
 public:
-	Model(Device&device,const std::string& filePath, const std::string& name,uint32_t id);
+	Model(Device&device,const std::string& filePath, const std::string& name,uint32_t id, bool flipTexture=false);
 	~Model();
 	
 	std::string getName() const;
@@ -29,7 +29,7 @@ public:
 
 	const std::map<std::string, std::unique_ptr<Shape>>& getShapeMap()const;
 
-	void loadImage(const std::string& name);
+	void loadImage(const std::string& name, bool flipTexture=false);
 
 	ImageView& getImageViewByName(const std::string& name);
 

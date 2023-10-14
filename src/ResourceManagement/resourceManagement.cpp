@@ -25,11 +25,11 @@ namespace mini
 
 	}
 
-	void ResourceManagement::loadModel( std::string name, std::string path)
+	void ResourceManagement::loadModel( std::string name, std::string path,bool flipTexture)
 	{
 		if (modelMap.find(name) == modelMap.end())
 		{
-			modelMap[name] = std::make_unique<Model>(device, path, name, nowModelIndex++);
+			modelMap[name] = std::make_unique<Model>(device, path, name, nowModelIndex++, flipTexture);
 		}
 		else {
 			Log("model name " + name + " is already load", ERROR_TYPE);

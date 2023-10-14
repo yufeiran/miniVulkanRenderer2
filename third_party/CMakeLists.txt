@@ -1,5 +1,5 @@
 find_package(Vulkan REQUIRED)
-find_package(glfw3 3.3 REQUIRED)
+find_package(glfw3  REQUIRED)
 
 
 add_library(glm INTERFACE)
@@ -46,5 +46,6 @@ endif()
 target_link_libraries(volk PUBLIC Vulkan::Vulkan)
 target_include_directories(volk PUBLIC volk)
 target_sources(volk PRIVATE 
+    volk/volk.h
     volk/volk.c
 )

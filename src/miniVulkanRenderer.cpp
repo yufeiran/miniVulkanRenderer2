@@ -17,9 +17,10 @@ void MiniVulkanRenderer::init(int width, int height)
 	Log("miniVulkanRenderer init start");
 	width = width;
 	height = height;
-	window = std::make_unique<GlfwWindow>(width, height, "miniVulkanRenderer2");
+	window = std::make_unique<GUIWindow>(width, height, "miniVulkanRenderer2");
 	window->setMouseCallBack(mouseCallBack);
 	window->setJoystickCallBack(joystickCallback);
+	window->setMouseButtonCallBack(mouseButtonCallbcak);
 
 	instance = std::make_unique<Instance>();
 
@@ -66,14 +67,16 @@ void MiniVulkanRenderer::init(int width, int height)
 	
 	resourceManagement = std::make_unique<ResourceManagement>(*device);
 
-	resourceManagement->loadModel("BattleCruiser", "../../assets/BattleCruiser/BattleCruiser.obj");
+	//resourceManagement->loadModel("BattleCruiser", "../../assets/BattleCruiser/BattleCruiser.obj");
+	resourceManagement->loadModel("backpack", "../../assets/backpack/backpack.obj",true);
+
 
 	renderContext->prepare(graphicPipeline->getRenderPass(),*resourceManagement,descriptorSetLayouts,
 		graphicPipeline->getShaderModules().front()->getShaderInfo());
 
 	for (int i = 0; i < 10; i++)
 	{
-		spriteList.addSprite(resourceManagement->getModelByName("BattleCruiser"), -1, -1, -5 * i + 25, 1, 0, 90, 0);
+		spriteList.addSprite(resourceManagement->getModelByName("backpack"), -1, -1, -5 * i + 25, 1, 0, 90, 0);
 
 	}
 
@@ -88,8 +91,9 @@ void MiniVulkanRenderer::loop()
 
 	while(!window->shouldClose()){
 		keyControl();
+		//mouseControl();
 		joystickControl();
-		window->processEvents();
+		
 		drawFrame();
 
 		frameCount++;
@@ -108,7 +112,7 @@ void MiniVulkanRenderer::loop()
 		window->setTitle(title.c_str());
 
 		
-
+		window->processEvents();
 	}
 	device->waitIdle();
 }
@@ -158,6 +162,49 @@ void MiniVulkanRenderer::keyControl()
 	{
 		glfwSetWindowShouldClose(win, GLFW_TRUE);
 	}
+
+}
+
+bool isLeftMouseButtonPress = false;
+
+
+void MiniVulkanRenderer::mouseControl()
+{
+	static bool firstMouse = true;
+
+
+	static double lastX, lastY;
+
+	double xpos, ypos;
+
+	const auto& win = window->getHandle();
+
+	glfwGetCursorPos(win, &xpos, &ypos);
+
+	if (firstMouse)
+	{
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos;
+	lastX = xpos;
+	lastY = ypos;
+
+	Log("xoffset:" + std::to_string(xoffset) + " yoffset:" + std::to_string(yoffset));
+
+	if (isLeftMouseButtonPress == true)
+	{
+
+
+		auto& camera = miniRenderer.getCamera();
+
+
+		camera.changeDir(xoffset, yoffset);
+	}
+
 
 }
 
@@ -295,14 +342,18 @@ void MiniVulkanRenderer::recordCommandBuffer(CommandBuffer& cmd, RenderFrame& re
 
 }
 
+
+
 void MiniVulkanRenderer::mouseCallBack(GLFWwindow* window, double xpos, double ypos)
 {
+
+	auto app = static_cast<MiniVulkanRenderer*>(glfwGetWindowUserPointer(window));
+
 	static bool firstMouse = true;
 
 
 	static double lastX, lastY;
 
-	glfwGetCursorPos(window, &xpos, &ypos);
 
 	if (firstMouse)
 	{
@@ -316,28 +367,36 @@ void MiniVulkanRenderer::mouseCallBack(GLFWwindow* window, double xpos, double y
 	lastX = xpos;
 	lastY = ypos;
 
-	auto& camera = miniRenderer.getCamera();
+	//Log("xoffset:" + std::to_string(xoffset) + " yoffset:" + std::to_string(yoffset));
+
+	const double moveSensitivity = 2.1;
+	xoffset *= moveSensitivity;
+	yoffset *= moveSensitivity;
+
+	if(isLeftMouseButtonPress==true)
+	{
 
 
-	camera.changeDir(xoffset, yoffset);
+		auto& camera = miniRenderer.getCamera();
 
-	//if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-	//{
-	//	camera.changeDir(0, 1);
-	//}
-	//if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-	//{
-	//	camera.changeDir(0, -1);
-	//}
-	//if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-	//{
-	//	camera.changeDir(-1, 0);
-	//}
-	//if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-	//{
-	//	camera.changeDir(1, 0);
-	//}
 
+		camera.changeDir(xoffset, yoffset);
+	}
+
+	
+
+}
+
+void MiniVulkanRenderer::mouseButtonCallbcak(GLFWwindow* window, int button, int action, int mods)
+{
+	if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+	{
+		isLeftMouseButtonPress = true;
+	}
+	else if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
+	{
+		isLeftMouseButtonPress = false;
+	}
 }
 
 void MiniVulkanRenderer::joystickCallback(int jid, int event)

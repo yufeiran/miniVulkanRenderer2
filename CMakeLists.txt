@@ -4,6 +4,8 @@
 
 cmake_minimum_required( VERSION 3.20)
 
+set(CMAKE_TOOLCHAIN_FILE C:/src/vcpkg/scripts/buildsystems/vcpkg.cmake)
+
 project("miniVulkanRenderer2")
 
 #设置多线程编译

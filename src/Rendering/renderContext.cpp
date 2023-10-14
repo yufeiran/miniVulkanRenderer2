@@ -1,5 +1,5 @@
 #include"renderContext.h"
-#include"Platform/glfwWindow.h"
+#include"Platform/GUIWindow.h"
 #include"Vulkan/commandPool.h"
 #include"Vulkan/commandBuffer.h"
 #include"Vulkan/device.h"
@@ -23,7 +23,7 @@ namespace mini
 
 VkFormat RenderContext::DEFAULT_VK_FORMAT = VK_FORMAT_R8G8B8A8_SRGB;
 
-RenderContext::RenderContext(Device& device, VkSurfaceKHR surface, const GlfwWindow& window)
+RenderContext::RenderContext(Device& device, VkSurfaceKHR surface, const GUIWindow& window)
 	:device(device),window(window),queue(device.getGraphicQueue()),surfaceExtent(window.getExtent())
 {
 	if (surface != VK_NULL_HANDLE)

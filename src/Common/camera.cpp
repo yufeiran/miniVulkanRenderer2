@@ -75,7 +75,7 @@ void Camera::move(CAMERA_MOVE_DIR dir, float deltaTime)
 void Camera::changeDir(double xoffset, double yoffset)
 {
 
-	if (abs(xoffset) > 10 || abs(yoffset) > 10)return;
+	//if (abs(xoffset) > 10 || abs(yoffset) > 10)return;
 	//Log("xoffset " + toString(xoffset) + " yoffset " + toString(yoffset)+", yaw "+toString(yaw)+ " pitch "+toString(pitch));
 	xoffset *= changeDirSensitivity;
 	yoffset *= changeDirSensitivity;

@@ -16,7 +16,7 @@ public:
 	ResourceManagement(Device&device);
 	~ResourceManagement();
 
-	void loadModel( std::string name,std::string path );
+	void loadModel( std::string name,std::string path, bool flipTexture=false);
 
 	Model& getModelByName(const std::string &name);
 

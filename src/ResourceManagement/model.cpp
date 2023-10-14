@@ -34,7 +34,7 @@ namespace mini
 
 
 
-Model::Model(Device& device, const std::string& filePath,const std::string& name, uint32_t id):
+Model::Model(Device& device, const std::string& filePath,const std::string& name, uint32_t id, bool flipTexture):
 	device(device),name(name),filePath(filePath), id(id)
 {
 
@@ -118,23 +118,23 @@ Model::Model(Device& device, const std::string& filePath,const std::string& name
 		auto& mat = shape->material;
 		if (mat.ambient_texname != std::string()) {
 			shape->textureInfos.push_back({ AMBIENT,mat.ambient_texname });
-			loadImage(mat.ambient_texname);
+			loadImage(mat.ambient_texname, flipTexture);
 		}
 		if (mat.diffuse_texname != std::string()) {
 			shape->textureInfos.push_back({ DIFFUSE,mat.diffuse_texname });
-			loadImage(mat.diffuse_texname);
+			loadImage(mat.diffuse_texname, flipTexture);
 		}
 		if (mat.emission_texname != std::string()) {
 			shape->textureInfos.push_back({ SPECULAR,mat.emission_texname });
-			loadImage(mat.emission_texname);
+			loadImage(mat.emission_texname, flipTexture);
 		}
 		if (mat.specular_texname != std::string()) {
 			shape->textureInfos.push_back({ EMISSION,mat.specular_texname });
-			loadImage(mat.specular_texname);
+			loadImage(mat.specular_texname, flipTexture);
 		}
 		if (mat.specular_highlight_texname != std::string()) {
 			shape->textureInfos.push_back({ SPECULAR_HIGHLIGHT,mat.specular_highlight_texname });
-			loadImage(mat.specular_highlight_texname);
+			loadImage(mat.specular_highlight_texname, flipTexture);
 		}
 
 		shapeMap[shape->name] = std::move(shape);
@@ -167,11 +167,11 @@ const std::map<std::string, std::unique_ptr<Shape>>& Model::getShapeMap() const
 	return shapeMap;
 }
 
-void Model::loadImage(const std::string& name)
+void Model::loadImage(const std::string& name, bool flipTexture)
 {
 	if (imageMap.find(name) == imageMap.end()) {
 		std::string filePath = baseDirPath + name;
-		imageMap[name] = std::make_unique<Image>(device, filePath);
+		imageMap[name] = std::make_unique<Image>(device, filePath, flipTexture);
 		imageViewMap[name] = std::make_unique<ImageView>(*imageMap[name]);
 		Log("load image:" + name);
 	}

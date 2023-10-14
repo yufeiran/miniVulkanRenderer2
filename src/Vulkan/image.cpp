@@ -54,9 +54,13 @@ Image::Image(Device& device, const VkExtent2D& extent, VkFormat format, VkImageU
 	}
 }
 
-Image::Image(Device& device, const std::string& filename):device(device),name(filename),imageType(CREATED_IMG)
+Image::Image(Device& device, const std::string& filename, bool flipTexture):device(device),name(filename),imageType(CREATED_IMG)
 {
 	int texWidth, texHeight, texChannels;
+
+	stbi_set_flip_vertically_on_load(flipTexture);
+
+
 	stbi_uc* pixels = stbi_load(name.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 	extent.width = texWidth;
 	extent.height = texHeight;
