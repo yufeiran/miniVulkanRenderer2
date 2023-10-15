@@ -19,7 +19,7 @@ target_sources(tinyobjloader PRIVATE
 
 target_include_directories(tinyobjloader PUBLIC tinyobjloader)
 
-
+set_property(TARGET tinyobjloader PROPERTY FOLDER third_party )
 
 # imgui
 add_definitions(-DVK_NO_PROTOTYPES)
@@ -37,6 +37,7 @@ target_sources(imgui PRIVATE
     imgui/backends/imgui_impl_glfw.cpp
 )
 target_link_libraries(imgui PUBLIC Vulkan::Vulkan glfw)
+set_property(TARGET imgui PROPERTY FOLDER third_party )
 
 # volk
 add_library(volk STATIC)
@@ -49,3 +50,4 @@ target_sources(volk PRIVATE
     volk/volk.h
     volk/volk.c
 )
+set_property(TARGET volk PROPERTY FOLDER third_party )

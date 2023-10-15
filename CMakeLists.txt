@@ -8,6 +8,8 @@ set(CMAKE_TOOLCHAIN_FILE C:/src/vcpkg/scripts/buildsystems/vcpkg.cmake)
 
 project("miniVulkanRenderer2")
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 #设置多线程编译
 if (MSVC)
 add_definitions("/MP")

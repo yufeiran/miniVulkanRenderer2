@@ -50,6 +50,8 @@ set(VULKAN_FRAMEWORK_FILES
     ./Vulkan/sampler.cpp 
     ./Vulkan/shaderInfo.h 
     ./Vulkan/shaderInfo.cpp 
+    ./Vulkan/pipelineLayout.h 
+    ./Vulkan/pipelineLayout.cpp
 
 
 )
@@ -71,8 +73,8 @@ set(COMMON_FILES
 set(PLATFORM_FILES
     ./Platform/platform.h 
     ./Platform/platform.cpp 
-    ./Platform/glfwWindow.h 
-    ./Platform/glfwWindow.cpp 
+    ./Platform/GUIWindow.h 
+    ./Platform/GUIWindow.cpp 
 
 )
 
@@ -99,12 +101,14 @@ set(RESOURCE_MANAGEMENT_FILES
 
 )
 
+
 set(SPIRITE_FILES 
     ./Sprite/sprite.h 
     ./Sprite/sprite.cpp 
     ./Sprite/spriteList.h 
     ./Sprite/spriteList.cpp 
 )
+
 
 source_group("\\" FILES ${RENDERER_FILES})
 source_group("Common\\" FILES ${COMMON_FILES})

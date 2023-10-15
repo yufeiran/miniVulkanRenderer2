@@ -14,6 +14,7 @@ MiniVulkanRenderer::MiniVulkanRenderer()
 
 void MiniVulkanRenderer::init(int width, int height)
 {
+
 	Log("miniVulkanRenderer init start");
 	width = width;
 	height = height;
@@ -28,23 +29,24 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	auto& gpu = instance->getFirstGpu();
 
+	defaultDepthFormat =gpu.findDepthFormat();
+
 	std::vector<const char*> deviceExtension = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
 	device = std::make_unique<Device>(gpu, surface, deviceExtension);
 
 	renderContext = std::make_unique<RenderContext>(*device, surface, *window);
 
-	ShaderInfo shaderInfo;
-	shaderInfo.bindingInfoMap[0][1] = BindingInfo{ TEXTURE_BINDING_TYPE,DIFFUSE };
+	ShaderInfo rasterShaderInfo;
+	rasterShaderInfo.bindingInfoMap[0][1] = BindingInfo{ TEXTURE_BINDING_TYPE,DIFFUSE };
 
-	shaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/vertexShader.vert.spv", *device, VK_SHADER_STAGE_VERTEX_BIT));
-	shaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/fragmentShader.frag.spv", *device, VK_SHADER_STAGE_FRAGMENT_BIT));
+	rasterShaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/vertexShader.vert.spv", *device, VK_SHADER_STAGE_VERTEX_BIT));
+	rasterShaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/fragmentShader.frag.spv", *device, VK_SHADER_STAGE_FRAGMENT_BIT));
 	
-	for (auto& s : shaderModules) {
-		s->setShaderInfo(shaderInfo);
+	for (auto& s : rasterShaderModules) {
+		s->setShaderInfo(rasterShaderInfo);
 	}
-	
-	
+
 	VkDescriptorSetLayoutBinding uboLayoutBinding{};
 	uboLayoutBinding.binding = 0;
 	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -61,18 +63,47 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	std::vector< VkDescriptorSetLayoutBinding>layoutBindings{ uboLayoutBinding ,samplerLayoutBinding };
 
-	descriptorSetLayouts.push_back(std::make_unique<DescriptorSetLayout>(*device, layoutBindings));
+	rasterDescriptorSetLayouts.push_back(std::make_unique<DescriptorSetLayout>(*device, layoutBindings));
 
-	graphicPipeline = std::make_unique<GraphicPipeline>(shaderModules,descriptorSetLayouts, *device, renderContext->getSurfaceExtent(), renderContext->getFormat());
-	
+	rasterPipeline = std::make_unique<GraphicPipeline>(rasterShaderModules,rasterDescriptorSetLayouts, *device, 
+		renderContext->getSurfaceExtent(), renderContext->getFormat());
+
+	postShaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/post.vert.spv",*device,VK_SHADER_STAGE_VERTEX_BIT));
+	postShaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/post.vert.spv",*device,VK_SHADER_STAGE_VERTEX_BIT));
+
+	ShaderInfo postShaderInfo;
+	postShaderInfo.bindingInfoMap[0][1]=BindingInfo{TEXTURE_BINDING_TYPE,DIFFUSE};
+
+	for(auto&s :postShaderModules)
+	{
+		s->setShaderInfo(postShaderInfo);
+	}
+
+	VkDescriptorSetLayoutBinding postSamplerLayoutBinding{};
+	postSamplerLayoutBinding.binding = 1;
+	postSamplerLayoutBinding.descriptorCount = 1;
+	postSamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	postSamplerLayoutBinding.pImmutableSamplers = nullptr;
+	postSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+	std::vector<VkDescriptorSetLayoutBinding>postLayoutBindings{postSamplerLayoutBinding};
+
+	postDescriptorSetLayouts.push_back(std::make_unique<DescriptorSetLayout>(*device,postLayoutBindings));
+
+	//postPipeline = std::make_unique<GraphicPipeline>(postShaderModules,postDescriptorSetLayouts,*device,
+	//	renderContext->getSurfaceExtent(),renderContext->getFormat());
+
+
+
+
 	resourceManagement = std::make_unique<ResourceManagement>(*device);
 
 	//resourceManagement->loadModel("BattleCruiser", "../../assets/BattleCruiser/BattleCruiser.obj");
 	resourceManagement->loadModel("backpack", "../../assets/backpack/backpack.obj",true);
 
 
-	renderContext->prepare(graphicPipeline->getRenderPass(),*resourceManagement,descriptorSetLayouts,
-		graphicPipeline->getShaderModules().front()->getShaderInfo());
+	renderContext->prepare(rasterPipeline->getRenderPass(),*resourceManagement,rasterDescriptorSetLayouts,
+		rasterPipeline->getShaderModules().front()->getShaderInfo());
 
 	for (int i = 0; i < 10; i++)
 	{
@@ -86,36 +117,69 @@ void MiniVulkanRenderer::init(int width, int height)
 
 void MiniVulkanRenderer::loop()
 {
-	double lastFps = 0;
-	double avgFps = 0;
 
 	while(!window->shouldClose()){
+		calFps();
 		keyControl();
-		//mouseControl();
 		joystickControl();
 		
 		drawFrame();
 
-		frameCount++;
-
-		std::string title = "miniVulkanRenderer2 avg fps:";
-		double fps = calFps();
-		if (frameCount % 1000 == 0)
-		{
-			avgFps = lastFps * (frameCount - 1) / (frameCount)+fps / frameCount;
-		}
-
-		lastFps = fps;
-		title += toString(avgFps);
-		title += " fps:";
-		title += toString(fps);
-		window->setTitle(title.c_str());
-
-		
 		window->processEvents();
 	}
 	device->waitIdle();
 }
+
+
+
+void MiniVulkanRenderer::drawFrame()
+{
+
+	auto result= renderContext->beginFrame();
+	if (result == VK_ERROR_OUT_OF_DATE_KHR)
+	{
+		handleSizeChange();
+		return;
+	}
+
+	auto& cmd = renderContext->getCurrentCommandBuffer();
+	auto& frame = renderContext->getActiveFrame();
+
+	frame.updateUniformBuffer(camera);
+	
+	recordCommandBuffer(cmd, frame);
+
+	renderContext->submit(device->getGraphicQueue(), &cmd);
+
+	renderContext->endFrame();
+}
+
+void MiniVulkanRenderer::recordCommandBuffer(CommandBuffer& cmd, RenderFrame& renderFrame)
+{
+	auto& frameBuffer = renderFrame.getFrameBuffer();
+
+	cmd.reset();
+	cmd.begin();
+
+	std::vector<VkClearValue> clearValues(2);
+	clearValues[0].color = {0.0f,0.0f,0.0f,1.0f};
+	clearValues[1].depthStencil = { 1.0f,0 };
+
+	cmd.beginRenderPass(rasterPipeline->getRenderPass(), frameBuffer,clearValues);
+	cmd.bindPipeline(*rasterPipeline);
+
+	cmd.setViewPortAndScissor(frameBuffer.getExtent());
+
+	for (auto& s : spriteList.sprites)
+	{
+		cmd.drawSprite(s, renderFrame);
+	}
+
+	cmd.endRenderPass();
+	cmd.end();
+
+}
+
 
 
 
@@ -294,54 +358,6 @@ void MiniVulkanRenderer::joystickControl()
 }
 
 
-void MiniVulkanRenderer::drawFrame()
-{
-
-	auto result= renderContext->beginFrame();
-	if (result == VK_ERROR_OUT_OF_DATE_KHR)
-	{
-		handleSizeChange();
-		return;
-	}
-
-	auto& cmd = renderContext->getCurrentCommandBuffer();
-	auto& frame = renderContext->getActiveFrame();
-
-	frame.updateUniformBuffer(camera);
-	
-	recordCommandBuffer(cmd, frame);
-
-	renderContext->submit(device->getGraphicQueue(), &cmd);
-
-	renderContext->endFrame();
-}
-
-void MiniVulkanRenderer::recordCommandBuffer(CommandBuffer& cmd, RenderFrame& renderFrame)
-{
-	auto& frameBuffer = renderFrame.getFrameBuffer();
-
-	cmd.reset();
-	cmd.begin();
-
-	std::vector<VkClearValue> clearValues(2);
-	clearValues[0].color = {0.0f,0.0f,0.0f,1.0f};
-	clearValues[1].depthStencil = { 1.0f,0 };
-
-	cmd.beginRenderPass(graphicPipeline->getRenderPass(), frameBuffer,clearValues);
-	cmd.bindPipeline(*graphicPipeline);
-
-	cmd.setViewPortAndScissor(frameBuffer.getExtent());
-
-	for (auto& s : spriteList.sprites)
-	{
-		cmd.drawSprite(s, renderFrame);
-	}
-
-	cmd.endRenderPass();
-	cmd.end();
-
-}
-
 
 
 void MiniVulkanRenderer::mouseCallBack(GLFWwindow* window, double xpos, double ypos)
@@ -417,17 +433,6 @@ void MiniVulkanRenderer::joystickCallback(int jid, int event)
 
 }
 
-double MiniVulkanRenderer::calFps()
-{
-	static auto last = std::chrono::system_clock::now();
-	auto now = std::chrono::system_clock::now();
-	std::chrono::duration<double, std::milli> dur = now - last;
-	double frameTime = double(dur.count())*0.001;
-	double fps = 1.0 / frameTime;
-	last = now;
-
-	return fps;
-}
 
 void MiniVulkanRenderer::handleSizeChange()
 {
@@ -446,11 +451,11 @@ void MiniVulkanRenderer::handleSizeChange()
 	renderContext.reset();
 	renderContext = std::make_unique<RenderContext>(*device, surface, *window);
 
-	graphicPipeline.reset();
-	graphicPipeline = std::make_unique<GraphicPipeline>(shaderModules,descriptorSetLayouts, *device, renderContext->getSurfaceExtent(), renderContext->getFormat());
+	rasterPipeline.reset();
+	rasterPipeline = std::make_unique<GraphicPipeline>(rasterShaderModules,rasterDescriptorSetLayouts, *device, renderContext->getSurfaceExtent(), renderContext->getFormat());
 
-	renderContext->prepare(graphicPipeline->getRenderPass(),*resourceManagement,descriptorSetLayouts
-	, graphicPipeline->getShaderModules().front()->getShaderInfo());
+	renderContext->prepare(rasterPipeline->getRenderPass(),*resourceManagement,rasterDescriptorSetLayouts
+	, rasterPipeline->getShaderModules().front()->getShaderInfo());
 
 }
 
@@ -459,8 +464,60 @@ Camera& MiniVulkanRenderer::getCamera()
 	return camera;
 }
 
+void MiniVulkanRenderer::createOffScreenFrameBuffer()
+{
+
+}
+
+void MiniVulkanRenderer::initRasterRender()
+{
+	// create raster pipeline !
+
+
+}
+
+
 
 MiniVulkanRenderer::~MiniVulkanRenderer()
 {
 	Log("Renderer shutting down");
+}
+
+
+
+
+void MiniVulkanRenderer::calFps()
+{
+	static double avgFps = 0;
+
+	static double lastTime = 0;
+	static double lastFrameCount = 0;
+	static auto last = std::chrono::system_clock::now();
+	auto now = std::chrono::system_clock::now();
+	std::chrono::duration<double, std::milli> dur = now - last;
+	double frameTime = double(dur.count())*0.001;
+	double fps = 1.0 / frameTime;
+	last = now;
+
+	frameCount++;
+		lastFrameCount++;
+
+	std::string title = "miniVulkanRenderer2 avg fps:";
+
+
+	lastTime += frameTime;
+
+	if(lastTime>=1.0)
+	{
+		avgFps = lastFrameCount;
+		lastFrameCount = 0;
+		lastTime = 0;
+	}
+
+
+	title += toString(avgFps);
+	title += " fps:";
+	title += toString(fps);
+	window->setTitle(title.c_str());
+
 }

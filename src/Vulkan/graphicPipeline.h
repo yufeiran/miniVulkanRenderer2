@@ -18,6 +18,9 @@ public:
 		VkFormat swapChainImageFormat);
 	~GraphicPipeline();
 
+	void build(RenderPass& renderPass);
+
+
 	VkPipelineLayout getPipelineLayout() const;
 
 	VkPipeline getHandle() const;
@@ -26,13 +29,29 @@ public:
 
 	std::vector<std::unique_ptr<ShaderModule>>& getShaderModules()const;
 
+
+	std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+	VkPipelineVertexInputStateCreateInfo vertexInputInfo;
+	VkPipelineInputAssemblyStateCreateInfo inputAssembly;
+	VkPipelineDynamicStateCreateInfo dynamicState;
+	VkPipelineViewportStateCreateInfo viewportState;
+	VkPipelineDepthStencilStateCreateInfo depthStencil;
+	VkViewport viewport;
+	VkRect2D scissor;
+	VkPipelineRasterizationStateCreateInfo rasterizer;
+	VkPipelineMultisampleStateCreateInfo multisampling;
+	VkPipelineColorBlendStateCreateInfo colorBlending;
+	VkPipelineColorBlendAttachmentState colorBlendAttachment;
+	VkPipelineLayout pipelineLayout{ VK_NULL_HANDLE };
+
+
 private:
 	Device& device;
 	std::vector<std::unique_ptr<ShaderModule>>& shaderModules;
 	std::vector<std::unique_ptr<DescriptorSetLayout>>& descriptorSetLayouts;
 	std::unique_ptr<RenderPass> renderPass;
 	VkPipeline handle{ VK_NULL_HANDLE };
-	VkPipelineLayout pipelineLayout{ VK_NULL_HANDLE };
+	
 	std::unique_ptr<Buffer> vertexBuffer;
 
 	VkFormat swapChainImageFormat;
