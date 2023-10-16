@@ -1,6 +1,7 @@
 #pragma once
 
 #include"Common/common.h"
+#include"Vulkan/pipelineLayout.h"
 namespace mini
 {
 class Device;
@@ -8,14 +9,15 @@ class ShaderModule;
 class RenderPass;
 class Buffer;
 class DescriptorSetLayout;
-
+class PipelineLayout;
 
 
 class GraphicPipeline
 {
 public:
-	GraphicPipeline(std::vector<std::unique_ptr<ShaderModule>>& shaderModules, std::vector<std::unique_ptr<DescriptorSetLayout>>&descriptorSetLayouts , Device& device, VkExtent2D extent,
-		VkFormat swapChainImageFormat);
+	GraphicPipeline(std::vector<std::unique_ptr<ShaderModule>>& shaderModules, 
+		PipelineLayout &pipelineLayout, 
+		Device& device, VkExtent2D extent);
 	~GraphicPipeline();
 
 	void build(RenderPass& renderPass);
@@ -25,13 +27,18 @@ public:
 
 	VkPipeline getHandle() const;
 
-	RenderPass& getRenderPass() const;
 
 	std::vector<std::unique_ptr<ShaderModule>>& getShaderModules()const;
 
 
 	std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+
+	std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
+	VkVertexInputBindingDescription bindingDescription;
+
+
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo;
+	
 	VkPipelineInputAssemblyStateCreateInfo inputAssembly;
 	VkPipelineDynamicStateCreateInfo dynamicState;
 	VkPipelineViewportStateCreateInfo viewportState;
@@ -42,14 +49,12 @@ public:
 	VkPipelineMultisampleStateCreateInfo multisampling;
 	VkPipelineColorBlendStateCreateInfo colorBlending;
 	VkPipelineColorBlendAttachmentState colorBlendAttachment;
-	VkPipelineLayout pipelineLayout{ VK_NULL_HANDLE };
-
+	PipelineLayout &pipelineLayout;
+	
 
 private:
 	Device& device;
 	std::vector<std::unique_ptr<ShaderModule>>& shaderModules;
-	std::vector<std::unique_ptr<DescriptorSetLayout>>& descriptorSetLayouts;
-	std::unique_ptr<RenderPass> renderPass;
 	VkPipeline handle{ VK_NULL_HANDLE };
 	
 	std::unique_ptr<Buffer> vertexBuffer;
@@ -58,5 +63,8 @@ private:
 
 	std::vector<std::unique_ptr<Buffer>>uniformBuffers;
 	std::vector<void*>uniformBuffersMapped;
+
+public:
+	std::vector<VkDynamicState> dynamicStates; 
 };
 }

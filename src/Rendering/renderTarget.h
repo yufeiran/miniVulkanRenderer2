@@ -54,6 +54,7 @@ const VkExtent2D& getExtent() const;
 
 const std::vector<ImageView>& getViews() const;
 
+const Image& getImageByIndex(int i) const;
 
 private:
 

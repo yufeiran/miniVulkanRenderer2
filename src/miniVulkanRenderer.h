@@ -35,6 +35,8 @@
 #include"Vulkan/descriptorSet.h"
 #include"Vulkan/buffer.h"
 #include"Vulkan/pipelineLayout.h"
+#include"Vulkan/renderPass.h"
+
 
 
 #include"Sprite/sprite.h"
@@ -86,14 +88,16 @@ public:
 
 	void initRasterRender();
 
+	void initPostRender();
 
 private:
 
-	int width, height;  
+	int width, height;
+	VkExtent2D surfaceExtent{};
 
 	unsigned long long frameCount=0;
 
-	VkFormat defaultColorFormat=VK_FORMAT_R32G32B32A32_SFLOAT;
+	VkFormat defaultColorFormat=VK_FORMAT_B8G8R8A8_SRGB;
 	VkFormat defaultDepthFormat=VK_FORMAT_X8_D24_UNORM_PACK32;
 
 	
@@ -111,11 +115,10 @@ private:
 
 
 	// offscreen render data
+	std::unique_ptr<RenderTarget> offscreenRenderTarget;
 	std::unique_ptr<FrameBuffer> offscreenFramebuffer;
-	std::unique_ptr<Image> offscreenColor;
-	std::unique_ptr<Image> offscreenDepth;
 	
-	VkFormat offscreenColorFormat{VK_FORMAT_R32G32B32A32_SFLOAT};
+	VkFormat offscreenColorFormat{VK_FORMAT_B8G8R8A8_SRGB};
 	VkFormat offscreenDepthFormat{VK_FORMAT_X8_D24_UNORM_PACK32};
 
 	// raster pipeline data

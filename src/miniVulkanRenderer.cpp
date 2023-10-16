@@ -37,47 +37,12 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	renderContext = std::make_unique<RenderContext>(*device, surface, *window);
 
-	ShaderInfo rasterShaderInfo;
-	rasterShaderInfo.bindingInfoMap[0][1] = BindingInfo{ TEXTURE_BINDING_TYPE,DIFFUSE };
+	initRasterRender();
 
-	rasterShaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/vertexShader.vert.spv", *device, VK_SHADER_STAGE_VERTEX_BIT));
-	rasterShaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/fragmentShader.frag.spv", *device, VK_SHADER_STAGE_FRAGMENT_BIT));
+	createOffScreenFrameBuffer();
+
+	initPostRender();
 	
-	for (auto& s : rasterShaderModules) {
-		s->setShaderInfo(rasterShaderInfo);
-	}
-
-	VkDescriptorSetLayoutBinding uboLayoutBinding{};
-	uboLayoutBinding.binding = 0;
-	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	uboLayoutBinding.descriptorCount = 1;
-	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-	uboLayoutBinding.pImmutableSamplers = nullptr;
-
-	VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-	samplerLayoutBinding.binding = 1;
-	samplerLayoutBinding.descriptorCount = 1;
-	samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	samplerLayoutBinding.pImmutableSamplers = nullptr;
-	samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-	std::vector< VkDescriptorSetLayoutBinding>layoutBindings{ uboLayoutBinding ,samplerLayoutBinding };
-
-	rasterDescriptorSetLayouts.push_back(std::make_unique<DescriptorSetLayout>(*device, layoutBindings));
-
-	rasterPipeline = std::make_unique<GraphicPipeline>(rasterShaderModules,rasterDescriptorSetLayouts, *device, 
-		renderContext->getSurfaceExtent(), renderContext->getFormat());
-
-	postShaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/post.vert.spv",*device,VK_SHADER_STAGE_VERTEX_BIT));
-	postShaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/post.vert.spv",*device,VK_SHADER_STAGE_VERTEX_BIT));
-
-	ShaderInfo postShaderInfo;
-	postShaderInfo.bindingInfoMap[0][1]=BindingInfo{TEXTURE_BINDING_TYPE,DIFFUSE};
-
-	for(auto&s :postShaderModules)
-	{
-		s->setShaderInfo(postShaderInfo);
-	}
 
 	VkDescriptorSetLayoutBinding postSamplerLayoutBinding{};
 	postSamplerLayoutBinding.binding = 1;
@@ -102,7 +67,7 @@ void MiniVulkanRenderer::init(int width, int height)
 	resourceManagement->loadModel("backpack", "../../assets/backpack/backpack.obj",true);
 
 
-	renderContext->prepare(rasterPipeline->getRenderPass(),*resourceManagement,rasterDescriptorSetLayouts,
+	renderContext->prepare(*rasterRenderPass,*resourceManagement,rasterDescriptorSetLayouts,
 		rasterPipeline->getShaderModules().front()->getShaderInfo());
 
 	for (int i = 0; i < 10; i++)
@@ -122,10 +87,18 @@ void MiniVulkanRenderer::loop()
 		calFps();
 		keyControl();
 		joystickControl();
+		window->processEvents();
 		
+		
+		// start raster pass!
 		drawFrame();
 
-		window->processEvents();
+
+
+		// post pass!
+
+
+
 	}
 	device->waitIdle();
 }
@@ -158,6 +131,8 @@ void MiniVulkanRenderer::recordCommandBuffer(CommandBuffer& cmd, RenderFrame& re
 {
 	auto& frameBuffer = renderFrame.getFrameBuffer();
 
+
+
 	cmd.reset();
 	cmd.begin();
 
@@ -165,15 +140,32 @@ void MiniVulkanRenderer::recordCommandBuffer(CommandBuffer& cmd, RenderFrame& re
 	clearValues[0].color = {0.0f,0.0f,0.0f,1.0f};
 	clearValues[1].depthStencil = { 1.0f,0 };
 
-	cmd.beginRenderPass(rasterPipeline->getRenderPass(), frameBuffer,clearValues);
+	cmd.beginRenderPass(*rasterRenderPass, *offscreenFramebuffer,clearValues);
 	cmd.bindPipeline(*rasterPipeline);
 
 	cmd.setViewPortAndScissor(frameBuffer.getExtent());
+
+
 
 	for (auto& s : spriteList.sprites)
 	{
 		cmd.drawSprite(s, renderFrame);
 	}
+
+	cmd.endRenderPass();
+
+	cmd.beginRenderPass(*rasterRenderPass, frameBuffer,clearValues);
+	cmd.bindPipeline(*rasterPipeline);
+
+	cmd.setViewPortAndScissor(frameBuffer.getExtent());
+
+
+	for(int i=0;i<spriteList.sprites.size();i+=2)
+	{
+		cmd.drawSprite(spriteList.sprites[i],renderFrame);
+	}
+
+
 
 	cmd.endRenderPass();
 	cmd.end();
@@ -451,10 +443,14 @@ void MiniVulkanRenderer::handleSizeChange()
 	renderContext.reset();
 	renderContext = std::make_unique<RenderContext>(*device, surface, *window);
 
-	rasterPipeline.reset();
-	rasterPipeline = std::make_unique<GraphicPipeline>(rasterShaderModules,rasterDescriptorSetLayouts, *device, renderContext->getSurfaceExtent(), renderContext->getFormat());
+	surfaceExtent=renderContext->getSurfaceExtent();
 
-	renderContext->prepare(rasterPipeline->getRenderPass(),*resourceManagement,rasterDescriptorSetLayouts
+
+	rasterPipeline.reset();
+    rasterPipeline = std::make_unique<GraphicPipeline>(rasterShaderModules,*rasterPipelineLayout,*device,surfaceExtent);
+	rasterPipeline->build(*rasterRenderPass);
+
+	renderContext->prepare(*rasterRenderPass,*resourceManagement,rasterDescriptorSetLayouts
 	, rasterPipeline->getShaderModules().front()->getShaderInfo());
 
 }
@@ -466,6 +462,9 @@ Camera& MiniVulkanRenderer::getCamera()
 
 void MiniVulkanRenderer::createOffScreenFrameBuffer()
 {
+	auto imageColor = Image(*device,surfaceExtent,defaultColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
+	offscreenRenderTarget=RenderTarget::DEFAULT_CREATE_FUNC(std::move(imageColor));
+	offscreenFramebuffer=std::make_unique<FrameBuffer>(*device,*offscreenRenderTarget,*rasterRenderPass);
 
 }
 
@@ -473,6 +472,91 @@ void MiniVulkanRenderer::initRasterRender()
 {
 	// create raster pipeline !
 
+	ShaderInfo rasterShaderInfo;
+	rasterShaderInfo.bindingInfoMap[0][1] = BindingInfo{ TEXTURE_BINDING_TYPE,DIFFUSE };
+
+	rasterShaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/vertexShader.vert.spv", *device, VK_SHADER_STAGE_VERTEX_BIT));
+	rasterShaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/fragmentShader.frag.spv", *device, VK_SHADER_STAGE_FRAGMENT_BIT));
+	
+	for (auto& s : rasterShaderModules) {
+		s->setShaderInfo(rasterShaderInfo);
+	}
+
+
+	std::vector<VkPushConstantRange> pushConstants;
+	VkPushConstantRange pushConstant;
+	pushConstant.offset = 0;
+	pushConstant.size = sizeof(PushConstantsMesh);
+	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	pushConstants.push_back(pushConstant);
+
+	VkDescriptorSetLayoutBinding uboLayoutBinding{};
+	uboLayoutBinding.binding = 0;
+	uboLayoutBinding.descriptorCount = 1;
+	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	uboLayoutBinding.pImmutableSamplers = nullptr;
+
+	VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+	samplerLayoutBinding.binding = 1;
+	samplerLayoutBinding.descriptorCount=1;
+	samplerLayoutBinding.descriptorType=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	samplerLayoutBinding.pImmutableSamplers = nullptr;
+
+	std::vector<VkDescriptorSetLayoutBinding>layoutBindings{uboLayoutBinding,samplerLayoutBinding};
+
+	rasterDescriptorSetLayouts.push_back(std::make_unique<DescriptorSetLayout>(*device,layoutBindings));
+
+	rasterPipelineLayout = std::make_unique<PipelineLayout>(*device,rasterDescriptorSetLayouts,pushConstants);
+
+	rasterRenderPass = std::make_unique<RenderPass>(*device,defaultColorFormat);
+
+
+	surfaceExtent=renderContext->getSurfaceExtent();
+	rasterPipeline = std::make_unique<GraphicPipeline>(rasterShaderModules,*rasterPipelineLayout,*device,surfaceExtent);
+
+	rasterPipeline->build(*rasterRenderPass);
+
+}
+
+void MiniVulkanRenderer::initPostRender()
+{
+	// create post pipeline!
+
+	ShaderInfo postShaderInfo;
+	postShaderInfo.bindingInfoMap[0][1]=BindingInfo{TEXTURE_BINDING_TYPE,DIFFUSE};
+
+	postShaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/post.vert.spv",*device,VK_SHADER_STAGE_VERTEX_BIT));
+	postShaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/post.frag.spv",*device,VK_SHADER_STAGE_FRAGMENT_BIT));
+
+	for(auto&s:postShaderModules)
+	{
+		s->setShaderInfo(postShaderInfo);
+	}
+
+	std::vector<VkPushConstantRange> pushConstants;
+
+	VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+	samplerLayoutBinding.binding = 1;
+	samplerLayoutBinding.descriptorCount=1;
+	samplerLayoutBinding.descriptorType=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	samplerLayoutBinding.pImmutableSamplers = nullptr;
+
+	std::vector<VkDescriptorSetLayoutBinding>layoutBindings{samplerLayoutBinding};
+
+	postDescriptorSetLayouts.push_back(std::make_unique<DescriptorSetLayout>(*device,layoutBindings));
+
+	postPipelineLayout = std::make_unique<PipelineLayout>(*device,postDescriptorSetLayouts,pushConstants);
+
+	postRenderPass = std::make_unique<RenderPass>(*device,defaultColorFormat);
+
+	
+	surfaceExtent=renderContext->getSurfaceExtent();
+	postPipeline = std::make_unique<GraphicPipeline>(postShaderModules,*postPipelineLayout,*device,surfaceExtent);
+
+	postPipeline->build(*postRenderPass);
 
 }
 

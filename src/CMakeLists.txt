@@ -52,6 +52,8 @@ set(VULKAN_FRAMEWORK_FILES
     ./Vulkan/shaderInfo.cpp 
     ./Vulkan/pipelineLayout.h 
     ./Vulkan/pipelineLayout.cpp
+    ./Vulkan/renderPass.h 
+    ./Vulkan/renderPass.cpp 
 
 
 )
@@ -85,8 +87,7 @@ set(RENDERING_FILES
     ./Rendering/renderTarget.cpp 
     ./Rendering/renderFrame.h 
     ./Rendering/renderFrame.cpp 
-    ./Rendering/renderPass.h 
-    ./Rendering/renderPass.cpp 
+
 )
 
 set(RESOURCE_MANAGEMENT_FILES
@@ -98,6 +99,8 @@ set(RESOURCE_MANAGEMENT_FILES
     ./ResourceManagement/texture.cpp 
     ./ResourceManagement/shape.h 
     ./ResourceManagement/shape.cpp 
+    ./ResourceManagement/postQuad.h 
+    ./ResourceManagement/postQuad.cpp
 
 )
 

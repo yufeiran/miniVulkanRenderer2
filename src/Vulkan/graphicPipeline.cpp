@@ -1,7 +1,7 @@
 #include"GraphicPipeline.h"
 #include"shaderModule.h"
 #include"device.h"
-#include"Rendering/renderPass.h"
+#include"Vulkan/renderPass.h"
 #include"buffer.h"
 #include"ResourceManagement/model.h"
 #include"descriptorSetLayout.h"
@@ -11,10 +11,10 @@
 namespace mini
 {
 
-GraphicPipeline::GraphicPipeline(std::vector<std::unique_ptr<ShaderModule>>& shaderModules, std::vector<std::unique_ptr<DescriptorSetLayout>>& descriptorSetLayouts,
-	Device& device,VkExtent2D extent,
-	VkFormat swapChainImageFormat)
-	:shaderModules(shaderModules), descriptorSetLayouts(descriptorSetLayouts), device(device), swapChainImageFormat(swapChainImageFormat)
+GraphicPipeline::GraphicPipeline(std::vector<std::unique_ptr<ShaderModule>>& shaderModules,
+	PipelineLayout& pipelineLayout,
+	Device& device,VkExtent2D extent)
+	:shaderModules(shaderModules), pipelineLayout(pipelineLayout), device(device), swapChainImageFormat(swapChainImageFormat)
 {
 
 	
@@ -22,7 +22,7 @@ GraphicPipeline::GraphicPipeline(std::vector<std::unique_ptr<ShaderModule>>& sha
 		shaderStages.push_back(it->getStageCreateInfo());
 	}
 
-	std::vector<VkDynamicState> dynamicStates = {
+	dynamicStates = {
 		VK_DYNAMIC_STATE_VIEWPORT,
 		VK_DYNAMIC_STATE_SCISSOR
 	};
@@ -34,8 +34,8 @@ GraphicPipeline::GraphicPipeline(std::vector<std::unique_ptr<ShaderModule>>& sha
 
 	
 
-	auto bindingDescription = Vertex::getBindingDescription();
-	auto attributeDescriptions = Vertex::getAttributeDescriptions();
+	bindingDescription = Vertex::getBindingDescription();
+	attributeDescriptions = Vertex::getAttributeDescriptions();
 
 	vertexInputInfo={};
 	vertexInputInfo.sType=VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -124,24 +124,6 @@ GraphicPipeline::GraphicPipeline(std::vector<std::unique_ptr<ShaderModule>>& sha
 	depthStencil.back = {};
 
 
-	std::vector<VkDescriptorSetLayout> vkDescriptorSetLayouts;
-
-	for (const auto& it : descriptorSetLayouts)
-	{
-		vkDescriptorSetLayouts.push_back(it->getHandle());
-	}
-
-	std::vector<VkPushConstantRange> pushConstants;
-	VkPushConstantRange pushConstant;
-	pushConstant.offset = 0;
-	pushConstant.size = sizeof(PushConstantsMesh);
-	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-	pushConstants.push_back(pushConstant);
-
-
-	renderPass = std::make_unique<RenderPass>(device, swapChainImageFormat);
-
-
 
 
 }
@@ -150,9 +132,6 @@ GraphicPipeline::~GraphicPipeline()
 {
 	if (handle != VK_NULL_HANDLE) {
 		vkDestroyPipeline(device.getHandle(), handle, nullptr);
-	}
-	if (pipelineLayout != VK_NULL_HANDLE) {
-		vkDestroyPipelineLayout(device.getHandle(), pipelineLayout, nullptr);
 	}
 
 }
@@ -172,7 +151,7 @@ void GraphicPipeline::build(RenderPass& renderPass)
 	pipelineInfo.pColorBlendState = &colorBlending;
 	pipelineInfo.pDynamicState = &dynamicState;
 
-	pipelineInfo.layout = pipelineLayout;
+	pipelineInfo.layout = pipelineLayout.getHandle();
 
 	pipelineInfo.renderPass = renderPass.getHandle();
 	pipelineInfo.subpass = 0;
@@ -188,7 +167,7 @@ void GraphicPipeline::build(RenderPass& renderPass)
 
 VkPipelineLayout GraphicPipeline::getPipelineLayout() const
 {
-	return pipelineLayout;
+	return pipelineLayout.getHandle();
 }
 
 
@@ -199,10 +178,6 @@ VkPipeline GraphicPipeline::getHandle() const
 }
 
 
-RenderPass& GraphicPipeline::getRenderPass() const
-{
-	return *renderPass;
-}
 
 std::vector<std::unique_ptr<ShaderModule>>& GraphicPipeline::getShaderModules() const
 {

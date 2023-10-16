@@ -48,7 +48,7 @@ Image::Image(Device& device, const VkExtent2D& extent, VkFormat format, VkImageU
 	bindImageMemory(*deviceMemory);
 
 	//如果用于depth图就改变layout到dpeth对应的
-	if (usage && VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+	if (usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
 	{
 		transitionImageLayout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 	}

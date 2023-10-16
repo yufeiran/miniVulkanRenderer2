@@ -107,5 +107,10 @@ const std::vector<ImageView>& RenderTarget::getViews() const
 {
     return views;
 }
+const Image& RenderTarget::getImageByIndex(int i) const
+{
+    assert(i<images.size());
 
+	return images[i];
+}
 }
