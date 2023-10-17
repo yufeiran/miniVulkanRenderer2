@@ -2,6 +2,7 @@
 #include<chrono>
 #include"Vulkan/shaderInfo.h"
 #include"ResourceManagement/texture.h"
+#include "Vulkan/sampler.h"
 
 
 using namespace mini;
@@ -154,17 +155,16 @@ void MiniVulkanRenderer::recordCommandBuffer(CommandBuffer& cmd, RenderFrame& re
 
 	cmd.endRenderPass();
 
-	cmd.beginRenderPass(*rasterRenderPass, frameBuffer,clearValues);
-	cmd.bindPipeline(*rasterPipeline);
+	cmd.beginRenderPass(*postRenderPass, frameBuffer,clearValues);
+	cmd.bindPipeline(*postPipeline);
+
+	cmd.bindDescriptorSet({postDescriptorSet});
+	cmd.bindVertexBuffer(postQuad->getVertexBuffer());
 
 	cmd.setViewPortAndScissor(frameBuffer.getExtent());
 
-
-	for(int i=0;i<spriteList.sprites.size();i+=2)
-	{
-		cmd.drawSprite(spriteList.sprites[i],renderFrame);
-	}
-
+	cmd.draw(3,1,0,0);
+	cmd.draw(3,1,1,0);
 
 
 	cmd.endRenderPass();
@@ -510,7 +510,7 @@ void MiniVulkanRenderer::initRasterRender()
 
 	rasterPipelineLayout = std::make_unique<PipelineLayout>(*device,rasterDescriptorSetLayouts,pushConstants);
 
-	rasterRenderPass = std::make_unique<RenderPass>(*device,defaultColorFormat);
+	rasterRenderPass = std::make_unique<RenderPass>(*device,defaultColorFormat,  VK_IMAGE_LAYOUT_GENERAL);
 
 
 	surfaceExtent=renderContext->getSurfaceExtent();
@@ -557,6 +557,30 @@ void MiniVulkanRenderer::initPostRender()
 	postPipeline = std::make_unique<GraphicPipeline>(postShaderModules,*postPipelineLayout,*device,surfaceExtent);
 
 	postPipeline->build(*postRenderPass);
+
+	// create quad
+	postQuad = std::make_unique<PostQuad>(*device);
+
+	// create descriptor set
+	postDescriptorPool = std::make_unique<DescriptorPool>(*device);
+	BindingMap<VkDescriptorImageInfo> imageInfos;
+	BindingMap<VkDescriptorBufferInfo> bufferInfos;
+
+
+
+	const auto &offscreenColorImageView=offscreenRenderTarget->getImageViewByIndex(0);
+	const auto &offscreenColorImage = offscreenRenderTarget->getImageByIndex(0);
+
+	VkDescriptorImageInfo imageInfo{};
+	imageInfo.imageLayout =    VK_IMAGE_LAYOUT_GENERAL;
+	postRenderImageSampler=std::make_unique<Sampler>(*device);
+	imageInfo.imageView=offscreenColorImageView.getHandle();
+
+
+	imageInfo.sampler = postRenderImageSampler->getHandle();
+	imageInfos[0][1] = imageInfo;
+
+	postDescriptorSet =postDescriptorPool->allocate(*postDescriptorSetLayouts[0], bufferInfos, imageInfos).getHandle();
 
 }
 

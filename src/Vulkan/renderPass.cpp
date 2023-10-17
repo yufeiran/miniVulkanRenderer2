@@ -3,7 +3,7 @@
 
 namespace mini
 {
-RenderPass::RenderPass(Device& device, VkFormat swapchainFormat)
+RenderPass::RenderPass(Device& device, VkFormat swapchainFormat,VkImageLayout colorAttachmentFinalLayout)
 	:device(device)
 {
 	VkAttachmentDescription colorAttachment{};
@@ -17,7 +17,7 @@ RenderPass::RenderPass(Device& device, VkFormat swapchainFormat)
 	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 
 	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+	colorAttachment.finalLayout = colorAttachmentFinalLayout;
 
 	VkAttachmentReference colorAttachmentRef{};
 	colorAttachmentRef.attachment = 0;

@@ -22,41 +22,62 @@ DescriptorSet::DescriptorSet(DescriptorPool& descriptorPool, DescriptorSetLayout
 		throw Error("Failed to allocate descriptor sets!");
 	}
 
-	std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
-	descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	descriptorWrites[0].dstSet = handle;
-	descriptorWrites[0].dstBinding = 0;
-	descriptorWrites[0].dstArrayElement = 0;
-	descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	descriptorWrites[0].descriptorCount = 1;
+	std::vector<VkWriteDescriptorSet> descriptorWrites;
+	int descriptorWritesSize = bufferInfo.size()+ imageInfo.size();
+	descriptorWrites.resize(descriptorWritesSize);
 
-	descriptorWrites[0].pBufferInfo = &bufferInfo.at(0).at(0);
-	descriptorWrites[0].pImageInfo = nullptr;
-	descriptorWrites[0].pTexelBufferView = nullptr;
+	int nowWriteIndex=0;
+	for(const auto& setInfo:bufferInfo)
+	{
+		for(const auto& bindingInfo:setInfo.second)
+		{
+			descriptorWrites[nowWriteIndex].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptorWrites[nowWriteIndex].dstSet = handle;
+			descriptorWrites[nowWriteIndex].dstBinding = bindingInfo.first;
+			descriptorWrites[nowWriteIndex].dstArrayElement = 0;
+			descriptorWrites[nowWriteIndex].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+			descriptorWrites[nowWriteIndex].descriptorCount = 1;
+			descriptorWrites[nowWriteIndex].pBufferInfo = &bindingInfo.second;
+			descriptorWrites[nowWriteIndex].pImageInfo = nullptr;
+			descriptorWrites[nowWriteIndex].pTexelBufferView = nullptr;
+			nowWriteIndex++;
+		}
+	}
 
-	descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	descriptorWrites[1].dstSet = handle;
-	descriptorWrites[1].dstBinding = 1;
-	descriptorWrites[1].dstArrayElement = 0;
-	descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	descriptorWrites[1].descriptorCount = 1;
-
-	descriptorWrites[1].pBufferInfo = nullptr;
-	descriptorWrites[1].pImageInfo = &imageInfo.at(0).at(1);
-	descriptorWrites[1].pTexelBufferView = nullptr;
-
+	for(const auto& setInfo:imageInfo)
+	{
+		for(const auto& bindingInfo:setInfo.second)
+		{
+			descriptorWrites[nowWriteIndex].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptorWrites[nowWriteIndex].dstSet = handle;
+			descriptorWrites[nowWriteIndex].dstBinding =  bindingInfo.first;
+			descriptorWrites[nowWriteIndex].dstArrayElement = 0;
+			descriptorWrites[nowWriteIndex].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			descriptorWrites[nowWriteIndex].descriptorCount = 1;
+			descriptorWrites[nowWriteIndex].pBufferInfo = nullptr;
+			descriptorWrites[nowWriteIndex].pImageInfo = &bindingInfo.second;
+			descriptorWrites[nowWriteIndex].pTexelBufferView = nullptr;
+			nowWriteIndex++;
+		}
+	}
+	
 
 
 	vkUpdateDescriptorSets(device.getHandle(), descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
-
-
-
 
 }
 
 DescriptorSet::~DescriptorSet()
 {
 
+}
+
+DescriptorSet::DescriptorSet(const DescriptorSet& des):
+	descriptorPool(des.descriptorPool),
+	descriptorSetLayout(des.descriptorSetLayout),
+	device(des.device),
+	handle(des.handle)
+{
 }
 
 VkDescriptorSet DescriptorSet::getHandle()

@@ -15,6 +15,7 @@
 #include"Rendering/renderContext.h"
 
 #include"ResourceManagement/resourceManagement.h"
+#include"ResourceManagement/postQuad.h"
 
 #include"Vulkan/instance.h"
 #include"Vulkan/physicalDevice.h"
@@ -130,11 +131,17 @@ private:
 
 
 	// post pipeline data
+
 	std::vector<std::unique_ptr<ShaderModule>>postShaderModules;
 	std::vector<std::unique_ptr<DescriptorSetLayout>> postDescriptorSetLayouts;
+	std::unique_ptr<DescriptorPool>postDescriptorPool;
+	VkDescriptorSet postDescriptorSet;
 	std::unique_ptr<PipelineLayout>postPipelineLayout;
 	std::unique_ptr<RenderPass>postRenderPass;
 	std::unique_ptr<GraphicPipeline>postPipeline;
+	std::unique_ptr<PostQuad> postQuad;
+	std::unique_ptr<Sampler> postRenderImageSampler;
+
 
 	std::unique_ptr<ResourceManagement> resourceManagement;
 

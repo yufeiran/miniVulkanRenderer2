@@ -17,8 +17,7 @@ PostQuad::PostQuad(Device& device)
         {1.0f, 1.0f},
         {1.0f, 0.0f}
     };
-    
-    vertexs.resize(4);
+
     for(int i=0;i<4;i++)
     {
 	    Vertex v;

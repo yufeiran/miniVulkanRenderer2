@@ -8,7 +8,7 @@ class Device;
 class RenderPass
 {
 public:
-	RenderPass(Device &device, VkFormat swapchainFormat);
+	RenderPass(Device &device, VkFormat swapchainFormat,VkImageLayout colorAttachmentFinalLayout=VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
 	~RenderPass();
 

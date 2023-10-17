@@ -16,6 +16,8 @@ public:
 		const BindingMap<VkDescriptorImageInfo>& imageInfo = {});
 	~DescriptorSet();
 
+	DescriptorSet(const DescriptorSet&des);
+
 	VkDescriptorSet getHandle();
 private:
 	VkDescriptorSet handle{ VK_NULL_HANDLE };

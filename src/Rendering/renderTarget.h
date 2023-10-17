@@ -56,6 +56,8 @@ const std::vector<ImageView>& getViews() const;
 
 const Image& getImageByIndex(int i) const;
 
+const ImageView& getImageViewByIndex(int i)const;
+
 private:
 
 Device& device;

@@ -113,4 +113,10 @@ const Image& RenderTarget::getImageByIndex(int i) const
 
 	return images[i];
 }
+const ImageView& RenderTarget::getImageViewByIndex(int i) const
+{
+    assert(i<views.size());
+
+    return views[i];
+}
 }
