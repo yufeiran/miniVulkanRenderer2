@@ -43,6 +43,8 @@ public:
 
 	RenderFrame& getActiveFrame();
 
+	Swapchain& getSwapchain() const{return *swapchain;}
+
 
 	VkResult beginFrame();
 

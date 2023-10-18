@@ -31,7 +31,7 @@ Swapchain::Swapchain(Device& device, VkSurfaceKHR surface, VkExtent2D extent, co
 
 	VkExtent2D surfaceExtent = chooseSwapExtent(swapChainSupport.capabilities,extent);
 
-	uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
+	imageCount = swapChainSupport.capabilities.minImageCount + 1;
 
 	if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount) {
 		imageCount = swapChainSupport.capabilities.maxImageCount;

@@ -61,6 +61,8 @@ public:
 
 	VkSwapchainKHR getHandle() const;
 
+	uint32_t getImageCount() const {return imageCount;}
+
 	VkResult acquireNextImage(uint32_t& imageIndex,VkSemaphore semaphore,VkFence fence);
 
 
@@ -73,6 +75,8 @@ private:
 	VkSwapchainKHR handle{ VK_NULL_HANDLE };
 
 	std::vector<VkImage> images;
+
+	uint32_t  imageCount;
 
 	VkFormat imageFormat;
 

@@ -1,5 +1,7 @@
 #pragma once
 #include<iostream>
+
+
 #include"Common/common.h"
 
 
@@ -47,6 +49,8 @@
 
 
 
+
+
 //miniVulkanRenderer2
 /* a mini renderer
 */
@@ -60,6 +64,8 @@ public:
 	~MiniVulkanRenderer();
 
 	void init(int width = 1920, int height = 1080);
+
+	void initImGUI();
 
 	void loop();
 
@@ -114,6 +120,11 @@ private:
 
 	std::unique_ptr<RenderContext> renderContext;
 
+
+	// ImGui data
+	std::unique_ptr<DescriptorPool> imguiDescPool;
+
+	std::unique_ptr<CommandPool> tempCommandPool;
 
 	// offscreen render data
 	std::unique_ptr<RenderTarget> offscreenRenderTarget;

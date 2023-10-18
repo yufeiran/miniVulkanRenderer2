@@ -5,6 +5,12 @@
 #include "Vulkan/sampler.h"
 
 
+
+#include"imgui.h"
+#include"imgui_impl_vulkan.h"
+#include"imgui_impl_glfw.h"
+
+
 using namespace mini;
 using namespace std::chrono;
 
@@ -30,6 +36,8 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	auto& gpu = instance->getFirstGpu();
 
+	physicalDevice=std::make_unique<PhysicalDevice>(*instance,gpu.getHandle());
+
 	defaultDepthFormat =gpu.findDepthFormat();
 
 	std::vector<const char*> deviceExtension = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
@@ -38,11 +46,15 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	renderContext = std::make_unique<RenderContext>(*device, surface, *window);
 
+	tempCommandPool = std::make_unique<CommandPool>(*device);
+
 	initRasterRender();
 
 	createOffScreenFrameBuffer();
 
 	initPostRender();
+
+
 	
 
 	VkDescriptorSetLayoutBinding postSamplerLayoutBinding{};
@@ -77,8 +89,50 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	}
 
+	initImGUI();
+	ImGui_ImplGlfw_InitForVulkan(window->getHandle(),true);
+
 
 	Log("miniVulkanRenderer init finish");
+}
+
+void MiniVulkanRenderer::initImGUI()
+{
+
+	ImGui::CreateContext();
+	ImGuiIO& io   = ImGui::GetIO();
+	io.IniFilename = nullptr; // Avoiding the INI file
+	io.LogFilename = nullptr;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+
+	imguiDescPool = std::make_unique<DescriptorPool>(*device);
+
+	ImGui_ImplVulkan_InitInfo init_info = {};
+	init_info.Instance			= instance->getHandle();
+	init_info.PhysicalDevice	= physicalDevice->getHandle();
+	init_info.Device			= device->getHandle();
+	init_info.QueueFamily		= device->getGraphicQueue().getFamilyIndex();
+	init_info.Queue				= device->getGraphicQueue().getHandle();
+	init_info.PipelineCache		= VK_NULL_HANDLE;
+	init_info.DescriptorPool    = imguiDescPool->getHandle();
+	init_info.Subpass			= 0;
+	init_info.MinImageCount		= 2;
+	init_info.ImageCount		= static_cast<int>(renderContext->getSwapchain().getImageCount());
+	init_info.MSAASamples		= VK_SAMPLE_COUNT_1_BIT;
+	init_info.CheckVkResultFn	= nullptr;
+	init_info.Allocator			= nullptr;
+
+	ImGui_ImplVulkan_LoadFunctions(
+		[](const char *function_name, void *vulkan_instance) {
+						return vkGetInstanceProcAddr(*(reinterpret_cast<VkInstance *>(vulkan_instance)), function_name);}, &init_info.Instance);
+
+	ImGui_ImplVulkan_Init(&init_info,postRenderPass->getHandle());
+
+	auto& tempCmd = tempCommandPool->createCommandBuffer();
+	tempCmd->beginSingleTime();
+	ImGui_ImplVulkan_CreateFontsTexture(tempCmd->getHandle());
+	tempCmd->endSingleTime(device->getGraphicQueue());
+
 }
 
 void MiniVulkanRenderer::loop()
@@ -89,16 +143,8 @@ void MiniVulkanRenderer::loop()
 		keyControl();
 		joystickControl();
 		window->processEvents();
-		
-		
-		// start raster pass!
+
 		drawFrame();
-
-
-
-		// post pass!
-
-
 
 	}
 	device->waitIdle();
@@ -132,7 +178,16 @@ void MiniVulkanRenderer::recordCommandBuffer(CommandBuffer& cmd, RenderFrame& re
 {
 	auto& frameBuffer = renderFrame.getFrameBuffer();
 
+	ImGui_ImplVulkan_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
 
+	{
+		ImGui::Begin("Hello World");
+		ImGui::Text("miniVulkanRenderer2");
+		ImGui::End();
+	}
+	
 
 	cmd.reset();
 	cmd.begin();
@@ -141,35 +196,48 @@ void MiniVulkanRenderer::recordCommandBuffer(CommandBuffer& cmd, RenderFrame& re
 	clearValues[0].color = {0.0f,0.0f,0.0f,1.0f};
 	clearValues[1].depthStencil = { 1.0f,0 };
 
-	cmd.beginRenderPass(*rasterRenderPass, *offscreenFramebuffer,clearValues);
-	cmd.bindPipeline(*rasterPipeline);
-
-	cmd.setViewPortAndScissor(frameBuffer.getExtent());
 
 
-
-	for (auto& s : spriteList.sprites)
+	// Raster render pass
 	{
-		cmd.drawSprite(s, renderFrame);
+		cmd.beginRenderPass(*rasterRenderPass, *offscreenFramebuffer,clearValues);
+		cmd.bindPipeline(*rasterPipeline);
+
+		cmd.setViewPortAndScissor(frameBuffer.getExtent());
+
+
+
+		for (auto& s : spriteList.sprites)
+		{
+			cmd.drawSprite(s, renderFrame);
+		}
+
+		cmd.endRenderPass();
 	}
 
-	cmd.endRenderPass();
-
-	cmd.beginRenderPass(*postRenderPass, frameBuffer,clearValues);
-	cmd.bindPipeline(*postPipeline);
-
-	cmd.bindDescriptorSet({postDescriptorSet});
-	cmd.bindVertexBuffer(postQuad->getVertexBuffer());
-
-	cmd.setViewPortAndScissor(frameBuffer.getExtent());
-
-	cmd.draw(3,1,0,0);
-	cmd.draw(3,1,1,0);
 
 
-	cmd.endRenderPass();
+
+	// Offscreen render pass
+	{
+		cmd.beginRenderPass(*postRenderPass, frameBuffer,clearValues);
+		cmd.bindPipeline(*postPipeline);
+
+		cmd.bindDescriptorSet({postDescriptorSet});
+		cmd.bindVertexBuffer(postQuad->getVertexBuffer());
+
+		cmd.setViewPortAndScissor(frameBuffer.getExtent());
+
+		cmd.draw(3,1,0,0);
+		cmd.draw(3,1,1,0);
+
+		ImGui::Render();
+		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(),cmd.getHandle());
+
+		cmd.endRenderPass();
+	}
+
 	cmd.end();
-
 }
 
 
@@ -234,6 +302,8 @@ void MiniVulkanRenderer::mouseControl()
 	double xpos, ypos;
 
 	const auto& win = window->getHandle();
+
+
 
 	glfwGetCursorPos(win, &xpos, &ypos);
 
@@ -380,6 +450,14 @@ void MiniVulkanRenderer::mouseCallBack(GLFWwindow* window, double xpos, double y
 	const double moveSensitivity = 2.1;
 	xoffset *= moveSensitivity;
 	yoffset *= moveSensitivity;
+
+	ImGuiIO& io = ImGui::GetIO();
+
+	if(io.WantCaptureMouse)
+	{
+		return;
+	}
+
 
 	if(isLeftMouseButtonPress==true)
 	{
@@ -589,6 +667,13 @@ void MiniVulkanRenderer::initPostRender()
 MiniVulkanRenderer::~MiniVulkanRenderer()
 {
 	Log("Renderer shutting down");
+
+	if(ImGui::GetCurrentContext()!=nullptr)
+	{
+		ImGui_ImplVulkan_Shutdown();
+	}
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 }
 
 
