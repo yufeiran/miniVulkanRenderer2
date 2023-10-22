@@ -80,6 +80,7 @@ Device::Device(PhysicalDevice& gpu,
 	features12.bufferDeviceAddress=VK_TRUE;
 	features12.hostQueryReset =VK_TRUE;
 
+
 	
 	VkPhysicalDeviceAccelerationStructureFeaturesKHR asFeatures{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR};
 	asFeatures.accelerationStructure=VK_TRUE;

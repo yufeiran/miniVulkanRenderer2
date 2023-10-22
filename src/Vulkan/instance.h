@@ -31,6 +31,6 @@ private:
 	std::vector<const char*> enableExtensions;
 	VkDebugUtilsMessengerEXT debugUtilsMessenger{ VK_NULL_HANDLE };
 
-	std::vector<std::unique_ptr< PhysicalDevice>> gpus;
+	std::vector<std::shared_ptr< PhysicalDevice>> gpus;
 };
 } // namespace mini

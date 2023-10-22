@@ -12,7 +12,7 @@ Buffer::Buffer(Device& device,  uint32_t size, VkBufferUsageFlags usage,VkMemory
 {
 	VkBufferCreateInfo bufferInfo{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 	bufferInfo.size = size;
-	bufferInfo.usage = usage;
+	bufferInfo.usage = usage|VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
 	if (vkCreateBuffer(device.getHandle(), &bufferInfo, nullptr, &handle) != VK_SUCCESS) 
@@ -28,8 +28,17 @@ Buffer::Buffer(Device& device,  uint32_t size, VkBufferUsageFlags usage,VkMemory
 	deviceMemory = std::make_unique<DeviceMemory>(device,*this, properties,flags);
 
 	bindBufferMemory(*deviceMemory);
+}
 
+Buffer::Buffer(Device& device, uint32_t size, const void* data, VkBufferUsageFlagBits usage, VkMemoryPropertyFlags properties)
+	:Buffer(device,size,usage,properties)
+{
+	
+	Buffer stagingBuffer(device, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	stagingBuffer.map(data, size);
 
+	device.copyBuffer(stagingBuffer, *this, size);
 }
 
 Buffer::~Buffer()

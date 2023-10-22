@@ -1,5 +1,6 @@
 #pragma once
 #include"Common/common.h"
+#include"Vulkan/commandBuffer.h"
 #include"deviceMemory.h"
 
 namespace mini
@@ -11,7 +12,17 @@ enum BufferMapType{UNMAP,PERSISTENT_MAPPING,TEMP_MAPPING};
 class Buffer
 {
 public:
-	Buffer(Device& device,uint32_t size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	Buffer(Device& device,uint32_t size,VkBufferUsageFlags usage, VkMemoryPropertyFlags properties= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+	Buffer(Device& device,uint32_t size,const void * data,VkBufferUsageFlagBits usage,
+		VkMemoryPropertyFlags properties= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+	template<class T>
+	Buffer(Device& device,const std::vector<T> vec,VkBufferUsageFlagBits usage,
+		VkMemoryPropertyFlags properties= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT):Buffer(device,vec.size(),(const void*)vec.data(),usage,properties)
+	{
+		
+	}
 
 	~Buffer();
 

@@ -70,27 +70,30 @@ public:
 
 	void initImGUI();
 
-	void initRayTracing();
+	void createOffScreenFrameBuffer();
 
-	auto modelToVkGeometryKHR(const Model& model);
+	void initRayTracingRender();
+
+	void initRasterRender();
+
+	void initPostRender();
 
 	void createBottomLevelAS();
 
 	void createTopLevelAS();
 
+
 	//-----------------------
 
 	void loop();
+
+	void processIO();
 
 	void keyControl();
 
 	void mouseControl();
 
 	void joystickControl();
-
-	void drawFrame();
-
-	void recordCommandBuffer(CommandBuffer& cmd, RenderFrame& renderFrame);
 
 	static void mouseCallBack(GLFWwindow* window, double xpos, double ypos);
 
@@ -104,11 +107,8 @@ public:
 
 	Camera& getCamera();
 
-	void createOffScreenFrameBuffer();
+	auto modelToVkGeometryKHR(const Model& model);
 
-	void initRasterRender();
-
-	void initPostRender();
 
 private:
 
@@ -122,20 +122,14 @@ private:
 
 	
 	std::unique_ptr<Instance> instance;
-
 	std::unique_ptr<GUIWindow> window;
-
-	std::unique_ptr<PhysicalDevice> physicalDevice;
-
+	std::shared_ptr<PhysicalDevice> physicalDevice;
+	std::unique_ptr<Device> device;
 	VkSurfaceKHR surface{};
 
-	std::unique_ptr<Device> device;
+	std::unique_ptr<ResourceManagement> resourceManagement;
 
 	std::unique_ptr<RenderContext> renderContext;
-
-	// Raytracing data
-	VkPhysicalDeviceRayTracingPipelinePropertiesKHR rtProperties{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR};
-	std::unique_ptr<RayTracingBuilder> rayTracingBuilder;
 
 	// ImGui data
 	std::unique_ptr<DescriptorPool> imguiDescPool;
@@ -156,9 +150,15 @@ private:
 	std::unique_ptr<RenderPass>rasterRenderPass;
 	std::unique_ptr<GraphicPipeline>rasterPipeline;
 
+	// Raytracing pipeline data
+	VkPhysicalDeviceRayTracingPipelinePropertiesKHR rtProperties{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR};
+	std::unique_ptr<RayTracingBuilder> rayTracingBuilder;
+	std::vector<std::unique_ptr<ShaderModule>> rtShaderModules;
+	std::unique_ptr<DescriptorPool> rtDescriptorPool;
+	std::vector<std::unique_ptr<DescriptorSetLayout>> rtDescriptorSetLayout;
+	VkDescriptorSet rtDescriptorSet;
 
 	// post pipeline data
-
 	std::vector<std::unique_ptr<ShaderModule>>postShaderModules;
 	std::vector<std::unique_ptr<DescriptorSetLayout>> postDescriptorSetLayouts;
 	std::unique_ptr<DescriptorPool>postDescriptorPool;
@@ -169,11 +169,7 @@ private:
 	std::unique_ptr<PostQuad> postQuad;
 	std::unique_ptr<Sampler> postRenderImageSampler;
 
-
-	std::unique_ptr<ResourceManagement> resourceManagement;
-
 	SpriteList spriteList;
-
 	Camera  camera;
 
 

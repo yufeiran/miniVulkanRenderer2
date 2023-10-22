@@ -15,7 +15,7 @@ class Sprite
 {
 public:
 	Sprite(uint32_t id, Model& model, float x=0, float y=0, float z=0, float scale=1, float angleX=0,float angleY=0,float angleZ=0, std::string name=std::string());
-	Model& getModel();
+	Model& getModel() const;
 	void calModelMat();
 	glm::mat4 getModelMat()const;
 

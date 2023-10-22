@@ -17,6 +17,8 @@ GUIWindow::GUIWindow(int width, int height, const char* title)
 	glfwInit();
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
+	glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+
 	handle = glfwCreateWindow(width, height, "miniVulkanRenderer2", nullptr, nullptr);
 	loadIcon("../../assets/logo.png");
 	
@@ -167,6 +169,16 @@ void GUIWindow::loadIcon(const char* filename)
 	
 	iconImage.pixels = stbi_load(filename, &iconImage.width, &iconImage.height, 0,4);
 	glfwSetWindowIcon(handle, 1, &iconImage);
+}
+
+void GUIWindow::hideWindow() const
+{
+	glfwHideWindow(handle);
+}
+
+void GUIWindow::showWindow() const
+{
+	glfwShowWindow(handle);
 }
 
 }

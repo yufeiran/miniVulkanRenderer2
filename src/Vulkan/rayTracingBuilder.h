@@ -38,7 +38,12 @@ struct BlasInput
 	void buildBlas(const std::vector<BlasInput>&          input,
 				   VkBuildAccelerationStructureFlagsKHR   flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR);
 
-	
+	void buildTlas(const std::vector<VkAccelerationStructureInstanceKHR>&            instances,
+		           VkBuildAccelerationStructureFlagsKHR  flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR,
+					bool                                 update = false,
+					bool                                 motion = false);
+
+	VkDeviceAddress getBlasDeviceAddress(uint32_t blasId);
 private:
 
 
@@ -60,9 +65,18 @@ private:
 						std::vector<BuildAccelerationStructure>&    buildAs,
 						std::unique_ptr<QueryPool>& queryPool);
 
+
 	AccelKHR createAcceleration(VkAccelerationStructureCreateInfoKHR& accel);
 
 	void destroyNonCompacted(std::vector<uint32_t> indices,std::vector<BuildAccelerationStructure>& buildAs);
+
+	void cmdCreateTlas(CommandBuffer&                        cmdBuf,
+					   uint32_t                              countInstance,
+		               VkDeviceAddress                       instBufferAddr,
+					   VkBuildAccelerationStructureFlagsKHR  flags,
+					   bool                                  update,
+		               bool                                  motion
+	);
 	
 
 
@@ -75,5 +89,17 @@ private:
 	std::unique_ptr<Buffer>scratchBuffer;
 
 	std::vector<AccelKHR> blasVec;
+
+	AccelKHR tlas;
 };
+
+
+inline VkTransformMatrixKHR toTransformMatrixKHR(glm::mat4 matrix)
+{
+	glm::mat4                temp = glm::transpose(matrix);
+	VkTransformMatrixKHR     outMatrix;
+	memcpy(&outMatrix,&temp,sizeof(VkTransformMatrixKHR));
+	return outMatrix;
+}
+
 }

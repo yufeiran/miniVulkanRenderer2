@@ -11,7 +11,7 @@ Sprite::Sprite(uint32_t id, Model& model, float x , float y , float z, float sca
 	calModelMat();
 }
 
-Model& Sprite::getModel()
+Model& Sprite::getModel() const
 {
 	return model;
 }

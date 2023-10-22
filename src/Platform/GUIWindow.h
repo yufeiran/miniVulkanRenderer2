@@ -47,6 +47,10 @@ public:
 
 	void loadIcon(const char* filename);
 
+	void hideWindow() const;
+
+	void showWindow() const;
+
 
 private:
 	VkInstance instance{ VK_NULL_HANDLE };

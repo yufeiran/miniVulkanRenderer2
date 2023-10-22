@@ -8,6 +8,7 @@
 #include"tiny_obj_loader.h"
 #include"Vulkan/image.h"
 #include"Vulkan/imageView.h"
+#include<Windows.h>
 
 namespace mini
 {
@@ -38,6 +39,7 @@ Model::Model(Device& device, const std::string& filePath,const std::string& name
 	device(device),name(name),filePath(filePath), id(id)
 {
 
+	Log("load Model:"+name);
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
@@ -57,9 +59,14 @@ Model::Model(Device& device, const std::string& filePath,const std::string& name
 		throw Error(warn + err);
 	}
 
+	double shapesCount = shapes.size();
+	double nowShape=0;
+
+
 	for (const auto& tshape : shapes) {
 
 		std::unique_ptr<Shape> shape = std::make_unique<Shape>();
+
 
 		shape->name = tshape.name;
 		if(tshape.mesh.material_ids[0]>=0)
@@ -153,7 +160,9 @@ Model::Model(Device& device, const std::string& filePath,const std::string& name
 		}
 
 		shapeMap[shape->name] = std::move(shape);
-
+		double nowProgress = nowShape/(shapesCount-1);
+		LogProgressBar(" ",nowProgress);
+		nowShape++;
 	}
 	
 

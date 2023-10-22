@@ -2,6 +2,9 @@
 #include<chrono>
 #include"Vulkan/shaderInfo.h"
 #include"ResourceManagement/texture.h"
+#include"ResourceManagement/resourceManagement.h"
+#include"Sprite/sprite.h"
+#include"Sprite/spriteList.h"
 #include "Vulkan/sampler.h"
 
 
@@ -22,8 +25,9 @@ MiniVulkanRenderer::MiniVulkanRenderer()
 
 void MiniVulkanRenderer::init(int width, int height)
 {
+	LogLogo();
+	Log("init start");
 
-	Log("miniVulkanRenderer init start");
 	width = width;
 	height = height;
 	window = std::make_unique<GUIWindow>(width, height, "miniVulkanRenderer2");
@@ -31,13 +35,14 @@ void MiniVulkanRenderer::init(int width, int height)
 	window->setJoystickCallBack(joystickCallback);
 	window->setMouseButtonCallBack(mouseButtonCallbcak);
 
+	LogSpace();
 	instance = std::make_unique<Instance>();
 
 	surface = window->createSurface(instance->getHandle());
 
 	auto& gpu = instance->getFirstGpu();
 
-	physicalDevice=std::make_unique<PhysicalDevice>(*instance,gpu.getHandle());
+	physicalDevice=std::make_shared<PhysicalDevice>(gpu);
 
 	defaultDepthFormat =gpu.findDepthFormat();
 
@@ -51,19 +56,16 @@ void MiniVulkanRenderer::init(int width, int height)
 	};
 
 	device = std::make_unique<Device>(gpu, surface, deviceExtension);
+	LogSpace();
 
 	renderContext = std::make_unique<RenderContext>(*device, surface, *window);
 
 	tempCommandPool = std::make_unique<CommandPool>(*device);
-
 	initRasterRender();
 
 	createOffScreenFrameBuffer();
 
 	initPostRender();
-
-
-	
 
 	VkDescriptorSetLayoutBinding postSamplerLayoutBinding{};
 	postSamplerLayoutBinding.binding = 1;
@@ -80,7 +82,8 @@ void MiniVulkanRenderer::init(int width, int height)
 	//	renderContext->getSurfaceExtent(),renderContext->getFormat());
 
 
-
+	LogSpace();
+	Log("Load scene");
 
 	resourceManagement = std::make_unique<ResourceManagement>(*device);
 
@@ -89,7 +92,7 @@ void MiniVulkanRenderer::init(int width, int height)
 	//resourceManagement->loadModel("Medieval_building", "../../assets/nv_raytracing_tutorial_scene/Medieval_building.obj",true);
 
 	//resourceManagement->loadModel("plane", "../../assets/nv_raytracing_tutorial_scene/plane.obj",true);
-
+	LogSpace();
 	renderContext->prepare(*rasterRenderPass,*resourceManagement,rasterDescriptorSetLayouts,
 		rasterPipeline->getShaderModules().front()->getShaderInfo());
 
@@ -106,11 +109,13 @@ void MiniVulkanRenderer::init(int width, int height)
 	initImGUI();
 	ImGui_ImplGlfw_InitForVulkan(window->getHandle(),true);
 
-	initRayTracing();
+	initRayTracingRender();
 	createBottomLevelAS();
+	createTopLevelAS();
 
+	LogSpace();
 
-	Log("miniVulkanRenderer init finish");
+	window->showWindow();
 }
 
 void MiniVulkanRenderer::initImGUI()
@@ -150,15 +155,6 @@ void MiniVulkanRenderer::initImGUI()
 	ImGui_ImplVulkan_CreateFontsTexture(tempCmd->getHandle());
 	tempCmd->endSingleTime(device->getGraphicQueue());
 
-}
-
-void MiniVulkanRenderer::initRayTracing()
-{
-	// Requesting ray tracing properties
-	VkPhysicalDeviceProperties2 prop2{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2};
-	prop2.pNext = &rtProperties;
-	vkGetPhysicalDeviceProperties2(physicalDevice->getHandle(),&prop2);
-	rayTracingBuilder=std::make_unique<RayTracingBuilder>(*device,device->getGraphicQueue().getIndex());
 }
 
 auto MiniVulkanRenderer::modelToVkGeometryKHR(const Model& model)
@@ -226,114 +222,112 @@ void MiniVulkanRenderer::createBottomLevelAS()
 
 void MiniVulkanRenderer::createTopLevelAS()
 {
-
+	Log("start createTLAS");
+	std::vector<VkAccelerationStructureInstanceKHR> tlas;
+	tlas.reserve(spriteList.sprites.size());
+	for(const Sprite& sprite:spriteList.sprites)
+	{
+		VkAccelerationStructureInstanceKHR rayInst{};
+		uint32_t modelId = sprite.getModel().getID();
+		rayInst.transform                           = toTransformMatrixKHR(sprite.getModelMat());
+		rayInst.instanceCustomIndex                 = modelId;
+		rayInst.accelerationStructureReference      = rayTracingBuilder->getBlasDeviceAddress(modelId);
+		rayInst.flags                               = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;
+		rayInst.mask                                = 0xFF; // Only be hit if rayMask & instance.mask != 0
+		rayInst.instanceShaderBindingTableRecordOffset=0;
+		tlas.emplace_back(rayInst);
+	}
+	rayTracingBuilder->buildTlas(tlas,VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR);
 }
 
 void MiniVulkanRenderer::loop()
 {
+	std::vector<VkClearValue> clearValues(2);
+	VkClearColorValue defaultClearColor = {106.0f/256,131.0f/256,114.0f/256,1.0f};
+	clearValues[0].color = defaultClearColor;
+	clearValues[1].depthStencil = { 1.0f,0 };
 
 	while(!window->shouldClose()){
 		calFps();
-		keyControl();
-		joystickControl();
-		window->processEvents();
+		processIO();
 
-		drawFrame();
+		auto result= renderContext->beginFrame();
+		if (result == VK_ERROR_OUT_OF_DATE_KHR)
+		{
+			handleSizeChange();
+			continue;
+		}
+
+		auto& cmd = renderContext->getCurrentCommandBuffer();
+		auto& renderFrame = renderContext->getActiveFrame();
+
+		renderFrame.updateUniformBuffer(camera);
+		auto& frameBuffer = renderFrame.getFrameBuffer();
+
+		// ImGui 
+		ImGui_ImplVulkan_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+		{
+			ImGui::Begin("Hello World");
+			ImGui::Text("miniVulkanRenderer2");
+			ImGui::ColorEdit3("clearColor",reinterpret_cast<float*>(&clearValues[0].color));
+			ImGui::End();
+		}
+	
+		cmd.reset();
+		cmd.begin();
+
+		// Raster render pass
+		{
+			cmd.beginRenderPass(*rasterRenderPass, *offscreenFramebuffer,clearValues);
+			cmd.bindPipeline(*rasterPipeline);
+
+			cmd.setViewPortAndScissor(frameBuffer.getExtent());
+
+
+
+			for (auto& s : spriteList.sprites)
+			{
+				cmd.drawSprite(s, renderFrame);
+			}
+
+			cmd.endRenderPass();
+		}
+
+		// Offscreen render pass
+		{
+			cmd.beginRenderPass(*postRenderPass, frameBuffer,clearValues);
+			cmd.bindPipeline(*postPipeline);
+
+			cmd.bindDescriptorSet({postDescriptorSet});
+			cmd.bindVertexBuffer(postQuad->getVertexBuffer());
+
+			cmd.setViewPortAndScissor(frameBuffer.getExtent());
+
+			cmd.draw(3,1,0,0);
+			cmd.draw(3,1,1,0);
+
+			ImGui::Render();
+			ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(),cmd.getHandle());
+
+			cmd.endRenderPass();
+		}
+
+		cmd.end();
+		renderContext->submit(device->getGraphicQueue(), &cmd);
+		renderContext->endFrame();
 
 	}
 	device->waitIdle();
 }
 
-
-
-void MiniVulkanRenderer::drawFrame()
+void MiniVulkanRenderer::processIO()
 {
-
-	auto result= renderContext->beginFrame();
-	if (result == VK_ERROR_OUT_OF_DATE_KHR)
-	{
-		handleSizeChange();
-		return;
-	}
-
-	auto& cmd = renderContext->getCurrentCommandBuffer();
-	auto& frame = renderContext->getActiveFrame();
-
-	frame.updateUniformBuffer(camera);
-	
-	recordCommandBuffer(cmd, frame);
-
-	renderContext->submit(device->getGraphicQueue(), &cmd);
-
-	renderContext->endFrame();
+	keyControl();
+	joystickControl();
+	window->processEvents();
 }
-
-void MiniVulkanRenderer::recordCommandBuffer(CommandBuffer& cmd, RenderFrame& renderFrame)
-{
-	auto& frameBuffer = renderFrame.getFrameBuffer();
-
-	ImGui_ImplVulkan_NewFrame();
-	ImGui_ImplGlfw_NewFrame();
-	ImGui::NewFrame();
-
-	{
-		ImGui::Begin("Hello World");
-		ImGui::Text("miniVulkanRenderer2");
-		ImGui::End();
-	}
-	
-
-	cmd.reset();
-	cmd.begin();
-
-	std::vector<VkClearValue> clearValues(2);
-	clearValues[0].color = {0.0f,0.0f,0.0f,1.0f};
-	clearValues[1].depthStencil = { 1.0f,0 };
-
-
-
-	// Raster render pass
-	{
-		cmd.beginRenderPass(*rasterRenderPass, *offscreenFramebuffer,clearValues);
-		cmd.bindPipeline(*rasterPipeline);
-
-		cmd.setViewPortAndScissor(frameBuffer.getExtent());
-
-
-
-		for (auto& s : spriteList.sprites)
-		{
-			cmd.drawSprite(s, renderFrame);
-		}
-
-		cmd.endRenderPass();
-	}
-
-
-
-
-	// Offscreen render pass
-	{
-		cmd.beginRenderPass(*postRenderPass, frameBuffer,clearValues);
-		cmd.bindPipeline(*postPipeline);
-
-		cmd.bindDescriptorSet({postDescriptorSet});
-		cmd.bindVertexBuffer(postQuad->getVertexBuffer());
-
-		cmd.setViewPortAndScissor(frameBuffer.getExtent());
-
-		cmd.draw(3,1,0,0);
-		cmd.draw(3,1,1,0);
-
-		ImGui::Render();
-		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(),cmd.getHandle());
-
-		cmd.endRenderPass();
-	}
-
-	cmd.end();
-}
-
 
 
 
@@ -639,6 +633,19 @@ void MiniVulkanRenderer::createOffScreenFrameBuffer()
 	offscreenFramebuffer=std::make_unique<FrameBuffer>(*device,*offscreenRenderTarget,*rasterRenderPass);
 
 }
+
+
+void MiniVulkanRenderer::initRayTracingRender()
+{
+	// Requesting ray tracing properties
+	VkPhysicalDeviceProperties2 prop2{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2};
+	prop2.pNext = &rtProperties;
+	vkGetPhysicalDeviceProperties2(physicalDevice->getHandle(),&prop2);
+	rayTracingBuilder=std::make_unique<RayTracingBuilder>(*device,device->getGraphicQueue().getIndex());
+
+
+}
+
 
 void MiniVulkanRenderer::initRasterRender()
 {
