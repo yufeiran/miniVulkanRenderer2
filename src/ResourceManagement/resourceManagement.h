@@ -22,6 +22,10 @@ public:
 
 	Model& getModelById(uint32_t id);
 
+	const std::map<std::string, std::unique_ptr<Model>>& getModelMap() const;
+
+	uint32_t getModelSum();
+
 	Image& getImageByName(const std::string &name);
 
 	ImageView& getImageViewByName(const std::string& name);

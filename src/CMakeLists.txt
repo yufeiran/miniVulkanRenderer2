@@ -54,6 +54,10 @@ set(VULKAN_FRAMEWORK_FILES
     ./Vulkan/pipelineLayout.cpp
     ./Vulkan/renderPass.h 
     ./Vulkan/renderPass.cpp 
+    ./Vulkan/rayTracingBuilder.h 
+    ./Vulkan/rayTracingBuilder.cpp 
+    ./Vulkan/queryPool.h 
+    ./Vulkan/queryPool.cpp 
 
 
 )

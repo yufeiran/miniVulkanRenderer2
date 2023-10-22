@@ -62,7 +62,14 @@ Model::Model(Device& device, const std::string& filePath,const std::string& name
 		std::unique_ptr<Shape> shape = std::make_unique<Shape>();
 
 		shape->name = tshape.name;
-		shape->material = toMaterial(materials[tshape.mesh.material_ids[0]]);
+		if(tshape.mesh.material_ids[0]>=0)
+		{
+			shape->material = toMaterial(materials[tshape.mesh.material_ids[0]]);
+		}
+		else {
+			shape->material = toMaterial(materials[0]);
+		}
+
 
 		for (const auto& index : tshape.mesh.indices) {
 			Vertex vertex{};
@@ -71,6 +78,11 @@ Model::Model(Device& device, const std::string& filePath,const std::string& name
 				attrib.vertices[3 * index.vertex_index + 0],
 				attrib.vertices[3 * index.vertex_index + 1],
 				attrib.vertices[3 * index.vertex_index + 2]
+			};
+			vertex.normal={
+				attrib.normals[3 * index.normal_index + 0],
+				attrib.normals[3 * index.normal_index + 1],
+				attrib.normals[3 * index.normal_index + 2]
 			};
 
 			vertex.texCoord = {
@@ -96,22 +108,24 @@ Model::Model(Device& device, const std::string& filePath,const std::string& name
 		stagingBuffer.map(shape->vertices.data(), verticesSize);
 
 		shape->vertexBuffer = std::make_unique<Buffer>(device, verticesSize,
-			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT| 
+			VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT|VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
 
 		device.copyBuffer(stagingBuffer, *shape->vertexBuffer, verticesSize);
 
 		// create Index buffer
 
-		uint32_t indexSize = sizeof(uint16_t) * shape->indices.size();
+		uint32_t indexSize = sizeof(uint32_t) * shape->indices.size();
 		shape->indexSum = shape->indices.size();
 
 		Buffer stagingBuffer1(device, indexSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 		stagingBuffer1.map(shape->indices.data(), indexSize);
 
-		shape->indexBuffer = std::make_unique<Buffer>(device, indexSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		shape->indexBuffer = std::make_unique<Buffer>(device, indexSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT
+			| VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT|VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
 
 		device.copyBuffer(stagingBuffer1, *shape->indexBuffer, indexSize);
 
@@ -141,6 +155,8 @@ Model::Model(Device& device, const std::string& filePath,const std::string& name
 		shapeMap[shape->name] = std::move(shape);
 
 	}
+	
+
 
 	Log("load model finished : total " + toString(shapeMap.size()) + " shape(s)");
 
@@ -176,7 +192,7 @@ void Model::loadImage(const std::string& name, bool flipTexture)
 		imageViewMap[name] = std::make_unique<ImageView>(*imageMap[name]);
 		Log("load image:" + name);
 	}
-}
+} 
 
 ImageView& Model::getImageViewByName(const std::string& name)
 {

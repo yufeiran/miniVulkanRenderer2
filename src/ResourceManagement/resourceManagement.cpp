@@ -57,6 +57,16 @@ namespace mini
 		throw Error(("Can't find model by id:" + toString(id)).c_str());
 	}
 
+	const std::map<std::string, std::unique_ptr<Model>>& ResourceManagement::getModelMap() const
+	{
+		return modelMap;
+	}
+
+	uint32_t ResourceManagement::getModelSum()
+	{
+		return modelMap.size();
+	}
+
 	Image& ResourceManagement::getImageByName(const std::string& name)
 	{
 		if (imageMap.find(name) != imageMap.end()) {

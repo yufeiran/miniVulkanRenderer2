@@ -9,6 +9,7 @@
 #include"imgui.h"
 #include"imgui_impl_vulkan.h"
 #include"imgui_impl_glfw.h"
+#include "ResourceManagement/model.h"
 
 
 using namespace mini;
@@ -40,7 +41,14 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	defaultDepthFormat =gpu.findDepthFormat();
 
-	std::vector<const char*> deviceExtension = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+	std::vector<const char*> deviceExtension = {
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME ,
+		VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
+		VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
+		VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
+		VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
+		VK_NV_DEVICE_DIAGNOSTICS_CONFIG_EXTENSION_NAME
+	};
 
 	device = std::make_unique<Device>(gpu, surface, deviceExtension);
 
@@ -78,19 +86,28 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	//resourceManagement->loadModel("BattleCruiser", "../../assets/BattleCruiser/BattleCruiser.obj");
 	resourceManagement->loadModel("backpack", "../../assets/backpack/backpack.obj",true);
+	//resourceManagement->loadModel("Medieval_building", "../../assets/nv_raytracing_tutorial_scene/Medieval_building.obj",true);
 
+	//resourceManagement->loadModel("plane", "../../assets/nv_raytracing_tutorial_scene/plane.obj",true);
 
 	renderContext->prepare(*rasterRenderPass,*resourceManagement,rasterDescriptorSetLayouts,
 		rasterPipeline->getShaderModules().front()->getShaderInfo());
 
-	for (int i = 0; i < 10; i++)
-	{
-		spriteList.addSprite(resourceManagement->getModelByName("backpack"), -1, -1, -5 * i + 25, 1, 0, 90, 0);
+	//for (int i = 0; i < 10; i++)
+	//{
+	//	spriteList.addSprite(resourceManagement->getModelByName("backpack"), -1, -1, -5 * i + 25, 1, 0, 90, 0);
 
-	}
+	//}
+	spriteList.addSprite(resourceManagement->getModelByName("backpack"));
+
+	//spriteList.addSprite(resourceManagement->getModelByName("Medieval_building"));
+	//spriteList.addSprite(resourceManagement->getModelByName("plane"));
 
 	initImGUI();
 	ImGui_ImplGlfw_InitForVulkan(window->getHandle(),true);
+
+	initRayTracing();
+	createBottomLevelAS();
 
 
 	Log("miniVulkanRenderer init finish");
@@ -133,6 +150,75 @@ void MiniVulkanRenderer::initImGUI()
 	ImGui_ImplVulkan_CreateFontsTexture(tempCmd->getHandle());
 	tempCmd->endSingleTime(device->getGraphicQueue());
 
+}
+
+void MiniVulkanRenderer::initRayTracing()
+{
+	// Requesting ray tracing properties
+	VkPhysicalDeviceProperties2 prop2{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2};
+	prop2.pNext = &rtProperties;
+	vkGetPhysicalDeviceProperties2(physicalDevice->getHandle(),&prop2);
+	rayTracingBuilder=std::make_unique<RayTracingBuilder>(*device,device->getGraphicQueue().getIndex());
+}
+
+auto MiniVulkanRenderer::shapeToVkGeometryKHR(const Shape& shape)
+{
+	RayTracingBuilder::BlasInput input;
+
+	VkDeviceAddress vertexAddresss=shape.getVertexBuffer().getBufferDeviceAddress();
+	VkDeviceAddress indexAddress =shape.getIndexBuffer().getBufferDeviceAddress();
+
+	uint32_t maxPrimitiveCount = shape.indexSum/3;
+
+	VkAccelerationStructureGeometryTrianglesDataKHR triangles{VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR};
+	triangles.vertexFormat			     = VK_FORMAT_R32G32B32_SFLOAT;
+	triangles.vertexData.deviceAddress   = vertexAddresss;
+	triangles.vertexStride				 = sizeof(Vertex);
+
+	triangles.indexType                  = VK_INDEX_TYPE_UINT32;
+	triangles.indexData.deviceAddress    = indexAddress;
+
+	triangles.maxVertex = shape.vertexSum - 1;
+
+	VkAccelerationStructureGeometryKHR asGeom{VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR};
+	asGeom.geometryType       = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
+	asGeom.flags              = VK_GEOMETRY_OPAQUE_BIT_KHR;
+	asGeom.geometry.triangles = triangles;
+
+	VkAccelerationStructureBuildRangeInfoKHR offset;
+
+	offset.firstVertex = 0;
+	offset.primitiveCount = maxPrimitiveCount;
+	offset.primitiveOffset = 0;
+	offset.transformOffset = 0;
+
+
+	input.asGeometry.emplace_back(asGeom);
+	input.asBuildOffsetInfo.emplace_back(offset);
+	
+	return input;
+
+}
+
+void MiniVulkanRenderer::createBottomLevelAS()
+{
+	std::vector<RayTracingBuilder::BlasInput> allBlas;
+	//allBlas.reserve(resourceManagement->getModelSum());
+
+	const auto& models = resourceManagement->getModelMap();
+	for(const auto& modelPair:models)
+	{
+		const auto& model = modelPair.second;
+		for(const auto& shapePair:model->getShapeMap())
+		{
+			const auto& shape = shapePair.second;
+			auto blas = shapeToVkGeometryKHR(*shape);
+
+			allBlas.push_back(blas);
+		}
+
+	}
+	rayTracingBuilder->buildBlas(allBlas,VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR);
 }
 
 void MiniVulkanRenderer::loop()
@@ -667,6 +753,8 @@ void MiniVulkanRenderer::initPostRender()
 MiniVulkanRenderer::~MiniVulkanRenderer()
 {
 	Log("Renderer shutting down");
+
+	rayTracingBuilder.reset();
 
 	if(ImGui::GetCurrentContext()!=nullptr)
 	{

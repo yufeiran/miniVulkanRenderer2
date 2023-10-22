@@ -58,4 +58,8 @@ namespace mini
 template<class T>
 using BindingMap = std::map<uint32_t, std::map<uint32_t, T>>;
 
+const VkIndexType indexType = VK_INDEX_TYPE_UINT32;
+
+
+inline bool hasFlag(VkFlags item, VkFlags flag)  { return (item & flag) == flag; }
 } // namespace mini

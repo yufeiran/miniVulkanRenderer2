@@ -33,6 +33,8 @@ public:
 
 	ImageView& getImageViewByName(const std::string& name);
 
+	std::map<std::string, std::unique_ptr<Shape>> shapeMap;
+
 private:
 	std::string filePath;
 	std::string baseDirPath;
@@ -42,11 +44,12 @@ private:
 
 
 
+
 	std::map<std::string, Material> materials;
 
 
 
-	std::map<std::string, std::unique_ptr<Shape>> shapeMap;
+
 
 
 	std::map<std::string, std::unique_ptr<Image>>imageMap;

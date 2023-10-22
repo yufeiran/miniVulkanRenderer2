@@ -67,7 +67,7 @@ Image::Image(Device& device, const std::string& filename, bool flipTexture):devi
 	VkDeviceSize imageSize = extent.width * extent.height * 4;
 
 	if (!pixels) {
-		throw Error("Failed to load texture image!");
+		throw Error("Failed to load texture image:" + filename);
 	}
 
 	// Staging buffer

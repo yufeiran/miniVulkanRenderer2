@@ -105,7 +105,7 @@ void CommandBuffer::bindVertexBuffer(Buffer& vertexBuffer)
 void CommandBuffer::bindIndexBuffer(Buffer& indexBuffer)
 {
     // TODO: 类型有可能是UINT32 或 UINT16
-    vkCmdBindIndexBuffer(handle, indexBuffer.getHandle(), 0, VK_INDEX_TYPE_UINT16);
+    vkCmdBindIndexBuffer(handle, indexBuffer.getHandle(), 0, indexType);
 }
 
 void CommandBuffer::pushConstant(PushConstantsMesh& pushConstant,VkShaderStageFlagBits stage)
@@ -188,7 +188,12 @@ void CommandBuffer::submitAndWaitIdle(Queue& queue)
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &handle;
     vkQueueSubmit(queue.getHandle(), 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle(queue.getHandle());
+    VkResult result=vkQueueWaitIdle(queue.getHandle());
+    if(result!=VkResult::VK_SUCCESS)
+    {
+        Log("vkQueueWaitIdle run out result:"+std::to_string(result),ERROR_TYPE);
+    }
+    
 
 }
 

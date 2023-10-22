@@ -8,7 +8,7 @@ namespace mini
 
 
 Buffer::Buffer(Device& device,  uint32_t size, VkBufferUsageFlags usage,VkMemoryPropertyFlags properties)
-	:device(device),size(0),mapType(UNMAP)
+	:device(device),size(size),mapType(UNMAP)
 {
 	VkBufferCreateInfo bufferInfo{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 	bufferInfo.size = size;
@@ -19,8 +19,13 @@ Buffer::Buffer(Device& device,  uint32_t size, VkBufferUsageFlags usage,VkMemory
 	{
 		throw Error("Failed to create buffer!");
 	}
+	VkMemoryAllocateFlags flags={};
+	if(hasFlag(usage,VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT))
+	{
+		flags|=VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT;
+	}
 
-	deviceMemory = std::make_unique<DeviceMemory>(device,*this, properties);
+	deviceMemory = std::make_unique<DeviceMemory>(device,*this, properties,flags);
 
 	bindBufferMemory(*deviceMemory);
 
@@ -29,6 +34,7 @@ Buffer::Buffer(Device& device,  uint32_t size, VkBufferUsageFlags usage,VkMemory
 
 Buffer::~Buffer()
 {
+	//Log("~Buffer() call!");
 	if (handle != VK_NULL_HANDLE)
 	{
 		vkDestroyBuffer(device.getHandle(), handle, nullptr);
@@ -73,10 +79,22 @@ BufferMapType Buffer::getMapType()
 	return mapType;
 }
 
+VkDeviceAddress Buffer::getBufferDeviceAddress()
+{
+	assert(handle!=VK_NULL_HANDLE);
+
+	VkBufferDeviceAddressInfo info = {VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO};
+	info.buffer = handle;
+
+	return vkGetBufferDeviceAddress(device.getHandle(),&info);
+}
+
 void Buffer::bindBufferMemory(const DeviceMemory& deviceMemory)
 {
 	vkBindBufferMemory(device.getHandle(), handle, deviceMemory.getHandle(), 0);
 }
+
+
 
 }
 

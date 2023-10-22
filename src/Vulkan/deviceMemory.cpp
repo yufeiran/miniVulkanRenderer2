@@ -22,15 +22,22 @@ uint32_t findMemoryType(Device& device, uint32_t typeFilter, VkMemoryPropertyFla
 	throw Error("Failed to find sutiable memory type!");
 }
 
-DeviceMemory::DeviceMemory(Device& device,Buffer& buffer, VkMemoryPropertyFlags properties):
+DeviceMemory::DeviceMemory(Device& device,Buffer& buffer, VkMemoryPropertyFlags properties,VkMemoryAllocateFlags allocateFlags):
 	device(device)
 {
 	VkMemoryRequirements memRequirements;
 	vkGetBufferMemoryRequirements(device.getHandle(), buffer.getHandle(), &memRequirements);
 
+	VkMemoryAllocateFlagsInfo flagInfo{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO};
+	flagInfo.flags = allocateFlags;
+
+
 	VkMemoryAllocateInfo allocInfo{ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
 	allocInfo.allocationSize = memRequirements.size;
 	allocInfo.memoryTypeIndex = findMemoryType(device, memRequirements.memoryTypeBits, properties);
+
+
+	allocInfo.pNext=&flagInfo;
 
 	if (vkAllocateMemory(device.getHandle(), &allocInfo, nullptr, &handle) != VK_SUCCESS)
 	{

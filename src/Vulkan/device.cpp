@@ -76,6 +76,13 @@ Device::Device(PhysicalDevice& gpu,
 
 	//=======================================================================================
 
+	VkPhysicalDeviceVulkan12Features features12{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES};
+	features12.bufferDeviceAddress=VK_TRUE;
+	
+	VkPhysicalDeviceAccelerationStructureFeaturesKHR asFeatures{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR};
+	asFeatures.accelerationStructure=VK_TRUE;
+	features12.pNext=&asFeatures;
+
 	VkDeviceCreateInfo createInfo{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
 
 	// get all feature request!
@@ -84,6 +91,7 @@ Device::Device(PhysicalDevice& gpu,
 	createInfo.enabledExtensionCount = enabledExtensions.size();
 	createInfo.ppEnabledExtensionNames = enabledExtensions.data();
 	createInfo.pEnabledFeatures = &gpu.getFeatures();
+	createInfo.pNext = &features12;
 
 	VkResult result = vkCreateDevice(gpu.getHandle(), &createInfo, nullptr, &handle);
 

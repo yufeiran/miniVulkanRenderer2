@@ -10,7 +10,7 @@ class Image;
 class DeviceMemory
 {
 public:
-	DeviceMemory(Device& device, Buffer& buffer, VkMemoryPropertyFlags properties);
+	DeviceMemory(Device& device, Buffer& buffer, VkMemoryPropertyFlags properties,VkMemoryAllocateFlags allocateFlags={});
 	DeviceMemory(Device& device, Image& image, VkMemoryPropertyFlags properties);
 	~DeviceMemory();
 

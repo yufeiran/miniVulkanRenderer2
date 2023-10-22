@@ -39,6 +39,7 @@
 #include"Vulkan/buffer.h"
 #include"Vulkan/pipelineLayout.h"
 #include"Vulkan/renderPass.h"
+#include"Vulkan/rayTracingBuilder.h"
 
 
 
@@ -63,9 +64,18 @@ public:
 
 	~MiniVulkanRenderer();
 
+
+	// init-----------------
 	void init(int width = 1920, int height = 1080);
 
 	void initImGUI();
+
+	void initRayTracing();
+
+	auto shapeToVkGeometryKHR(const Shape& model);
+
+	void createBottomLevelAS();
+	//-----------------------
 
 	void loop();
 
@@ -120,6 +130,9 @@ private:
 
 	std::unique_ptr<RenderContext> renderContext;
 
+	// Raytracing data
+	VkPhysicalDeviceRayTracingPipelinePropertiesKHR rtProperties{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR};
+	std::unique_ptr<RayTracingBuilder> rayTracingBuilder;
 
 	// ImGui data
 	std::unique_ptr<DescriptorPool> imguiDescPool;
