@@ -13,7 +13,17 @@ RayTracingBuilder::RayTracingBuilder(Device& device, uint32_t queueIndex)
 
 RayTracingBuilder::~RayTracingBuilder()
 {
-
+	for(auto &accel:blasVec)
+	{
+		if(accel.accel!=VK_NULL_HANDLE)
+		{
+			vkDestroyAccelerationStructureKHR(device.getHandle(),accel.accel,nullptr);
+		}
+		if(accel.buffer!=nullptr)
+		{
+			accel.buffer->~Buffer();
+		}
+	}
 }
 
 void RayTracingBuilder::buildBlas(const std::vector<BlasInput>& input, VkBuildAccelerationStructureFlagsKHR flags)
@@ -164,7 +174,6 @@ void RayTracingBuilder::cmdCreateBlas(CommandBuffer& cmdBuf,std::vector<uint32_t
 			vkCmdWriteAccelerationStructuresPropertiesKHR(cmdBuf.getHandle(),1,&buildAs[idx].buildInfo.dstAccelerationStructure,
 				VK_QUERY_TYPE_ACCELERATION_STRUCTURE_COMPACTED_SIZE_KHR,queryPool->getHandle(),queryCnt++);
 		}
-		break;
 	}
 }
 

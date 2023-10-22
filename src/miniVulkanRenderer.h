@@ -72,9 +72,12 @@ public:
 
 	void initRayTracing();
 
-	auto shapeToVkGeometryKHR(const Shape& model);
+	auto modelToVkGeometryKHR(const Model& model);
 
 	void createBottomLevelAS();
+
+	void createTopLevelAS();
+
 	//-----------------------
 
 	void loop();

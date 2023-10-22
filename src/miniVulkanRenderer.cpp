@@ -161,40 +161,45 @@ void MiniVulkanRenderer::initRayTracing()
 	rayTracingBuilder=std::make_unique<RayTracingBuilder>(*device,device->getGraphicQueue().getIndex());
 }
 
-auto MiniVulkanRenderer::shapeToVkGeometryKHR(const Shape& shape)
+auto MiniVulkanRenderer::modelToVkGeometryKHR(const Model& model)
 {
 	RayTracingBuilder::BlasInput input;
 
-	VkDeviceAddress vertexAddresss=shape.getVertexBuffer().getBufferDeviceAddress();
-	VkDeviceAddress indexAddress =shape.getIndexBuffer().getBufferDeviceAddress();
+	for(const auto & shapePair:model.getShapeMap())
+	{
+		const auto& shape =shapePair.second;
 
-	uint32_t maxPrimitiveCount = shape.indexSum/3;
+		VkDeviceAddress vertexAddresss=shape->getVertexBuffer().getBufferDeviceAddress();
+		VkDeviceAddress indexAddress =shape->getIndexBuffer().getBufferDeviceAddress();
 
-	VkAccelerationStructureGeometryTrianglesDataKHR triangles{VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR};
-	triangles.vertexFormat			     = VK_FORMAT_R32G32B32_SFLOAT;
-	triangles.vertexData.deviceAddress   = vertexAddresss;
-	triangles.vertexStride				 = sizeof(Vertex);
+		uint32_t maxPrimitiveCount = shape->indexSum/3;
 
-	triangles.indexType                  = VK_INDEX_TYPE_UINT32;
-	triangles.indexData.deviceAddress    = indexAddress;
+		VkAccelerationStructureGeometryTrianglesDataKHR triangles{VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR};
+		triangles.vertexFormat			     = VK_FORMAT_R32G32B32_SFLOAT;
+		triangles.vertexData.deviceAddress   = vertexAddresss;
+		triangles.vertexStride				 = sizeof(Vertex);
 
-	triangles.maxVertex = shape.vertexSum - 1;
+		triangles.indexType                  = VK_INDEX_TYPE_UINT32;
+		triangles.indexData.deviceAddress    = indexAddress;
 
-	VkAccelerationStructureGeometryKHR asGeom{VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR};
-	asGeom.geometryType       = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
-	asGeom.flags              = VK_GEOMETRY_OPAQUE_BIT_KHR;
-	asGeom.geometry.triangles = triangles;
+		triangles.maxVertex = shape->vertexSum - 1;
 
-	VkAccelerationStructureBuildRangeInfoKHR offset;
+		VkAccelerationStructureGeometryKHR asGeom{VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR};
+		asGeom.geometryType       = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
+		asGeom.flags              = VK_GEOMETRY_OPAQUE_BIT_KHR;
+		asGeom.geometry.triangles = triangles;
 
-	offset.firstVertex = 0;
-	offset.primitiveCount = maxPrimitiveCount;
-	offset.primitiveOffset = 0;
-	offset.transformOffset = 0;
+		VkAccelerationStructureBuildRangeInfoKHR offset;
+
+		offset.firstVertex = 0;
+		offset.primitiveCount = maxPrimitiveCount;
+		offset.primitiveOffset = 0;
+		offset.transformOffset = 0;
 
 
-	input.asGeometry.emplace_back(asGeom);
-	input.asBuildOffsetInfo.emplace_back(offset);
+		input.asGeometry.emplace_back(asGeom);
+		input.asBuildOffsetInfo.emplace_back(offset);
+	}
 	
 	return input;
 
@@ -209,16 +214,19 @@ void MiniVulkanRenderer::createBottomLevelAS()
 	for(const auto& modelPair:models)
 	{
 		const auto& model = modelPair.second;
-		for(const auto& shapePair:model->getShapeMap())
-		{
-			const auto& shape = shapePair.second;
-			auto blas = shapeToVkGeometryKHR(*shape);
 
-			allBlas.push_back(blas);
-		}
+
+		auto blas = modelToVkGeometryKHR(*model);
+
+		allBlas.push_back(blas);
 
 	}
-	rayTracingBuilder->buildBlas(allBlas,VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR);
+	rayTracingBuilder->buildBlas(allBlas,VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR|VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_COMPACTION_BIT_KHR);
+}
+
+void MiniVulkanRenderer::createTopLevelAS()
+{
+
 }
 
 void MiniVulkanRenderer::loop()
