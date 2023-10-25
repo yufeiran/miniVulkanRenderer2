@@ -5,7 +5,7 @@
 #include"buffer.h"
 #include"ResourceManagement/model.h"
 #include"descriptorSetLayout.h"
-#include"Common/deviceDataStruct.h"
+#include"../shaders/deviceDataStruct.h"
 
 
 namespace mini

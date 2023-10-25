@@ -6,11 +6,11 @@
 namespace mini
 {
 
-
-
+// default create fun
 DescriptorPool::DescriptorPool(Device& device):device(device)
 {
-	std::array< VkDescriptorPoolSize, 3> poolSizes{};
+	std::vector< VkDescriptorPoolSize> poolSizes{};
+	poolSizes.resize(3);
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	poolSizes[0].descriptorCount = 1000;
 	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -22,6 +22,21 @@ DescriptorPool::DescriptorPool(Device& device):device(device)
 	poolInfo.poolSizeCount = poolSizes.size();
 	poolInfo.pPoolSizes = poolSizes.data();
 	poolInfo.maxSets = 1000;
+
+	if (vkCreateDescriptorPool(device.getHandle(), &poolInfo, nullptr, &handle) != VK_SUCCESS)
+	{
+		throw Error("Failed to create descriptor pool!");
+	}
+
+}
+
+DescriptorPool::DescriptorPool(Device& device,std::vector< VkDescriptorPoolSize> poolSizes,uint32_t maxSets):device(device)
+{
+	
+	VkDescriptorPoolCreateInfo poolInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
+	poolInfo.poolSizeCount = poolSizes.size();
+	poolInfo.pPoolSizes = poolSizes.data();
+	poolInfo.maxSets = maxSets;
 
 	if (vkCreateDescriptorPool(device.getHandle(), &poolInfo, nullptr, &handle) != VK_SUCCESS)
 	{

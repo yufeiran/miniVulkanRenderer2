@@ -13,7 +13,7 @@
 
 
 
-#include"Common/deviceDataStruct.h"
+#include"../shaders/deviceDataStruct.h"
 #include"Vulkan/buffer.h"
 #include"ResourceManagement/resourceManagement.h"
 #include"Vulkan/sampler.h"
@@ -55,7 +55,7 @@ void RenderFrame::reset()
 
 void RenderFrame::createUniformBuffer()
 {
-	VkDeviceSize uniformBufferSize = sizeof(UniformBufferObject);
+	VkDeviceSize uniformBufferSize = sizeof(GlobalUniforms);
 	uniformBuffers.resize(1);
 	for (int i = 0; i < uniformBuffers.size(); i++)
 	{
@@ -65,7 +65,7 @@ void RenderFrame::createUniformBuffer()
 		VkDescriptorBufferInfo bufferInfo{};
 		bufferInfo.buffer = uniformBuffers[i]->getHandle();
 		bufferInfo.offset = 0;
-		bufferInfo.range = sizeof(UniformBufferObject);
+		bufferInfo.range = sizeof(GlobalUniforms);
 		bufferInfos[0][i] = bufferInfo;
 	}
 
@@ -81,11 +81,15 @@ void RenderFrame::updateUniformBuffer(Camera& c)
 
 	auto extent = getExtent();
 
-	UniformBufferObject ubo{};
-	ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.view = c.getViewMat();
-	ubo.proj = glm::perspective(glm::radians(45.0f), (float)extent.width / (float)extent.height, 0.1f, 1000.0f);
-	ubo.proj[1][1] *= -1;
+	glm::mat4 view = c.getViewMat();
+	glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)extent.width / (float)extent.height, 0.1f, 1000.0f);
+	proj[1][1] *= -1;
+	GlobalUniforms ubo{};
+	//ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	ubo.viewProj = proj * view;
+	ubo.viewInverse = glm::inverse(view);
+	ubo.projInverse = glm::inverse(proj);
+
 	memcpy(uniformBuffers[0]->getMapAddress(), &ubo, sizeof(ubo));
 
 }

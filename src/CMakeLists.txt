@@ -58,6 +58,8 @@ set(VULKAN_FRAMEWORK_FILES
     ./Vulkan/rayTracingBuilder.cpp 
     ./Vulkan/queryPool.h 
     ./Vulkan/queryPool.cpp 
+    ./Vulkan/descriptorSetBindings.h 
+    ./Vulkan/descriptorSetBindings.cpp 
 
 
 )
@@ -66,7 +68,6 @@ set(COMMON_FILES
     ./Common/miniLog.h 
     ./Common/miniLog.cpp 
     ./Common/miniError.h
-    ./Common/deviceDataStruct.h
     ./Common/material.h
     ./Common/material.cpp 
     ./Common/Vertex.h 
@@ -116,6 +117,8 @@ set(SPIRITE_FILES
     ./Sprite/spriteList.cpp 
 )
 
+set(SHADER_HEADER 
+    ../shaders/deviceDataStruct.h)
 
 source_group("\\" FILES ${RENDERER_FILES})
 source_group("Common\\" FILES ${COMMON_FILES})
@@ -124,6 +127,7 @@ source_group("Vulkan\\" FILES ${VULKAN_FRAMEWORK_FILES})
 source_group("Rendering\\" FILES ${RENDERING_FILES})
 source_group("ResourceManagement\\" FILES ${RESOURCE_MANAGEMENT_FILES})
 source_group("Sprite\\" FILES ${SPIRITE_FILES})
+source_group("ShaderHeader\\" FILES ${SHADER_HEADER})
 
 
 # Add source to this project's executable.
@@ -135,6 +139,7 @@ add_executable(miniVulkanRenderer2
     ${RENDERING_FILES}
     ${RESOURCE_MANAGEMENT_FILES}
     ${SPIRITE_FILES}
+    ${SHADER_HEADER}
 )
 
 

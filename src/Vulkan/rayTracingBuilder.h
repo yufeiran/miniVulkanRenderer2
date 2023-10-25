@@ -44,6 +44,8 @@ struct BlasInput
 					bool                                 motion = false);
 
 	VkDeviceAddress getBlasDeviceAddress(uint32_t blasId);
+
+	VkAccelerationStructureKHR getAccelerationStructure() const;
 private:
 
 

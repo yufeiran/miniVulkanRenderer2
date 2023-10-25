@@ -9,10 +9,10 @@ class DescriptorSetLayout
 {
 public:
 	DescriptorSetLayout(Device& device,
-		const std::vector< VkDescriptorSetLayoutBinding>& vkDescriptorSetLayoutBindings);
+		const std::vector< VkDescriptorSetLayoutBinding>& vkDescriptorSetLayoutBindings,VkDescriptorSetLayoutCreateFlags flags=0);
 	~DescriptorSetLayout();
 
-	VkDescriptorSetLayout getHandle() const;
+	VkDescriptorSetLayout getHandle();
 private:
 	VkDescriptorSetLayout handle{ VK_NULL_HANDLE };
 

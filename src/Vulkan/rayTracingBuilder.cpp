@@ -181,6 +181,11 @@ VkDeviceAddress mini::RayTracingBuilder::getBlasDeviceAddress(uint32_t blasId)
 	return vkGetAccelerationStructureDeviceAddressKHR(device.getHandle(),&addressInfo);
 }
 
+VkAccelerationStructureKHR mini::RayTracingBuilder::getAccelerationStructure() const
+{
+	return tlas.accel;
+}
+
 void RayTracingBuilder::cmdCreateBlas(CommandBuffer& cmdBuf,std::vector<uint32_t> indices,
 						std::vector<BuildAccelerationStructure>& buildAs,
 						VkDeviceAddress scratchAddress,

@@ -12,6 +12,7 @@ class DescriptorPool
 {
 public:
 	DescriptorPool(Device& device);
+	DescriptorPool(Device& device,std::vector< VkDescriptorPoolSize> poolSizes,uint32_t maxSets);
 	~DescriptorPool();
 
 	VkDescriptorPool getHandle();

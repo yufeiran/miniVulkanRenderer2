@@ -114,9 +114,12 @@ Model::Model(Device& device, const std::string& filePath,const std::string& name
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 		stagingBuffer.map(shape->vertices.data(), verticesSize);
 
+		VkBufferUsageFlags rayTracingFlags = 
+			VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+
 		shape->vertexBuffer = std::make_unique<Buffer>(device, verticesSize,
 			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT| 
-			VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT|VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR,
+			VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT|VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR| rayTracingFlags,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
 
 		device.copyBuffer(stagingBuffer, *shape->vertexBuffer, verticesSize);
@@ -131,7 +134,7 @@ Model::Model(Device& device, const std::string& filePath,const std::string& name
 		stagingBuffer1.map(shape->indices.data(), indexSize);
 
 		shape->indexBuffer = std::make_unique<Buffer>(device, indexSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT
-			| VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT|VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR,
+			| VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT|VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR| rayTracingFlags,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
 
 		device.copyBuffer(stagingBuffer1, *shape->indexBuffer, indexSize);

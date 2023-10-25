@@ -108,16 +108,16 @@ void CommandBuffer::bindIndexBuffer(Buffer& indexBuffer)
     vkCmdBindIndexBuffer(handle, indexBuffer.getHandle(), 0, indexType);
 }
 
-void CommandBuffer::pushConstant(PushConstantsMesh& pushConstant,VkShaderStageFlagBits stage)
+void CommandBuffer::pushConstant(PushConstantRaster& pushConstant,VkShaderStageFlagBits stage)
 {
-    vkCmdPushConstants(handle, pipelineLayout, stage, 0, sizeof(PushConstantsMesh), &pushConstant);
+    vkCmdPushConstants(handle, pipelineLayout, stage, 0, sizeof(PushConstantRaster), &pushConstant);
 }
 
 void CommandBuffer::drawSprite(Sprite& sprite, RenderFrame& renderFrame)
 {
     auto& model = sprite.getModel();
-    PushConstantsMesh pushConstantMesh;
-    pushConstantMesh.mesh_matrix = sprite.getModelMat();
+    PushConstantRaster pushConstantRaster;
+    pushConstantRaster.modelMatrix = sprite.getModelMat();
     for (const auto& s : model.getShapeMap())
     {
         const auto& shape = s.second;
@@ -126,7 +126,7 @@ void CommandBuffer::drawSprite(Sprite& sprite, RenderFrame& renderFrame)
 
         auto& descriptorSet = renderFrame.getDescriptorSet(model, *shape);
 
-        pushConstant(pushConstantMesh, VK_SHADER_STAGE_VERTEX_BIT);
+        pushConstant(pushConstantRaster, VK_SHADER_STAGE_VERTEX_BIT);
 
         bindDescriptorSet(descriptorSet);
 

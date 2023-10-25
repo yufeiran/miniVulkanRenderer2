@@ -40,6 +40,7 @@
 #include"Vulkan/pipelineLayout.h"
 #include"Vulkan/renderPass.h"
 #include"Vulkan/rayTracingBuilder.h"
+#include"Vulkan/descriptorSetBindings.h"
 
 
 
@@ -81,6 +82,8 @@ public:
 	void createBottomLevelAS();
 
 	void createTopLevelAS();
+
+	void createRtDescriptorSet();
 
 
 	//-----------------------
@@ -146,6 +149,7 @@ private:
 	// raster pipeline data
 	std::vector<std::unique_ptr<ShaderModule>>rasterShaderModules;
 	std::vector<std::unique_ptr<DescriptorSetLayout>> rasterDescriptorSetLayouts;
+	DescriptorSetBindings rasterDescriptorSetBindings;
 	std::unique_ptr<PipelineLayout>rasterPipelineLayout;
 	std::unique_ptr<RenderPass>rasterRenderPass;
 	std::unique_ptr<GraphicPipeline>rasterPipeline;
@@ -153,9 +157,10 @@ private:
 	// Raytracing pipeline data
 	VkPhysicalDeviceRayTracingPipelinePropertiesKHR rtProperties{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR};
 	std::unique_ptr<RayTracingBuilder> rayTracingBuilder;
+	DescriptorSetBindings rtDescriptorSetBindings;
 	std::vector<std::unique_ptr<ShaderModule>> rtShaderModules;
 	std::unique_ptr<DescriptorPool> rtDescriptorPool;
-	std::vector<std::unique_ptr<DescriptorSetLayout>> rtDescriptorSetLayout;
+	std::unique_ptr<DescriptorSetLayout> rtDescriptorSetLayout;
 	VkDescriptorSet rtDescriptorSet;
 
 	// post pipeline data

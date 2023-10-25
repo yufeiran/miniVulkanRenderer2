@@ -4,7 +4,7 @@
 namespace mini
 {
 
-DescriptorSetLayout::DescriptorSetLayout(Device& device, const std::vector< VkDescriptorSetLayoutBinding>& vkDescriptorSetLayoutBindings):device(device)
+DescriptorSetLayout::DescriptorSetLayout(Device& device, const std::vector< VkDescriptorSetLayoutBinding>& vkDescriptorSetLayoutBindings,VkDescriptorSetLayoutCreateFlags flags):device(device)
 {
 
 
@@ -12,6 +12,7 @@ DescriptorSetLayout::DescriptorSetLayout(Device& device, const std::vector< VkDe
 	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 	layoutInfo.bindingCount = vkDescriptorSetLayoutBindings.size();
 	layoutInfo.pBindings = vkDescriptorSetLayoutBindings.data();
+	layoutInfo.flags = flags;
 
 	if (vkCreateDescriptorSetLayout(device.getHandle(), &layoutInfo, nullptr, &handle) != VK_SUCCESS)
 	{
@@ -28,7 +29,7 @@ DescriptorSetLayout::~DescriptorSetLayout()
 	}
 }
 
-VkDescriptorSetLayout DescriptorSetLayout::getHandle() const
+VkDescriptorSetLayout DescriptorSetLayout::getHandle()
 {
 	return handle;
 }

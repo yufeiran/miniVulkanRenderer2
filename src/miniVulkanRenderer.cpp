@@ -240,6 +240,37 @@ void MiniVulkanRenderer::createTopLevelAS()
 	rayTracingBuilder->buildTlas(tlas,VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR);
 }
 
+void MiniVulkanRenderer::createRtDescriptorSet()
+{
+	rtDescriptorSetBindings.addBinding(RtBindings::eTlas,VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR,1,
+									  VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR); // TLAS
+	rtDescriptorSetBindings.addBinding(RtBindings::eOutImage,VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,1,
+									  VK_SHADER_STAGE_RAYGEN_BIT_KHR);   // Output image
+
+	rtDescriptorPool      = rtDescriptorSetBindings.createPool(*device);
+	rtDescriptorSetLayout = rtDescriptorSetBindings.createLayout(*device);
+
+	auto descSetLayout = rtDescriptorSetLayout->getHandle();
+
+	VkDescriptorSetAllocateInfo allocateInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
+	allocateInfo.descriptorPool      = rtDescriptorPool->getHandle();
+	allocateInfo.descriptorSetCount  = 1;
+	allocateInfo.pSetLayouts         = &descSetLayout;
+	vkAllocateDescriptorSets(device->getHandle(),&allocateInfo,&rtDescriptorSet);
+
+	VkAccelerationStructureKHR                         tlas  = rayTracingBuilder->getAccelerationStructure();
+	VkWriteDescriptorSetAccelerationStructureKHR       descASInfo{VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR};
+	descASInfo.accelerationStructureCount = 1;
+	descASInfo.pAccelerationStructures    = &tlas;
+	VkDescriptorImageInfo imageInfo{{},offscreenRenderTarget->getImageViewByIndex(0).getHandle(),VK_IMAGE_LAYOUT_GENERAL};
+
+	std::vector<VkWriteDescriptorSet> writes;
+	writes.emplace_back(rtDescriptorSetBindings.makeWrite(rtDescriptorSet,RtBindings::eTlas,&descASInfo));
+	writes.emplace_back(rtDescriptorSetBindings.makeWrite(rtDescriptorSet,RtBindings::eOutImage,&imageInfo));
+
+	vkUpdateDescriptorSets(device->getHandle(),static_cast<uint32_t>(writes.size()),writes.data(),0,nullptr);
+}
+
 void MiniVulkanRenderer::loop()
 {
 	std::vector<VkClearValue> clearValues(2);
@@ -612,12 +643,15 @@ void MiniVulkanRenderer::handleSizeChange()
 	surfaceExtent=renderContext->getSurfaceExtent();
 
 
+
 	rasterPipeline.reset();
     rasterPipeline = std::make_unique<GraphicPipeline>(rasterShaderModules,*rasterPipelineLayout,*device,surfaceExtent);
 	rasterPipeline->build(*rasterRenderPass);
 
 	renderContext->prepare(*rasterRenderPass,*resourceManagement,rasterDescriptorSetLayouts
 	, rasterPipeline->getShaderModules().front()->getShaderInfo());
+
+
 
 }
 
@@ -654,8 +688,8 @@ void MiniVulkanRenderer::initRasterRender()
 	ShaderInfo rasterShaderInfo;
 	rasterShaderInfo.bindingInfoMap[0][1] = BindingInfo{ TEXTURE_BINDING_TYPE,DIFFUSE };
 
-	rasterShaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/vertexShader.vert.spv", *device, VK_SHADER_STAGE_VERTEX_BIT));
-	rasterShaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/fragmentShader.frag.spv", *device, VK_SHADER_STAGE_FRAGMENT_BIT));
+	rasterShaderModules.push_back(std::make_unique<ShaderModule>("../../spv/vertexShader.vert.spv", *device, VK_SHADER_STAGE_VERTEX_BIT));
+	rasterShaderModules.push_back(std::make_unique<ShaderModule>("../../spv/fragmentShader.frag.spv", *device, VK_SHADER_STAGE_FRAGMENT_BIT));
 	
 	for (auto& s : rasterShaderModules) {
 		s->setShaderInfo(rasterShaderInfo);
@@ -665,7 +699,7 @@ void MiniVulkanRenderer::initRasterRender()
 	std::vector<VkPushConstantRange> pushConstants;
 	VkPushConstantRange pushConstant;
 	pushConstant.offset = 0;
-	pushConstant.size = sizeof(PushConstantsMesh);
+	pushConstant.size = sizeof(PushConstantRaster);
 	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 	pushConstants.push_back(pushConstant);
 
@@ -706,8 +740,8 @@ void MiniVulkanRenderer::initPostRender()
 	ShaderInfo postShaderInfo;
 	postShaderInfo.bindingInfoMap[0][1]=BindingInfo{TEXTURE_BINDING_TYPE,DIFFUSE};
 
-	postShaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/post.vert.spv",*device,VK_SHADER_STAGE_VERTEX_BIT));
-	postShaderModules.push_back(std::make_unique<ShaderModule>("../../shaders/post.frag.spv",*device,VK_SHADER_STAGE_FRAGMENT_BIT));
+	postShaderModules.push_back(std::make_unique<ShaderModule>("../../spv/post.vert.spv",*device,VK_SHADER_STAGE_VERTEX_BIT));
+	postShaderModules.push_back(std::make_unique<ShaderModule>("../../spv/post.frag.spv",*device,VK_SHADER_STAGE_FRAGMENT_BIT));
 
 	for(auto&s:postShaderModules)
 	{

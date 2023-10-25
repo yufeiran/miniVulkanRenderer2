@@ -2,7 +2,7 @@
 
 #include"Common/common.h"
 #include"framebuffer.h"
-#include"Common/deviceDataStruct.h"
+#include"../shaders/deviceDataStruct.h"
 
 namespace mini
 {
@@ -42,7 +42,7 @@ public:
 
 	void bindIndexBuffer(Buffer& indexBuffer);
 
-	void pushConstant(PushConstantsMesh& pushConstantsMesh,VkShaderStageFlagBits stage);
+	void pushConstant(PushConstantRaster& pushConstantsMesh,VkShaderStageFlagBits stage);
 
 	void drawSprite(Sprite& sprite,RenderFrame& renderFrame);
 
