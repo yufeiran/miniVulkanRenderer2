@@ -33,8 +33,8 @@ RenderContext::RenderContext(Device& device, VkSurfaceKHR surface, const GUIWind
 }
 
 void RenderContext::prepare(const RenderPass& renderPass, 
-	ResourceManagement& resourceManagement,
-	std::vector<std::unique_ptr<DescriptorSetLayout>>& descriptorSetLayouts,
+	ResourceManager& resourceManager,
+	std::vector<std::shared_ptr<DescriptorSetLayout>>& descriptorSetLayouts,
 	ShaderInfo& shaderInfo,
 	RenderTarget::CreateFunc createRenderTargetFunc)
 {
@@ -54,7 +54,7 @@ void RenderContext::prepare(const RenderPass& renderPass,
 				swapchain->getImageUsage());
 
 			auto renderTarget = createRenderTargetFunc(std::move( swapchainImage));
-			frames.emplace_back(std::make_unique<RenderFrame>(device, resourceManagement, std::move(renderTarget), renderPass,
+			frames.emplace_back(std::make_unique<RenderFrame>(device, resourceManager, std::move(renderTarget), renderPass,
 				descriptorSetLayouts,shaderInfo));
 		}
 

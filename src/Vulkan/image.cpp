@@ -54,6 +54,47 @@ Image::Image(Device& device, const VkExtent2D& extent, VkFormat format, VkImageU
 	}
 }
 
+Image::Image(Device& device, size_t size, const void* data):device(device)
+{
+	
+	// Staging buffer
+	Buffer stagingBuffer(device,size,VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT|VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	stagingBuffer.map(data, size);
+
+	VkImageCreateInfo imageInfo{VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
+	imageInfo.imageType = VK_IMAGE_TYPE_2D;
+	imageInfo.extent.width = extent.width;
+	imageInfo.extent.height = extent.height;
+	imageInfo.extent.depth = 1;
+	imageInfo.mipLevels = 1;
+	imageInfo.arrayLayers = 1;
+
+	imageInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
+	format = imageInfo.format;
+	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+
+	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+	imageInfo.flags = 0;
+	if (vkCreateImage(device.getHandle(), &imageInfo, nullptr, &handle) != VK_SUCCESS) {
+		throw Error("Failed to create image");
+	}
+
+	deviceMemory = std::make_unique<DeviceMemory>(device, *this, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+	bindImageMemory(*deviceMemory);
+
+	transitionImageLayout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+	copyBufferToImage(stagingBuffer);
+
+	transitionImageLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+}
+
 Image::Image(Device& device, const std::string& filename, bool flipTexture):device(device),name(filename),imageType(CREATED_IMG)
 {
 	int texWidth, texHeight, texChannels;

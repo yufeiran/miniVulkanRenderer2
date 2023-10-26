@@ -9,7 +9,7 @@ class Device;
 class PipelineLayout
 {
 public:
-	PipelineLayout(Device& device,std::vector<std::unique_ptr<DescriptorSetLayout>>& descriptorSetLayouts, std::vector<VkPushConstantRange> pushConstants );
+	PipelineLayout(Device& device,std::vector<std::shared_ptr<DescriptorSetLayout>>& descriptorSetLayouts, std::vector<VkPushConstantRange> pushConstants );
 	~PipelineLayout();
 
 	VkPipelineLayout getHandle() const {return handle;}

@@ -72,6 +72,26 @@ DescriptorSet& DescriptorPool::allocate(DescriptorSetLayout& descriptorSetLayout
 	return *descriptorSets.back();
 }
 
+VkDescriptorSet DescriptorPool::allocateDescriptorSet(DescriptorSetLayout& layout)
+{
+	VkDescriptorSetLayout vkLayout = layout.getHandle();
+	VkDescriptorSetAllocateInfo allocInfo = {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
+	allocInfo.descriptorPool              = handle;
+	allocInfo.descriptorSetCount          = 1;
+	allocInfo.pSetLayouts                 = &vkLayout;
+
+	VkResult result;
+	VkDescriptorSet set;
+	result = vkAllocateDescriptorSets(device.getHandle(),&allocInfo,&set);
+
+	if(result != VK_SUCCESS)
+	{
+		Log("vkAllocateDescriptorSets Failed",LOG_TYPE::ERROR_TYPE);
+	}
+
+	return set;
+}
+
 std::vector<std::unique_ptr<DescriptorSet>>& DescriptorPool::getDescriptorSets()
 {
 	return descriptorSets;

@@ -35,6 +35,8 @@ struct ObjDesc
 	int txtOffset;
 	uint64_t vertexAddress;
 	uint64_t indexAddress;
+	uint64_t materialAddress;
+	uint64_t materialIndexAddress;
 };
 
 struct GlobalUniforms
@@ -46,9 +48,26 @@ struct GlobalUniforms
 
 struct PushConstantRaster
 {
-	mat4 modelMatrix;
+	mat4  modelMatrix;
+	vec3  lightPosition;
+	uint  objIndex;
+	float lightIntensity;
+	int   lightType;
 };
 
+struct WaveFrontMaterial
+{
+	vec3  ambient;
+	vec3  diffuse;
+	vec3  specular;
+	vec3  transmittance;
+	vec3  emission;
+	float shininess;
+	float ior;
+	float dissolve;
+	int   illum;
+	int   textureId;
+};
 
 // for raytracing
 

@@ -21,6 +21,9 @@ public:
 	DescriptorSet& allocate(DescriptorSetLayout& descriptorSetLayout,
 		const BindingMap<VkDescriptorBufferInfo>& bufferInfo = {},
 		const BindingMap<VkDescriptorImageInfo>& imageInfo = {});
+
+	VkDescriptorSet allocateDescriptorSet(DescriptorSetLayout& layout);
+
 	std::vector<std::unique_ptr< DescriptorSet>>& getDescriptorSets();
 
 private:

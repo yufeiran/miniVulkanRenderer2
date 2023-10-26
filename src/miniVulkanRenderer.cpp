@@ -2,7 +2,7 @@
 #include<chrono>
 #include"Vulkan/shaderInfo.h"
 #include"ResourceManagement/texture.h"
-#include"ResourceManagement/resourceManagement.h"
+#include"ResourceManagement/ResourceManager.h"
 #include"Sprite/sprite.h"
 #include"Sprite/spriteList.h"
 #include "Vulkan/sampler.h"
@@ -61,6 +61,21 @@ void MiniVulkanRenderer::init(int width, int height)
 	renderContext = std::make_unique<RenderContext>(*device, surface, *window);
 
 	tempCommandPool = std::make_unique<CommandPool>(*device);
+
+	
+	LogSpace();
+	Log("Load scene");
+
+	resourceManager = std::make_unique<ResourceManager>(*device);
+
+	//resourceManagement->loadModel("BattleCruiser", "../../assets/BattleCruiser/BattleCruiser.obj");
+	resourceManager->loadModel("backpack", "../../assets/backpack/backpack.obj",glm::mat4(1), true);
+	//resourceManagement->loadModel("Medieval_building", "../../assets/nv_raytracing_tutorial_scene/Medieval_building.obj",true);
+
+	//resourceManagement->loadModel("plane", "../../assets/nv_raytracing_tutorial_scene/plane.obj",true);
+	LogSpace();
+
+	createDescriptorSetLayout();
 	initRasterRender();
 
 	createOffScreenFrameBuffer();
@@ -82,18 +97,9 @@ void MiniVulkanRenderer::init(int width, int height)
 	//	renderContext->getSurfaceExtent(),renderContext->getFormat());
 
 
-	LogSpace();
-	Log("Load scene");
 
-	resourceManagement = std::make_unique<ResourceManagement>(*device);
-
-	//resourceManagement->loadModel("BattleCruiser", "../../assets/BattleCruiser/BattleCruiser.obj");
-	resourceManagement->loadModel("backpack", "../../assets/backpack/backpack.obj",true);
-	//resourceManagement->loadModel("Medieval_building", "../../assets/nv_raytracing_tutorial_scene/Medieval_building.obj",true);
-
-	//resourceManagement->loadModel("plane", "../../assets/nv_raytracing_tutorial_scene/plane.obj",true);
-	LogSpace();
-	renderContext->prepare(*rasterRenderPass,*resourceManagement,rasterDescriptorSetLayouts,
+	std::vector<std::shared_ptr<DescriptorSetLayout>> layouts{descSetLayout};
+	renderContext->prepare(*rasterRenderPass,*resourceManager,layouts,
 		rasterPipeline->getShaderModules().front()->getShaderInfo());
 
 	//for (int i = 0; i < 10; i++)
@@ -101,7 +107,7 @@ void MiniVulkanRenderer::init(int width, int height)
 	//	spriteList.addSprite(resourceManagement->getModelByName("backpack"), -1, -1, -5 * i + 25, 1, 0, 90, 0);
 
 	//}
-	spriteList.addSprite(resourceManagement->getModelByName("backpack"));
+	//spriteList.addSprite(resourceManagement->getModelByName("backpack"));
 
 	//spriteList.addSprite(resourceManagement->getModelByName("Medieval_building"));
 	//spriteList.addSprite(resourceManagement->getModelByName("plane"));
@@ -157,45 +163,41 @@ void MiniVulkanRenderer::initImGUI()
 
 }
 
-auto MiniVulkanRenderer::modelToVkGeometryKHR(const Model& model)
+auto MiniVulkanRenderer::objModelToVkGeometryKHR(const ObjModel& model)
 {
 	RayTracingBuilder::BlasInput input;
 
-	for(const auto & shapePair:model.getShapeMap())
-	{
-		const auto& shape =shapePair.second;
 
-		VkDeviceAddress vertexAddresss=shape->getVertexBuffer().getBufferDeviceAddress();
-		VkDeviceAddress indexAddress =shape->getIndexBuffer().getBufferDeviceAddress();
+	VkDeviceAddress vertexAddresss=model.vertexBuffer->getBufferDeviceAddress();
+	VkDeviceAddress indexAddress =model.indexBuffer->getBufferDeviceAddress();
 
-		uint32_t maxPrimitiveCount = shape->indexSum/3;
+	uint32_t maxPrimitiveCount = model.nbIndices/3;
 
-		VkAccelerationStructureGeometryTrianglesDataKHR triangles{VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR};
-		triangles.vertexFormat			     = VK_FORMAT_R32G32B32_SFLOAT;
-		triangles.vertexData.deviceAddress   = vertexAddresss;
-		triangles.vertexStride				 = sizeof(Vertex);
+	VkAccelerationStructureGeometryTrianglesDataKHR triangles{VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR};
+	triangles.vertexFormat			     = VK_FORMAT_R32G32B32_SFLOAT;
+	triangles.vertexData.deviceAddress   = vertexAddresss;
+	triangles.vertexStride				 = sizeof(Vertex);
 
-		triangles.indexType                  = VK_INDEX_TYPE_UINT32;
-		triangles.indexData.deviceAddress    = indexAddress;
+	triangles.indexType                  = VK_INDEX_TYPE_UINT32;
+	triangles.indexData.deviceAddress    = indexAddress;
 
-		triangles.maxVertex = shape->vertexSum - 1;
+	triangles.maxVertex = model.nbVertices - 1;
 
-		VkAccelerationStructureGeometryKHR asGeom{VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR};
-		asGeom.geometryType       = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
-		asGeom.flags              = VK_GEOMETRY_OPAQUE_BIT_KHR;
-		asGeom.geometry.triangles = triangles;
+	VkAccelerationStructureGeometryKHR asGeom{VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR};
+	asGeom.geometryType       = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
+	asGeom.flags              = VK_GEOMETRY_OPAQUE_BIT_KHR;
+	asGeom.geometry.triangles = triangles;
 
-		VkAccelerationStructureBuildRangeInfoKHR offset;
+	VkAccelerationStructureBuildRangeInfoKHR offset;
 
-		offset.firstVertex = 0;
-		offset.primitiveCount = maxPrimitiveCount;
-		offset.primitiveOffset = 0;
-		offset.transformOffset = 0;
+	offset.firstVertex = 0;
+	offset.primitiveCount = maxPrimitiveCount;
+	offset.primitiveOffset = 0;
+	offset.transformOffset = 0;
 
 
-		input.asGeometry.emplace_back(asGeom);
-		input.asBuildOffsetInfo.emplace_back(offset);
-	}
+	input.asGeometry.emplace_back(asGeom);
+	input.asBuildOffsetInfo.emplace_back(offset);
 	
 	return input;
 
@@ -206,17 +208,16 @@ void MiniVulkanRenderer::createBottomLevelAS()
 	std::vector<RayTracingBuilder::BlasInput> allBlas;
 	//allBlas.reserve(resourceManagement->getModelSum());
 
-	const auto& models = resourceManagement->getModelMap();
-	for(const auto& modelPair:models)
+	const auto& models = resourceManager->getModels();
+
+	for(const auto& model : models)
 	{
-		const auto& model = modelPair.second;
-
-
-		auto blas = modelToVkGeometryKHR(*model);
+		auto blas = objModelToVkGeometryKHR(model);
 
 		allBlas.push_back(blas);
-
+	
 	}
+
 	rayTracingBuilder->buildBlas(allBlas,VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR|VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_COMPACTION_BIT_KHR);
 }
 
@@ -224,12 +225,15 @@ void MiniVulkanRenderer::createTopLevelAS()
 {
 	Log("start createTLAS");
 	std::vector<VkAccelerationStructureInstanceKHR> tlas;
-	tlas.reserve(spriteList.sprites.size());
-	for(const Sprite& sprite:spriteList.sprites)
+
+	const auto& instances = resourceManager->getInstances();
+	tlas.reserve(instances.size());
+
+	for(const ObjInstance& instance:instances)
 	{
 		VkAccelerationStructureInstanceKHR rayInst{};
-		uint32_t modelId = sprite.getModel().getID();
-		rayInst.transform                           = toTransformMatrixKHR(sprite.getModelMat());
+		uint32_t modelId = instance.objIndex;
+		rayInst.transform                           = toTransformMatrixKHR(instance.transform);
 		rayInst.instanceCustomIndex                 = modelId;
 		rayInst.accelerationStructureReference      = rayTracingBuilder->getBlasDeviceAddress(modelId);
 		rayInst.flags                               = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;
@@ -648,7 +652,8 @@ void MiniVulkanRenderer::handleSizeChange()
     rasterPipeline = std::make_unique<GraphicPipeline>(rasterShaderModules,*rasterPipelineLayout,*device,surfaceExtent);
 	rasterPipeline->build(*rasterRenderPass);
 
-	renderContext->prepare(*rasterRenderPass,*resourceManagement,rasterDescriptorSetLayouts
+	std::vector<std::shared_ptr<DescriptorSetLayout>> layouts{descSetLayout};
+	renderContext->prepare(*rasterRenderPass,*resourceManager,layouts
 	, rasterPipeline->getShaderModules().front()->getShaderInfo());
 
 
@@ -683,6 +688,7 @@ void MiniVulkanRenderer::initRayTracingRender()
 
 void MiniVulkanRenderer::initRasterRender()
 {
+
 	// create raster pipeline !
 
 	ShaderInfo rasterShaderInfo;
@@ -703,27 +709,31 @@ void MiniVulkanRenderer::initRasterRender()
 	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 	pushConstants.push_back(pushConstant);
 
-	VkDescriptorSetLayoutBinding uboLayoutBinding{};
-	uboLayoutBinding.binding = 0;
-	uboLayoutBinding.descriptorCount = 1;
-	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-	uboLayoutBinding.pImmutableSamplers = nullptr;
+	//VkDescriptorSetLayoutBinding uboLayoutBinding{};
+	//uboLayoutBinding.binding = 0;
+	//uboLayoutBinding.descriptorCount = 1;
+	//uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	//uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	//uboLayoutBinding.pImmutableSamplers = nullptr;
 
-	VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-	samplerLayoutBinding.binding = 1;
-	samplerLayoutBinding.descriptorCount=1;
-	samplerLayoutBinding.descriptorType=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	samplerLayoutBinding.pImmutableSamplers = nullptr;
+	//VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+	//samplerLayoutBinding.binding = 1;
+	//samplerLayoutBinding.descriptorCount=1;
+	//samplerLayoutBinding.descriptorType=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	//samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	//samplerLayoutBinding.pImmutableSamplers = nullptr;
 
-	std::vector<VkDescriptorSetLayoutBinding>layoutBindings{uboLayoutBinding,samplerLayoutBinding};
+	//std::vector<VkDescriptorSetLayoutBinding>layoutBindings{uboLayoutBinding,samplerLayoutBinding};
 
-	rasterDescriptorSetLayouts.push_back(std::make_unique<DescriptorSetLayout>(*device,layoutBindings));
 
-	rasterPipelineLayout = std::make_unique<PipelineLayout>(*device,rasterDescriptorSetLayouts,pushConstants);
 
-	rasterRenderPass = std::make_unique<RenderPass>(*device,defaultColorFormat,  VK_IMAGE_LAYOUT_GENERAL);
+	//rasterDescriptorSetLayouts.push_back(std::make_unique<DescriptorSetLayout>(*device,layoutBindings));
+
+    std::vector<std::shared_ptr<DescriptorSetLayout>>  descSetLayouts{descSetLayout};
+
+	rasterPipelineLayout = std::make_unique<PipelineLayout>(*device,descSetLayouts,pushConstants);
+
+	rasterRenderPass     = std::make_unique<RenderPass>(*device,defaultColorFormat,  VK_IMAGE_LAYOUT_GENERAL);
 
 
 	surfaceExtent=renderContext->getSurfaceExtent();
@@ -759,7 +769,7 @@ void MiniVulkanRenderer::initPostRender()
 
 	std::vector<VkDescriptorSetLayoutBinding>layoutBindings{samplerLayoutBinding};
 
-	postDescriptorSetLayouts.push_back(std::make_unique<DescriptorSetLayout>(*device,layoutBindings));
+	postDescriptorSetLayouts.push_back(std::make_shared<DescriptorSetLayout>(*device,layoutBindings));
 
 	postPipelineLayout = std::make_unique<PipelineLayout>(*device,postDescriptorSetLayouts,pushConstants);
 
@@ -794,6 +804,24 @@ void MiniVulkanRenderer::initPostRender()
 	imageInfos[0][1] = imageInfo;
 
 	postDescriptorSet =postDescriptorPool->allocate(*postDescriptorSetLayouts[0], bufferInfos, imageInfos).getHandle();
+
+}
+
+void MiniVulkanRenderer::createDescriptorSetLayout()
+{
+	auto nbTxt = static_cast<uint32_t>(resourceManager->getImageSum());
+
+	// Camera matrices 
+	descSetBindings.addBinding(SceneBindings::eGlobals,  VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
+											VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_RAYGEN_BIT_KHR);
+	descSetBindings.addBinding(SceneBindings::eObjDescs, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1,
+		                                    VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
+	descSetBindings.addBinding(SceneBindings::eTextures, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nbTxt,
+											VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
+
+	descSetLayout = descSetBindings.createLayout(*device);
+	descPool      = descSetBindings.createPool(*device,1);
+	descSet       = descPool->allocateDescriptorSet(*descSetLayout);
 
 }
 

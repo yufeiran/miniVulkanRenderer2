@@ -60,6 +60,8 @@ set(VULKAN_FRAMEWORK_FILES
     ./Vulkan/queryPool.cpp 
     ./Vulkan/descriptorSetBindings.h 
     ./Vulkan/descriptorSetBindings.cpp 
+    ./Vulkan/texture.h 
+    ./Vulkan/texture.cpp
 
 
 )
@@ -92,29 +94,17 @@ set(RENDERING_FILES
     ./Rendering/renderTarget.cpp 
     ./Rendering/renderFrame.h 
     ./Rendering/renderFrame.cpp 
+    ./Rendering/postQuad.h 
+    ./Rendering/postQuad.cpp
 
 )
 
 set(RESOURCE_MANAGEMENT_FILES
-    ./ResourceManagement/resourceManagement.h 
-    ./ResourceManagement/resourceManagement.cpp 
-    ./ResourceManagement/model.cpp 
-    ./ResourceManagement/model.h 
-    ./ResourceManagement/texture.h 
-    ./ResourceManagement/texture.cpp 
-    ./ResourceManagement/shape.h 
-    ./ResourceManagement/shape.cpp 
-    ./ResourceManagement/postQuad.h 
-    ./ResourceManagement/postQuad.cpp
+    ./ResourceManagement/ResourceManager.h 
+    ./ResourceManagement/ResourceManager.cpp 
+    ./ResourceManagement/objLoader.h 
+    ./ResourceManagement/objLoader.cpp 
 
-)
-
-
-set(SPIRITE_FILES 
-    ./Sprite/sprite.h 
-    ./Sprite/sprite.cpp 
-    ./Sprite/spriteList.h 
-    ./Sprite/spriteList.cpp 
 )
 
 set(SHADER_HEADER 
@@ -126,7 +116,6 @@ source_group("Platform\\" FILES ${PLATFORM_FILES})
 source_group("Vulkan\\" FILES ${VULKAN_FRAMEWORK_FILES})
 source_group("Rendering\\" FILES ${RENDERING_FILES})
 source_group("ResourceManagement\\" FILES ${RESOURCE_MANAGEMENT_FILES})
-source_group("Sprite\\" FILES ${SPIRITE_FILES})
 source_group("ShaderHeader\\" FILES ${SHADER_HEADER})
 
 
@@ -138,7 +127,6 @@ add_executable(miniVulkanRenderer2
     ${PLATFORM_FILES}
     ${RENDERING_FILES}
     ${RESOURCE_MANAGEMENT_FILES}
-    ${SPIRITE_FILES}
     ${SHADER_HEADER}
 )
 

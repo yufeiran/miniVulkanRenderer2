@@ -15,7 +15,7 @@ class DescriptorPool;
 class DescriptorSet;
 class DescriptorSetLayout;
 class Buffer;
-class ResourceManagement;
+class ResourceManager;
 class ShaderInfo;
 class Model;
 class Shape;
@@ -30,8 +30,8 @@ class RenderFrame
 {
 public:
 
-	RenderFrame(Device& device, ResourceManagement& resourceManagement,std::unique_ptr<RenderTarget>&& renderTarget,const RenderPass& renderPass,
-		std::vector<std::unique_ptr<DescriptorSetLayout>>& descriptorSetLayouts, ShaderInfo &shaderInfo);
+	RenderFrame(Device& device, ResourceManager& resourceManager,std::unique_ptr<RenderTarget>&& renderTarget,const RenderPass& renderPass,
+		std::vector<std::shared_ptr<DescriptorSetLayout>>& descriptorSetLayouts, ShaderInfo &shaderInfo);
 
 	Device& getDevice();
 
@@ -47,7 +47,7 @@ public:
 
 
 
-	void createDescriptorSets(ResourceManagement&resourceManagement,ShaderInfo& shaderInfo);
+	void createDescriptorSets(ResourceManager& resourceManager,ShaderInfo& shaderInfo);
 
 	const VkExtent2D getExtent() const;
 
@@ -56,7 +56,7 @@ public:
 private:
 	Device& device;
 
-	ResourceManagement& resourceManagement;
+	ResourceManager& resourceManager;
 
 	std::unique_ptr<RenderTarget> renderTarget;
 
@@ -64,7 +64,7 @@ private:
 
 	std::unique_ptr<DescriptorPool> descriptorPool;
 
-	std::vector<std::unique_ptr<DescriptorSetLayout>>& descriptorSetLayouts;
+	std::vector<std::shared_ptr<DescriptorSetLayout>>& descriptorSetLayouts;
 
 	std::vector<std::unique_ptr<Buffer>>uniformBuffers;
 

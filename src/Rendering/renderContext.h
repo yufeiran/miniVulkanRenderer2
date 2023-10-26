@@ -31,8 +31,8 @@ public:
 	RenderContext(Device& device, VkSurfaceKHR surface, const GUIWindow& window);
 
 	void prepare(const RenderPass& renderPass,
-		ResourceManagement& resourceManagement,
-		std::vector<std::unique_ptr<DescriptorSetLayout>>& descriptorSetLayouts,
+		ResourceManager& resourceManager,
+		std::vector<std::shared_ptr<DescriptorSetLayout>>& descriptorSetLayouts,
 		ShaderInfo& shaderInfo,
 		RenderTarget::CreateFunc createRenderTargetFunc= RenderTarget::DEFAULT_CREATE_FUNC
 		);

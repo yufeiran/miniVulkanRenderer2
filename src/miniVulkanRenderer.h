@@ -15,9 +15,10 @@
 #include"Platform/GUIWindow.h"
 
 #include"Rendering/renderContext.h"
+#include"Rendering/postQuad.h"
 
-#include"ResourceManagement/resourceManagement.h"
-#include"ResourceManagement/postQuad.h"
+#include"ResourceManagement/ResourceManager.h"
+
 
 #include"Vulkan/instance.h"
 #include"Vulkan/physicalDevice.h"
@@ -41,12 +42,6 @@
 #include"Vulkan/renderPass.h"
 #include"Vulkan/rayTracingBuilder.h"
 #include"Vulkan/descriptorSetBindings.h"
-
-
-
-#include"Sprite/sprite.h"
-#include"Sprite/spriteList.h"
-
 
 
 
@@ -79,6 +74,12 @@ public:
 
 	void initPostRender();
 
+	// init graphics pipeline -----
+
+	void createDescriptorSetLayout();
+
+	// init raytracing-------
+
 	void createBottomLevelAS();
 
 	void createTopLevelAS();
@@ -110,8 +111,15 @@ public:
 
 	Camera& getCamera();
 
-	auto modelToVkGeometryKHR(const Model& model);
+	auto objModelToVkGeometryKHR(const ObjModel& model);
 
+	PushConstantRaster pcRaster{
+		glm::identity<mat4>(),                 // 
+		{10.f, 15.f, 8.f},   // light position
+		0,                   // instance id
+		100.f,               // light intensity
+		0                    // light type
+	};
 
 private:
 
@@ -130,7 +138,7 @@ private:
 	std::unique_ptr<Device> device;
 	VkSurfaceKHR surface{};
 
-	std::unique_ptr<ResourceManagement> resourceManagement;
+	std::unique_ptr<ResourceManager> resourceManagement;
 
 	std::unique_ptr<RenderContext> renderContext;
 
@@ -147,12 +155,18 @@ private:
 	VkFormat offscreenDepthFormat{VK_FORMAT_X8_D24_UNORM_PACK32};
 
 	// raster pipeline data
-	std::vector<std::unique_ptr<ShaderModule>>rasterShaderModules;
-	std::vector<std::unique_ptr<DescriptorSetLayout>> rasterDescriptorSetLayouts;
-	DescriptorSetBindings rasterDescriptorSetBindings;
-	std::unique_ptr<PipelineLayout>rasterPipelineLayout;
-	std::unique_ptr<RenderPass>rasterRenderPass;
-	std::unique_ptr<GraphicPipeline>rasterPipeline;
+	std::vector<std::unique_ptr<ShaderModule>> rasterShaderModules;
+
+	DescriptorSetBindings                descSetBindings;
+	std::shared_ptr<DescriptorSetLayout> descSetLayout;
+	std::unique_ptr<DescriptorPool>      descPool;
+	VkDescriptorSet descSet;
+
+
+	std::unique_ptr<PipelineLayout>  rasterPipelineLayout;
+	std::unique_ptr<RenderPass>      rasterRenderPass;
+	std::unique_ptr<GraphicPipeline> rasterPipeline;
+
 
 	// Raytracing pipeline data
 	VkPhysicalDeviceRayTracingPipelinePropertiesKHR rtProperties{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR};
@@ -165,7 +179,7 @@ private:
 
 	// post pipeline data
 	std::vector<std::unique_ptr<ShaderModule>>postShaderModules;
-	std::vector<std::unique_ptr<DescriptorSetLayout>> postDescriptorSetLayouts;
+	std::vector<std::shared_ptr<DescriptorSetLayout>> postDescriptorSetLayouts;
 	std::unique_ptr<DescriptorPool>postDescriptorPool;
 	VkDescriptorSet postDescriptorSet;
 	std::unique_ptr<PipelineLayout>postPipelineLayout;
@@ -174,7 +188,6 @@ private:
 	std::unique_ptr<PostQuad> postQuad;
 	std::unique_ptr<Sampler> postRenderImageSampler;
 
-	SpriteList spriteList;
 	Camera  camera;
 
 

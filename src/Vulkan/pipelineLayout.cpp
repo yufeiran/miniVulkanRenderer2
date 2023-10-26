@@ -4,7 +4,7 @@
 
 
 using namespace mini;
-PipelineLayout::PipelineLayout(Device& device, std::vector<std::unique_ptr<DescriptorSetLayout>>& descriptorSetLayouts, 
+PipelineLayout::PipelineLayout(Device& device, std::vector<std::shared_ptr<DescriptorSetLayout>>& descriptorSetLayouts, 
 	std::vector<VkPushConstantRange> pushConstants):device(device)
 {
 

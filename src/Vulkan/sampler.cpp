@@ -37,6 +37,14 @@ Sampler::Sampler(Device& device):device(device)
 
 }
 
+Sampler::Sampler(Device& device, const VkSamplerCreateInfo& createInfo):device(device)
+{
+	if (vkCreateSampler(device.getHandle(), &createInfo, nullptr, &handle) != VK_SUCCESS) {
+		throw Error("Failed to create sampler!");
+	}
+
+}
+
 Sampler::~Sampler()
 {
 	if (handle != VK_NULL_HANDLE)

@@ -12,6 +12,7 @@ class Sampler
 {
 public:
 	Sampler(Device& device);
+	Sampler(Device& device,const VkSamplerCreateInfo& createInfo);
 	~Sampler();
 
 	VkSampler getHandle();
