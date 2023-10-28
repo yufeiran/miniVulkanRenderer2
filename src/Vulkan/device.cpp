@@ -65,11 +65,19 @@ Device::Device(PhysicalDevice& gpu,
 			Log(it);
 		}
 	}
+	enableRaytracingFlag = true;
 	if (unsupportedExtensions.size() > 0)
 	{
 		Log("Following Device extension not support:", WARNING_TYPE);
 		for (const auto& it : unsupportedExtensions)
 		{
+
+			if(strcmp(it,"VK_KHR_ray_tracing_pipeline") == 0)
+			{
+				Log("Unable use raytracing!",LOG_TYPE::WARNING_TYPE);
+				enableRaytracingFlag = false;
+			}
+
 			Log(it);
 		}
 	}

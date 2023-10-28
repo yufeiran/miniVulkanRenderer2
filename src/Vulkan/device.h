@@ -36,7 +36,11 @@ public:
 
 	CommandPool& getCommandPoolForTransfer();
 
+	bool enableRayTracing() { return enableRaytracingFlag; }
+
 private:
+	bool enableRaytracingFlag = false;
+
 	VkDevice handle{ VK_NULL_HANDLE };
 
 	VkSurfaceKHR surface{ VK_NULL_HANDLE };

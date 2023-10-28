@@ -52,6 +52,9 @@ void MiniVulkanRenderer::init(int width, int height)
 	};
 
 	device = std::make_unique<Device>(gpu, surface, deviceExtension);
+
+	useRaytracing = device->enableRayTracing();
+
 	LogSpace();
 
 	renderContext = std::make_unique<RenderContext>(*device, surface, *window);
@@ -96,31 +99,22 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	postDescriptorSetLayouts.push_back(std::make_unique<DescriptorSetLayout>(*device,postLayoutBindings));
 
-	//postPipeline = std::make_unique<GraphicPipeline>(postShaderModules,postDescriptorSetLayouts,*device,
-	//	renderContext->getSurfaceExtent(),renderContext->getFormat());
-
-
 
 	std::vector<std::shared_ptr<DescriptorSetLayout>> layouts{descSetLayout};
 	renderContext->prepare(*rasterRenderPass,*resourceManager,layouts,
 		rasterPipeline->getShaderModules().front()->getShaderInfo());
 
-	//for (int i = 0; i < 10; i++)
-	//{
-	//	spriteList.addSprite(resourceManagement->getModelByName("backpack"), -1, -1, -5 * i + 25, 1, 0, 90, 0);
-
-	//}
-	//spriteList.addSprite(resourceManagement->getModelByName("backpack"));
-
-	//spriteList.addSprite(resourceManagement->getModelByName("Medieval_building"));
-	//spriteList.addSprite(resourceManagement->getModelByName("plane"));
 
 	initImGUI();
 	ImGui_ImplGlfw_InitForVulkan(window->getHandle(),true);
 
-	initRayTracingRender();
-	createBottomLevelAS();
-	createTopLevelAS();
+	if(useRaytracing)
+	{
+		initRayTracingRender();
+		createBottomLevelAS();
+		createTopLevelAS();
+	}
+
 
 	LogSpace();
 
@@ -314,6 +308,8 @@ void MiniVulkanRenderer::loop()
 	
 		cmd.reset();
 		cmd.begin();
+
+		updateUniformBuffer(cmd);
 
 		// Raster render pass
 		{
@@ -873,6 +869,46 @@ void MiniVulkanRenderer::updateDescriptorSet()
 	writes.emplace_back(descSetBindings.makeWriteArray(descSet,SceneBindings::eTextures,diit.data()));
 
 	vkUpdateDescriptorSets(device->getHandle(),static_cast<uint32_t>(writes.size()),writes.data(),0,nullptr);
+}
+
+// update camera matrix
+void MiniVulkanRenderer::updateUniformBuffer(CommandBuffer& cmd)
+{
+	// Prepare new UBO contents on host.
+	const float aspectRatio = surfaceExtent.width / static_cast<float>(surfaceExtent.height);
+	GlobalUniforms hostUBO = {};
+	const auto& view = camera.getViewMat();
+	auto& proj = glm::perspective(glm::radians(45.0f), (float)surfaceExtent.width / (float)surfaceExtent.height, 0.1f, 1000.0f);
+	proj[1][1] *= -1;
+
+	hostUBO.viewProj    = proj * view;
+	hostUBO.viewInverse = glm::inverse(view);
+	hostUBO.projInverse = glm::inverse(proj);
+
+	// UBO on the device, and what stages access it.
+	VkBuffer deviceUBO      = globalsBuffer->getHandle();
+	auto     uboUsageStages = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR;
+
+	// set lock to ensure the modified UBO is not visible to previous frames.
+	VkBufferMemoryBarrier beforeBarrier{VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER};
+	beforeBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+	beforeBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+	beforeBarrier.buffer        = deviceUBO;
+	beforeBarrier.size          = sizeof(hostUBO);
+	vkCmdPipelineBarrier(cmd.getHandle(), uboUsageStages, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_DEPENDENCY_DEVICE_GROUP_BIT, 0,
+						nullptr, 1, &beforeBarrier, 0, nullptr);
+
+	vkCmdUpdateBuffer(cmd.getHandle(), globalsBuffer->getHandle(), 0, sizeof(GlobalUniforms),&hostUBO);
+
+	// Making sure the updated UBO will be visible
+	VkBufferMemoryBarrier afterBarrier{VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER};
+	afterBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+	afterBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+	afterBarrier.buffer        = deviceUBO;
+	afterBarrier.offset        = 0;
+	afterBarrier.size          = sizeof(hostUBO);
+	vkCmdPipelineBarrier(cmd.getHandle(), VK_PIPELINE_STAGE_TRANSFER_BIT, uboUsageStages, VK_DEPENDENCY_DEVICE_GROUP_BIT, 0,
+					    nullptr, 1, &afterBarrier, 0, nullptr);
 }
 
 

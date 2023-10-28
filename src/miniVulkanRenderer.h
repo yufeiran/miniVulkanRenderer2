@@ -86,6 +86,8 @@ public:
 
 	void updateDescriptorSet();
 
+	void updateUniformBuffer(CommandBuffer& cmd);
+
 	// init raytracing-------
 
 	void createBottomLevelAS();
@@ -132,7 +134,7 @@ public:
 	};
 
 private:
-
+	bool useRaytracing = false;
 	int width, height;
 	VkExtent2D surfaceExtent{};
 

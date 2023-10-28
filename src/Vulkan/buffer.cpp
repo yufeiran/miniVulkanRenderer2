@@ -64,6 +64,7 @@ void Buffer::map(const void* rawData, uint32_t size)
 {
 	void* data;
 	vkMapMemory(device.getHandle(), deviceMemory->getHandle(), 0, size, 0, &data);
+
 	memcpy(data, rawData, (size_t)size);
 	vkUnmapMemory(device.getHandle(), deviceMemory->getHandle());
 	this->size = size;
