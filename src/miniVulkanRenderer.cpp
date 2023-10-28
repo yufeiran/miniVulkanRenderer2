@@ -659,22 +659,28 @@ void MiniVulkanRenderer::handleSizeChange()
 	height = extent.height;
 	frameCount = 0;
 
+
 	renderContext.reset();
 	renderContext = std::make_unique<RenderContext>(*device, surface, *window);
 
 	surfaceExtent=renderContext->getSurfaceExtent();
 
+	
+	createOffScreenFrameBuffer();
+
+	updatePostDescriptorSet();
 
 
-	rasterPipeline.reset();
-    rasterPipeline = std::make_unique<GraphicPipeline>(rasterShaderModules,*rasterPipelineLayout,*device,surfaceExtent);
-	rasterPipeline->build(*rasterRenderPass);
+
+	//rasterPipeline.reset();
+ //   rasterPipeline = std::make_unique<GraphicPipeline>(rasterShaderModules,*rasterPipelineLayout,*device,surfaceExtent);
+	//rasterPipeline->build(*rasterRenderPass);
 
 	std::vector<std::shared_ptr<DescriptorSetLayout>> layouts{descSetLayout};
 	renderContext->prepare(*rasterRenderPass,*resourceManager,layouts
 	, rasterPipeline->getShaderModules().front()->getShaderInfo());
 
-
+	
 
 }
 
@@ -721,16 +727,9 @@ void MiniVulkanRenderer::initPostRender()
 
 	std::vector<VkPushConstantRange> pushConstants;
 
-	VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-	samplerLayoutBinding.binding = 1;
-	samplerLayoutBinding.descriptorCount=1;
-	samplerLayoutBinding.descriptorType=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	samplerLayoutBinding.pImmutableSamplers = nullptr;
+	postDescSetBind.addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
 
-	std::vector<VkDescriptorSetLayoutBinding>layoutBindings{samplerLayoutBinding};
-
-	postDescriptorSetLayouts.push_back(std::make_shared<DescriptorSetLayout>(*device,layoutBindings));
+	postDescriptorSetLayouts.push_back(std::move(postDescSetBind.createLayout(*device)));
 
 	postPipelineLayout = std::make_unique<PipelineLayout>(*device,postDescriptorSetLayouts,pushConstants);
 
@@ -765,6 +764,18 @@ void MiniVulkanRenderer::initPostRender()
 	imageInfos[0][1] = imageInfo;
 
 	postDescriptorSet =postDescriptorPool->allocate(*postDescriptorSetLayouts[0], bufferInfos, imageInfos).getHandle();
+
+}
+
+void MiniVulkanRenderer::updatePostDescriptorSet()
+{
+	const auto &offscreenColorImageView=offscreenRenderTarget->getImageViewByIndex(0);
+	VkDescriptorImageInfo imageInfo{};
+	imageInfo.imageLayout =    VK_IMAGE_LAYOUT_GENERAL;
+	imageInfo.imageView=offscreenColorImageView.getHandle();
+	imageInfo.sampler = postRenderImageSampler->getHandle();
+	VkWriteDescriptorSet writeDescriptorSets = postDescSetBind.makeWrite(postDescriptorSet, 1, &imageInfo);
+	vkUpdateDescriptorSets(device->getHandle(), 1, &writeDescriptorSets, 0, nullptr);
 
 }
 

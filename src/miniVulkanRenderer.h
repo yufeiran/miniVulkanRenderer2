@@ -72,7 +72,7 @@ public:
 
 
 
-	void initPostRender();
+
 
 	// init graphics pipeline -----
 
@@ -97,7 +97,10 @@ public:
 	void createRtDescriptorSet();
 
 
-	//-----------------------
+	//post -----------------
+	void initPostRender();
+	void updatePostDescriptorSet();
+
 
 	void loop();
 
@@ -196,6 +199,7 @@ private:
 	// post pipeline data
 	std::vector<std::unique_ptr<ShaderModule>>         postShaderModules;
 	std::vector<std::shared_ptr<DescriptorSetLayout>>  postDescriptorSetLayouts;
+	DescriptorSetBindings                              postDescSetBind;
 	std::unique_ptr<DescriptorPool>                    postDescriptorPool;
 	VkDescriptorSet                                    postDescriptorSet;
 	std::unique_ptr<PipelineLayout>                    postPipelineLayout;
