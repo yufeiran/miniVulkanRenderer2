@@ -1,6 +1,8 @@
 #include "miniLog.h"
-#include<Windows.h>
-#include<fstream>
+#include <Windows.h>
+#include <fstream>
+#include <chrono>
+#include <map>
 
 namespace mini {
 
@@ -13,6 +15,7 @@ const int LOG_TYPE_COLOR[LOG_TYPE_SUM] = {
 	4,
 	6
 };
+
 
 HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
 
@@ -87,6 +90,34 @@ void LogProgressBar(const std::string& title, double percent)
 		printf("\n");
 	}
 
+}
+
+std::chrono::time_point last = std::chrono::system_clock::now();
+
+std::map<std::string,std::chrono::time_point<std::chrono::system_clock>> startTimeMap;
+
+void LogTimerStart(const std::string& jobName)
+{
+	startTimeMap[jobName] = std::chrono::system_clock::now();
+
+}
+
+void LogTimerEnd(const std::string& jobName)
+{
+	auto result = startTimeMap.find(jobName);
+
+	if(result == startTimeMap.end())
+	{
+		Log("no match job \""+jobName+"\"",LOG_TYPE::WARNING_TYPE);
+		return;
+	}
+
+	auto now = std::chrono::system_clock::now();
+	std::chrono::duration<double, std::milli> dur = now - result->second;
+	double frameTime = double(dur.count());
+	Log(jobName + " finished in "+ std::to_string(static_cast<int>(frameTime))+" ms");
+	
+	startTimeMap.erase(jobName);
 }
 
 }

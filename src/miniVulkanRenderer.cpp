@@ -23,6 +23,7 @@ void MiniVulkanRenderer::init(int width, int height)
 {
 	LogLogo();
 	Log("init start");
+	LogTimerStart("init");
 
 	width = width;
 	height = height;
@@ -62,8 +63,9 @@ void MiniVulkanRenderer::init(int width, int height)
 	tempCommandPool = std::make_unique<CommandPool>(*device);
 
 	
-	LogSpace();
+
 	Log("Load scene");
+	LogTimerStart("Load scene");
 
 	resourceManager = std::make_unique<ResourceManager>(*device);
 
@@ -72,6 +74,9 @@ void MiniVulkanRenderer::init(int width, int height)
 	//resourceManagement->loadModel("Medieval_building", "../../assets/nv_raytracing_tutorial_scene/Medieval_building.obj",true);
 
 	//resourceManagement->loadModel("plane", "../../assets/nv_raytracing_tutorial_scene/plane.obj",true);
+
+	LogTimerEnd("Load scene");
+
 	LogSpace();
 
 	createDescriptorSetLayout();
@@ -110,15 +115,18 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	if(useRaytracing)
 	{
+		LogTimerStart("build AS");
 		initRayTracingRender();
 		createBottomLevelAS();
 		createTopLevelAS();
+		LogTimerEnd("build AS");
 	}
 
 
 	LogSpace();
 
 	window->showWindow();
+	LogTimerEnd("init");
 }
 
 void MiniVulkanRenderer::initImGUI()
