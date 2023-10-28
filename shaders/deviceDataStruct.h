@@ -20,7 +20,7 @@ using uint = unsigned int;
 #endif
 
 START_BINDING(SceneBindings)
-	eGlobals = 0,
+	eGlobals  = 0,
 	eObjDescs = 1,
 	eTextures = 2
 END_BINDING();
@@ -29,6 +29,8 @@ START_BINDING(RtBindings)
 	eTlas     = 0,  // Top-level acceleration structure
 	eOutImage = 1
 END_BINDING();
+
+
 
 struct ObjDesc
 {
@@ -44,6 +46,14 @@ struct GlobalUniforms
 	mat4 viewProj;
 	mat4 viewInverse;
 	mat4 projInverse;
+};
+
+struct Vertex
+{
+	vec3 pos;
+	vec3 normal;
+	vec3 color;
+	vec2 texCoord;
 };
 
 struct PushConstantRaster

@@ -54,6 +54,16 @@ public:
 								   const VkDescriptorImageInfo*                            pImageInfo,
 								   uint32_t                                                arrayElement = 0) const;
 
+	VkWriteDescriptorSet makeWrite(VkDescriptorSet                                         dstSet,
+								   uint32_t                                                dstBinding,
+							       const VkDescriptorBufferInfo*                           pBufferInfo,
+								   uint32_t                                                arrayElement = 0) const;
+
+	VkWriteDescriptorSet makeWriteArray(VkDescriptorSet dst, uint32_t dstBinding) const;
+
+	VkWriteDescriptorSet makeWriteArray(VkDescriptorSet              dstSet, 
+										uint32_t                     dstBinding, 
+										const VkDescriptorImageInfo* pImageInfo) const;
 
 private:
 	std::vector<VkDescriptorSetLayoutBinding> bindings;

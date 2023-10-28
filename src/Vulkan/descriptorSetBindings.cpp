@@ -73,7 +73,7 @@ VkWriteDescriptorSet DescriptorSetBindings::makeWrite(VkDescriptorSet dstSet, ui
     return writeSet;
 }
 
-VkWriteDescriptorSet mini::DescriptorSetBindings::makeWrite(VkDescriptorSet dstSet, uint32_t dstBinding, const VkDescriptorImageInfo* pImageInfo, uint32_t arrayElement) const
+VkWriteDescriptorSet DescriptorSetBindings::makeWrite(VkDescriptorSet dstSet, uint32_t dstBinding, const VkDescriptorImageInfo* pImageInfo, uint32_t arrayElement) const
 {
     VkWriteDescriptorSet writeSet = makeWrite(dstSet,dstBinding,arrayElement);
     assert(writeSet.descriptorType == VK_DESCRIPTOR_TYPE_SAMPLER || writeSet.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
@@ -85,7 +85,52 @@ VkWriteDescriptorSet mini::DescriptorSetBindings::makeWrite(VkDescriptorSet dstS
     return writeSet;
 }
 
+VkWriteDescriptorSet DescriptorSetBindings::makeWrite(VkDescriptorSet                                         dstSet,
+								                      uint32_t                                                dstBinding,
+							                          const VkDescriptorBufferInfo*                           pBufferInfo,
+								                      uint32_t                                                arrayElement) const
+{
+    VkWriteDescriptorSet writeSet = makeWrite(dstSet, dstBinding, arrayElement);
+    assert(writeSet.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER || writeSet.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC 
+           || writeSet.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER 
+           || writeSet.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC);
 
+    writeSet.pBufferInfo = pBufferInfo;
+    return writeSet;
+}
+
+VkWriteDescriptorSet mini::DescriptorSetBindings::makeWriteArray(VkDescriptorSet dst, uint32_t dstBinding) const
+{
+    VkWriteDescriptorSet writeSet = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET};
+    writeSet.descriptorType       = VK_DESCRIPTOR_TYPE_MAX_ENUM;
+    for(size_t i = 0; i < bindings.size(); i++)
+    {
+        if(bindings[i].binding == dstBinding)
+        {
+            writeSet.descriptorCount = bindings[i].descriptorCount;
+            writeSet.descriptorType  = bindings[i].descriptorType;
+            writeSet.dstBinding      = dstBinding;
+            writeSet.dstSet          = dst;
+            writeSet.dstArrayElement = 0;
+            return writeSet;
+        }
+    }
+
+    assert(0 && "binding not found");
+    return writeSet;
+}
+
+VkWriteDescriptorSet mini::DescriptorSetBindings::makeWriteArray(VkDescriptorSet dstSet, uint32_t dstBinding, const VkDescriptorImageInfo* pImageInfo) const
+{
+    VkWriteDescriptorSet writeSet = makeWriteArray(dstSet, dstBinding);
+    assert(writeSet.descriptorType == VK_DESCRIPTOR_TYPE_SAMPLER || writeSet.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
+           || writeSet.descriptorType == VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE || writeSet.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
+           || writeSet.descriptorType == VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT);
+
+    writeSet.pImageInfo = pImageInfo;
+    assert(writeSet.descriptorCount > 0);
+    return writeSet;
+}
 
 std::unique_ptr<DescriptorPool> DescriptorSetBindings::createPool(Device& device, uint32_t maxSets, VkDescriptorPoolCreateFlags flags) const
 {

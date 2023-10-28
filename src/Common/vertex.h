@@ -1,16 +1,13 @@
 #pragma once 
-#include"Common/common.h"
+#include "Common/common.h"
+#include "../shaders/deviceDataStruct.h"
 
 namespace mini
 {
 
-struct Vertex {
-	glm::vec3 pos;
-	glm::vec3 normal;
-	glm::vec3 color;
-	glm::vec2 texCoord;
 
-	static VkVertexInputBindingDescription getBindingDescription() {
+
+static VkVertexInputBindingDescription getBindingDescription() {
 		VkVertexInputBindingDescription bindingDescription{};
 		bindingDescription.binding = 0;
 		bindingDescription.stride = sizeof(Vertex);
@@ -46,8 +43,4 @@ struct Vertex {
 
 		return attributeDescriptions;
 	}
-};
-
-
-
 }

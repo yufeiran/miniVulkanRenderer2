@@ -1,8 +1,9 @@
 #pragma once
-#include"Common/common.h"
-#include"Vulkan/texture.h"
-#include"../shaders/deviceDataStruct.h"
-#include"Vulkan/sampler.h"
+#include "Common/common.h"
+#include "Vulkan/texture.h"
+#include "../shaders/deviceDataStruct.h"
+#include "Vulkan/sampler.h"
+#include "Vulkan/commandPool.h"
 
 namespace mini
 {
@@ -39,12 +40,12 @@ public:
 
 	void loadModel(std::string name,std::string path,glm::mat4 transform = glm::mat4(1), bool flipTexture=false);
 
-	void createTextureImages(const std::vector<std::string>& textures,bool flipTexture=false);
+	void createTextureImages(const std::vector<std::string>& textures, const std::string &modelPath, bool flipTexture=false);
 
-	const std::vector<ObjModel>&  getModels() const{return objModel;}
+	const std::vector<std::unique_ptr<ObjModel>>&  getModels() const{return objModel;}
 	std::vector<ObjInstance>&     getInstances() {return instances;}
 
-	std::vector<ObjModel>                     objModel;
+	std::vector<std::unique_ptr<ObjModel>>    objModel;
 	std::vector<ObjDesc>                      objDesc;
 	std::vector<ObjInstance>                  instances;
 

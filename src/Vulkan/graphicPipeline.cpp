@@ -1,11 +1,11 @@
-#include"GraphicPipeline.h"
-#include"shaderModule.h"
-#include"device.h"
-#include"Vulkan/renderPass.h"
-#include"buffer.h"
-#include"ResourceManagement/model.h"
-#include"descriptorSetLayout.h"
-#include"../shaders/deviceDataStruct.h"
+#include "GraphicPipeline.h"
+#include "shaderModule.h"
+#include "device.h"
+#include "Vulkan/renderPass.h"
+#include "buffer.h"
+#include "descriptorSetLayout.h"
+#include "../shaders/deviceDataStruct.h"
+#include "Common/vertex.h"
 
 
 namespace mini
@@ -34,8 +34,8 @@ GraphicPipeline::GraphicPipeline(std::vector<std::unique_ptr<ShaderModule>>& sha
 
 	
 
-	bindingDescription = Vertex::getBindingDescription();
-	attributeDescriptions = Vertex::getAttributeDescriptions();
+	bindingDescription = getBindingDescription();
+	attributeDescriptions = getAttributeDescriptions();
 
 	vertexInputInfo={};
 	vertexInputInfo.sType=VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;

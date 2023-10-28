@@ -2,12 +2,12 @@
 #version 450
 
 #extension GL_ARB_separate_shader_objects : enable
-#extension GL_GOOGLE_include_directive: enable
 #extension GL_EXT_scalar_block_layout : enable
-
-#pragma vscode_glsllint_stage : vert
+#extension GL_ARB_shading_language_include : enable
+#extension GL_GOOGLE_include_directive : enable
 
 #extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
+
 
 #include "deviceDataStruct.h"
 
@@ -22,10 +22,9 @@ layout(location = 1) out vec2 fragTexCoord;
 layout( push_constant ) uniform _PushConstantRaster
 {
     PushConstantRaster pcRaster;
-    
 };
 
-layout(binding=0) uniform _GlobalUniforms{
+layout(binding= eGlobals) uniform _GlobalUniforms{
     GlobalUniforms uni;
 };
 

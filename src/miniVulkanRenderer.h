@@ -70,13 +70,21 @@ public:
 
 	void initRayTracingRender();
 
-	void initRasterRender();
+
 
 	void initPostRender();
 
 	// init graphics pipeline -----
 
 	void createDescriptorSetLayout();
+
+	void createRasterPipeline();
+
+	void createUniformBuffer();
+
+	void createObjDescriptionBuffer();
+
+	void updateDescriptorSet();
 
 	// init raytracing-------
 
@@ -90,6 +98,8 @@ public:
 	//-----------------------
 
 	void loop();
+
+	void rasterize(CommandBuffer& cmd);
 
 	void processIO();
 
@@ -128,17 +138,17 @@ private:
 
 	unsigned long long frameCount=0;
 
-	VkFormat defaultColorFormat=VK_FORMAT_B8G8R8A8_SRGB;
+	VkFormat defaultColorFormat=VK_FORMAT_R8G8B8A8_SRGB;
 	VkFormat defaultDepthFormat=VK_FORMAT_X8_D24_UNORM_PACK32;
 
 	
-	std::unique_ptr<Instance> instance;
-	std::unique_ptr<GUIWindow> window;
-	std::shared_ptr<PhysicalDevice> physicalDevice;
-	std::unique_ptr<Device> device;
+	std::unique_ptr<Instance>        instance;
+	std::unique_ptr<GUIWindow>       window;
+	std::shared_ptr<PhysicalDevice>  physicalDevice;
+	std::unique_ptr<Device>          device;
 	VkSurfaceKHR surface{};
 
-	std::unique_ptr<ResourceManager> resourceManagement;
+	std::unique_ptr<ResourceManager> resourceManager;
 
 	std::unique_ptr<RenderContext> renderContext;
 
@@ -161,32 +171,36 @@ private:
 	std::shared_ptr<DescriptorSetLayout> descSetLayout;
 	std::unique_ptr<DescriptorPool>      descPool;
 	VkDescriptorSet descSet;
-
+	std::unique_ptr<Buffer>          globalsBuffer;
+	std::unique_ptr<Buffer>          objDescBuffer;
 
 	std::unique_ptr<PipelineLayout>  rasterPipelineLayout;
 	std::unique_ptr<RenderPass>      rasterRenderPass;
 	std::unique_ptr<GraphicPipeline> rasterPipeline;
 
 
+
+
+
 	// Raytracing pipeline data
-	VkPhysicalDeviceRayTracingPipelinePropertiesKHR rtProperties{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR};
-	std::unique_ptr<RayTracingBuilder> rayTracingBuilder;
-	DescriptorSetBindings rtDescriptorSetBindings;
-	std::vector<std::unique_ptr<ShaderModule>> rtShaderModules;
-	std::unique_ptr<DescriptorPool> rtDescriptorPool;
-	std::unique_ptr<DescriptorSetLayout> rtDescriptorSetLayout;
-	VkDescriptorSet rtDescriptorSet;
+	VkPhysicalDeviceRayTracingPipelinePropertiesKHR    rtProperties{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR};
+	std::unique_ptr<RayTracingBuilder>                 rayTracingBuilder;
+	DescriptorSetBindings                              rtDescriptorSetBindings;
+	std::vector<std::unique_ptr<ShaderModule>>         rtShaderModules;
+	std::unique_ptr<DescriptorPool>                    rtDescriptorPool;
+	std::unique_ptr<DescriptorSetLayout>               rtDescriptorSetLayout;
+	VkDescriptorSet                                    rtDescriptorSet;
 
 	// post pipeline data
-	std::vector<std::unique_ptr<ShaderModule>>postShaderModules;
-	std::vector<std::shared_ptr<DescriptorSetLayout>> postDescriptorSetLayouts;
-	std::unique_ptr<DescriptorPool>postDescriptorPool;
-	VkDescriptorSet postDescriptorSet;
-	std::unique_ptr<PipelineLayout>postPipelineLayout;
-	std::unique_ptr<RenderPass>postRenderPass;
-	std::unique_ptr<GraphicPipeline>postPipeline;
-	std::unique_ptr<PostQuad> postQuad;
-	std::unique_ptr<Sampler> postRenderImageSampler;
+	std::vector<std::unique_ptr<ShaderModule>>         postShaderModules;
+	std::vector<std::shared_ptr<DescriptorSetLayout>>  postDescriptorSetLayouts;
+	std::unique_ptr<DescriptorPool>                    postDescriptorPool;
+	VkDescriptorSet                                    postDescriptorSet;
+	std::unique_ptr<PipelineLayout>                    postPipelineLayout;
+	std::unique_ptr<RenderPass>                        postRenderPass;
+	std::unique_ptr<GraphicPipeline>                   postPipeline;
+	std::unique_ptr<PostQuad>                          postQuad;
+	std::unique_ptr<Sampler>                           postRenderImageSampler;
 
 	Camera  camera;
 

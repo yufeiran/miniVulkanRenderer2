@@ -1,7 +1,6 @@
 #pragma once
 
-#include"Common/common.h"
-#include"ResourceManagement/texture.h"
+#include "Common/common.h"
 
 namespace mini
 {
@@ -10,6 +9,10 @@ enum BindingType {
 	TEXTURE_BINDING_TYPE
 
 };
+enum TEXTURE_TYPE{
+	DIFFUSE =0
+};
+
 class BindingInfo {
 public:
 	BindingInfo(BindingType type, TEXTURE_TYPE textureType) :type(type), textureType(textureType) {};

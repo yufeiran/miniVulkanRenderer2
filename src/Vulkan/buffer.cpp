@@ -7,7 +7,7 @@ namespace mini
 
 
 
-Buffer::Buffer(Device& device,  uint32_t size, VkBufferUsageFlags usage,VkMemoryPropertyFlags properties)
+Buffer::Buffer(Device& device, VkDeviceSize size, VkBufferUsageFlags usage,VkMemoryPropertyFlags properties)
 	:device(device),size(size),mapType(UNMAP)
 {
 	VkBufferCreateInfo bufferInfo{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
@@ -30,7 +30,7 @@ Buffer::Buffer(Device& device,  uint32_t size, VkBufferUsageFlags usage,VkMemory
 	bindBufferMemory(*deviceMemory);
 }
 
-Buffer::Buffer(Device& device, uint32_t size, const void* data, VkBufferUsageFlagBits usage, VkMemoryPropertyFlags properties)
+Buffer::Buffer(Device& device,VkDeviceSize size, const void* data, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
 	:Buffer(device,size,usage,properties)
 {
 	

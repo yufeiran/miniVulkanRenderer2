@@ -72,7 +72,7 @@ void RayTracingBuilder::buildBlas(const std::vector<BlasInput>& input, VkBuildAc
 
 	}
 
-	scratchBuffer=std::make_unique<Buffer>(device,maxScratchSize,
+	scratchBuffer=std::make_unique<Buffer>(device,static_cast<uint32_t>(maxScratchSize),
 		VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT|VK_BUFFER_USAGE_STORAGE_BUFFER_BIT|VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
@@ -267,7 +267,8 @@ AccelKHR RayTracingBuilder::createAcceleration(VkAccelerationStructureCreateInfo
 {
 	AccelKHR resultAccel;
 	
-	resultAccel.buffer = new Buffer(device,accel.size,VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR|
+	resultAccel.buffer = new Buffer(device,accel.size,
+		VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR|
 						VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT|VK_BUFFER_USAGE_TRANSFER_DST_BIT|VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 	accel.buffer = resultAccel.buffer->getHandle();
@@ -323,7 +324,7 @@ void RayTracingBuilder::cmdCreateTlas(CommandBuffer& cmdBuf, uint32_t countInsta
 	}
 
 	scratchBuffer.reset();
-	scratchBuffer = std::make_unique<Buffer>(device,sizeInfo.buildScratchSize,
+	scratchBuffer = std::make_unique<Buffer>(device,static_cast<uint32_t>( sizeInfo.buildScratchSize),
 		VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT|VK_BUFFER_USAGE_STORAGE_BUFFER_BIT|VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 	VkDeviceAddress scratchAddress = scratchBuffer->getBufferDeviceAddress();
 

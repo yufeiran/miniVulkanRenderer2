@@ -12,14 +12,14 @@ enum BufferMapType{UNMAP,PERSISTENT_MAPPING,TEMP_MAPPING};
 class Buffer
 {
 public:
-	Buffer(Device& device,uint32_t size,VkBufferUsageFlags usage, VkMemoryPropertyFlags properties= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	Buffer(Device& device,VkDeviceSize size,VkBufferUsageFlags usage, VkMemoryPropertyFlags properties= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-	Buffer(Device& device,uint32_t size,const void * data,VkBufferUsageFlagBits usage,
-		VkMemoryPropertyFlags properties= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	Buffer(Device& device,VkDeviceSize size,const void * data,VkBufferUsageFlags usage,
+	VkMemoryPropertyFlags properties= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 	template<class T>
-	Buffer(Device& device,const std::vector<T> vec,VkBufferUsageFlagBits usage,
-		VkMemoryPropertyFlags properties= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT):Buffer(device,vec.size(),(const void*)vec.data(),usage,properties)
+	Buffer(Device& device,const std::vector<T> vec,VkBufferUsageFlags usage,
+		VkMemoryPropertyFlags properties= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT):Buffer(device,sizeof(T)* vec.size(),(const void*)vec.data(),usage,properties)
 	{
 		
 	}
@@ -43,6 +43,9 @@ public:
 	VkDeviceAddress getBufferDeviceAddress();
 
 private:
+
+
+
 	uint32_t size;
 
 	void bindBufferMemory(const DeviceMemory& deviceMemory);

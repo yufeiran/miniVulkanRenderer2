@@ -12,9 +12,8 @@ namespace mini
 // only use for easy use , no memory manage
 struct Texture
 {
-	VkImage     image;
-	VkImageView imageView;
-	VkSampler   sampler;
+	VkImage				  image;
+	VkDescriptorImageInfo descriptor{};
 };
 
 

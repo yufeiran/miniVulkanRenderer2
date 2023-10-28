@@ -95,6 +95,12 @@ void CommandBuffer::bindDescriptorSet(const std::vector<VkDescriptorSet>& descri
 
 }
 
+void CommandBuffer::bindDescriptorSet(const VkDescriptorSet& descriptorSet)
+{
+    vkCmdBindDescriptorSets(handle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, 0);
+}
+
+
 void CommandBuffer::bindVertexBuffer(Buffer& vertexBuffer)
 {
     VkBuffer vertexBuffers[] = { vertexBuffer.getHandle() };
@@ -113,31 +119,6 @@ void CommandBuffer::pushConstant(PushConstantRaster& pushConstant,VkShaderStageF
     vkCmdPushConstants(handle, pipelineLayout, stage, 0, sizeof(PushConstantRaster), &pushConstant);
 }
 
-void CommandBuffer::drawSprite(Sprite& sprite, RenderFrame& renderFrame)
-{
-    auto& model = sprite.getModel();
-    PushConstantRaster pushConstantRaster;
-    pushConstantRaster.modelMatrix = sprite.getModelMat();
-    for (const auto& s : model.getShapeMap())
-    {
-        const auto& shape = s.second;
-        auto& vertexBuffer = shape->getVertexBuffer();
-        auto& indexBuffer = shape->getIndexBuffer();
-
-        auto& descriptorSet = renderFrame.getDescriptorSet(model, *shape);
-
-        pushConstant(pushConstantRaster, VK_SHADER_STAGE_VERTEX_BIT);
-
-        bindDescriptorSet(descriptorSet);
-
-        bindVertexBuffer(vertexBuffer);
-        bindIndexBuffer(indexBuffer);
-
-        vkCmdDrawIndexed(handle, shape->getIndexSum(), 1, 0, 0, 0);
-    }
-   
-
-}
 
 void CommandBuffer::draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance)
 {

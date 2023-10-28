@@ -1,18 +1,14 @@
-#include"miniVulkanRenderer.h"
-#include<chrono>
-#include"Vulkan/shaderInfo.h"
-#include"ResourceManagement/texture.h"
-#include"ResourceManagement/ResourceManager.h"
-#include"Sprite/sprite.h"
-#include"Sprite/spriteList.h"
+#include "miniVulkanRenderer.h"
+#include <chrono>
+#include "Vulkan/shaderInfo.h"
+#include "ResourceManagement/ResourceManager.h"
 #include "Vulkan/sampler.h"
 
 
 
-#include"imgui.h"
-#include"imgui_impl_vulkan.h"
-#include"imgui_impl_glfw.h"
-#include "ResourceManagement/model.h"
+#include "imgui.h"
+#include "imgui_impl_vulkan.h"
+#include "imgui_impl_glfw.h"
 
 
 using namespace mini;
@@ -76,7 +72,14 @@ void MiniVulkanRenderer::init(int width, int height)
 	LogSpace();
 
 	createDescriptorSetLayout();
-	initRasterRender();
+	createRasterPipeline();
+
+
+	createUniformBuffer();
+
+	createObjDescriptionBuffer();
+
+	updateDescriptorSet();
 
 	createOffScreenFrameBuffer();
 
@@ -188,7 +191,7 @@ auto MiniVulkanRenderer::objModelToVkGeometryKHR(const ObjModel& model)
 	asGeom.flags              = VK_GEOMETRY_OPAQUE_BIT_KHR;
 	asGeom.geometry.triangles = triangles;
 
-	VkAccelerationStructureBuildRangeInfoKHR offset;
+	VkAccelerationStructureBuildRangeInfoKHR offset={};
 
 	offset.firstVertex = 0;
 	offset.primitiveCount = maxPrimitiveCount;
@@ -212,7 +215,7 @@ void MiniVulkanRenderer::createBottomLevelAS()
 
 	for(const auto& model : models)
 	{
-		auto blas = objModelToVkGeometryKHR(model);
+		auto blas = objModelToVkGeometryKHR(*model);
 
 		allBlas.push_back(blas);
 	
@@ -296,7 +299,6 @@ void MiniVulkanRenderer::loop()
 		auto& cmd = renderContext->getCurrentCommandBuffer();
 		auto& renderFrame = renderContext->getActiveFrame();
 
-		renderFrame.updateUniformBuffer(camera);
 		auto& frameBuffer = renderFrame.getFrameBuffer();
 
 		// ImGui 
@@ -316,16 +318,9 @@ void MiniVulkanRenderer::loop()
 		// Raster render pass
 		{
 			cmd.beginRenderPass(*rasterRenderPass, *offscreenFramebuffer,clearValues);
-			cmd.bindPipeline(*rasterPipeline);
 
-			cmd.setViewPortAndScissor(frameBuffer.getExtent());
+			rasterize(cmd);
 
-
-
-			for (auto& s : spriteList.sprites)
-			{
-				cmd.drawSprite(s, renderFrame);
-			}
 
 			cmd.endRenderPass();
 		}
@@ -355,6 +350,33 @@ void MiniVulkanRenderer::loop()
 
 	}
 	device->waitIdle();
+}
+
+void MiniVulkanRenderer::rasterize(CommandBuffer& cmd)
+{
+	VkDeviceSize offset{0};
+
+	cmd.setViewPortAndScissor(surfaceExtent);
+
+	cmd.bindPipeline(*rasterPipeline);
+	
+	cmd.bindDescriptorSet(descSet);
+
+	for(const ObjInstance& inst:resourceManager->instances)
+	{
+		auto& model          = resourceManager->objModel[inst.objIndex];
+		pcRaster.objIndex    = inst.objIndex;
+		pcRaster.modelMatrix = inst.transform;
+		cmd.pushConstant(pcRaster,static_cast<VkShaderStageFlagBits>( VK_SHADER_STAGE_VERTEX_BIT|VK_SHADER_STAGE_FRAGMENT_BIT));
+		
+		cmd.bindVertexBuffer(*model->vertexBuffer);
+		cmd.bindIndexBuffer(*model->indexBuffer);
+		vkCmdDrawIndexed(cmd.getHandle(),model->nbIndices,1,0,0,0);
+
+	}
+
+
+		
 }
 
 void MiniVulkanRenderer::processIO()
@@ -686,63 +708,6 @@ void MiniVulkanRenderer::initRayTracingRender()
 }
 
 
-void MiniVulkanRenderer::initRasterRender()
-{
-
-	// create raster pipeline !
-
-	ShaderInfo rasterShaderInfo;
-	rasterShaderInfo.bindingInfoMap[0][1] = BindingInfo{ TEXTURE_BINDING_TYPE,DIFFUSE };
-
-	rasterShaderModules.push_back(std::make_unique<ShaderModule>("../../spv/vertexShader.vert.spv", *device, VK_SHADER_STAGE_VERTEX_BIT));
-	rasterShaderModules.push_back(std::make_unique<ShaderModule>("../../spv/fragmentShader.frag.spv", *device, VK_SHADER_STAGE_FRAGMENT_BIT));
-	
-	for (auto& s : rasterShaderModules) {
-		s->setShaderInfo(rasterShaderInfo);
-	}
-
-
-	std::vector<VkPushConstantRange> pushConstants;
-	VkPushConstantRange pushConstant;
-	pushConstant.offset = 0;
-	pushConstant.size = sizeof(PushConstantRaster);
-	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-	pushConstants.push_back(pushConstant);
-
-	//VkDescriptorSetLayoutBinding uboLayoutBinding{};
-	//uboLayoutBinding.binding = 0;
-	//uboLayoutBinding.descriptorCount = 1;
-	//uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	//uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-	//uboLayoutBinding.pImmutableSamplers = nullptr;
-
-	//VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-	//samplerLayoutBinding.binding = 1;
-	//samplerLayoutBinding.descriptorCount=1;
-	//samplerLayoutBinding.descriptorType=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	//samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	//samplerLayoutBinding.pImmutableSamplers = nullptr;
-
-	//std::vector<VkDescriptorSetLayoutBinding>layoutBindings{uboLayoutBinding,samplerLayoutBinding};
-
-
-
-	//rasterDescriptorSetLayouts.push_back(std::make_unique<DescriptorSetLayout>(*device,layoutBindings));
-
-    std::vector<std::shared_ptr<DescriptorSetLayout>>  descSetLayouts{descSetLayout};
-
-	rasterPipelineLayout = std::make_unique<PipelineLayout>(*device,descSetLayouts,pushConstants);
-
-	rasterRenderPass     = std::make_unique<RenderPass>(*device,defaultColorFormat,  VK_IMAGE_LAYOUT_GENERAL);
-
-
-	surfaceExtent=renderContext->getSurfaceExtent();
-	rasterPipeline = std::make_unique<GraphicPipeline>(rasterShaderModules,*rasterPipelineLayout,*device,surfaceExtent);
-
-	rasterPipeline->build(*rasterRenderPass);
-
-}
-
 void MiniVulkanRenderer::initPostRender()
 {
 	// create post pipeline!
@@ -809,7 +774,7 @@ void MiniVulkanRenderer::initPostRender()
 
 void MiniVulkanRenderer::createDescriptorSetLayout()
 {
-	auto nbTxt = static_cast<uint32_t>(resourceManager->getImageSum());
+	auto nbTxt = static_cast<uint32_t>(resourceManager->textures.size());
 
 	// Camera matrices 
 	descSetBindings.addBinding(SceneBindings::eGlobals,  VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
@@ -824,6 +789,92 @@ void MiniVulkanRenderer::createDescriptorSetLayout()
 	descSet       = descPool->allocateDescriptorSet(*descSetLayout);
 
 }
+
+
+
+void MiniVulkanRenderer::createRasterPipeline()
+{
+
+	// create raster pipeline !
+
+	rasterShaderModules.push_back(std::make_unique<ShaderModule>("../../spv/vertexShader.vert.spv", *device, VK_SHADER_STAGE_VERTEX_BIT));
+	rasterShaderModules.push_back(std::make_unique<ShaderModule>("../../spv/fragmentShader.frag.spv", *device, VK_SHADER_STAGE_FRAGMENT_BIT));
+	
+	std::vector<VkPushConstantRange> pushConstants;
+	VkPushConstantRange pushConstant={};
+	pushConstant.offset = 0;
+	pushConstant.size = sizeof(PushConstantRaster);
+	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+	pushConstants.push_back(pushConstant);
+
+	//VkDescriptorSetLayoutBinding uboLayoutBinding{};
+	//uboLayoutBinding.binding = 0;
+	//uboLayoutBinding.descriptorCount = 1;
+	//uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	//uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	//uboLayoutBinding.pImmutableSamplers = nullptr;
+
+	//VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+	//samplerLayoutBinding.binding = 1;
+	//samplerLayoutBinding.descriptorCount=1;
+	//samplerLayoutBinding.descriptorType=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	//samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	//samplerLayoutBinding.pImmutableSamplers = nullptr;
+
+	//std::vector<VkDescriptorSetLayoutBinding>layoutBindings{uboLayoutBinding,samplerLayoutBinding};
+
+
+
+	//rasterDescriptorSetLayouts.push_back(std::make_unique<DescriptorSetLayout>(*device,layoutBindings));
+
+    std::vector<std::shared_ptr<DescriptorSetLayout>>  descSetLayouts{descSetLayout};
+
+	rasterPipelineLayout = std::make_unique<PipelineLayout>(*device,descSetLayouts,pushConstants);
+
+	rasterRenderPass     = std::make_unique<RenderPass>(*device,defaultColorFormat,  VK_IMAGE_LAYOUT_GENERAL);
+
+
+	surfaceExtent=renderContext->getSurfaceExtent();
+	rasterPipeline = std::make_unique<GraphicPipeline>(rasterShaderModules,*rasterPipelineLayout,*device,surfaceExtent);
+
+	rasterPipeline->build(*rasterRenderPass);
+
+}
+
+void MiniVulkanRenderer::createUniformBuffer()
+{
+	globalsBuffer = std::make_unique<Buffer>(*device,static_cast<VkDeviceSize>(sizeof(GlobalUniforms)),
+		static_cast<VkBufferUsageFlags>( VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT));
+
+}
+
+void MiniVulkanRenderer::createObjDescriptionBuffer()
+{
+	objDescBuffer = std::make_unique<Buffer>(*device, resourceManager->objDesc, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
+}
+
+void MiniVulkanRenderer::updateDescriptorSet()
+{
+	std::vector<VkWriteDescriptorSet> writes;
+
+	// Camera matrices and scene description 
+	VkDescriptorBufferInfo dbiUnif{globalsBuffer->getHandle(), 0, VK_WHOLE_SIZE};
+	writes.emplace_back(descSetBindings.makeWrite(descSet,SceneBindings::eGlobals,&dbiUnif));
+
+	VkDescriptorBufferInfo dbiSceneDesc{objDescBuffer->getHandle(), 0, VK_WHOLE_SIZE};
+	writes.emplace_back(descSetBindings.makeWrite(descSet,SceneBindings::eObjDescs,&dbiSceneDesc));
+
+	// All texture samplers 
+	std::vector<VkDescriptorImageInfo> diit;
+	for(auto& texture : resourceManager->textures)
+	{
+		diit.emplace_back(texture.descriptor);
+	}
+	writes.emplace_back(descSetBindings.makeWriteArray(descSet,SceneBindings::eTextures,diit.data()));
+
+	vkUpdateDescriptorSets(device->getHandle(),static_cast<uint32_t>(writes.size()),writes.data(),0,nullptr);
+}
+
 
 
 

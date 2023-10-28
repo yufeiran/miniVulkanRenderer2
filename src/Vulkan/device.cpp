@@ -77,8 +77,11 @@ Device::Device(PhysicalDevice& gpu,
 	//=======================================================================================
 
 	VkPhysicalDeviceVulkan12Features features12{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES};
-	features12.bufferDeviceAddress=VK_TRUE;
-	features12.hostQueryReset =VK_TRUE;
+	features12.bufferDeviceAddress                       = VK_TRUE;
+	features12.hostQueryReset                            = VK_TRUE;
+	features12.runtimeDescriptorArray                    = VK_TRUE;
+	features12.scalarBlockLayout                         = VK_TRUE;
+	features12.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
 
 
 	

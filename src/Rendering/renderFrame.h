@@ -39,19 +39,8 @@ public:
 
 	void reset();
 
-	void createUniformBuffer();
-
-
-
-	void updateUniformBuffer(Camera &c);
-
-
-
-	void createDescriptorSets(ResourceManager& resourceManager,ShaderInfo& shaderInfo);
 
 	const VkExtent2D getExtent() const;
-
-	std::vector<VkDescriptorSet>& getDescriptorSet(Model& m,Shape& s);
 
 private:
 	Device& device;
@@ -62,17 +51,5 @@ private:
 
 	std::unique_ptr<FrameBuffer> frameBuffer;
 
-	std::unique_ptr<DescriptorPool> descriptorPool;
-
-	std::vector<std::shared_ptr<DescriptorSetLayout>>& descriptorSetLayouts;
-
-	std::vector<std::unique_ptr<Buffer>>uniformBuffers;
-
-	std::map < std::string, std::map<std::string,std::vector<VkDescriptorSet>>> descriptorSetMap;
-
-
-	BindingMap<VkDescriptorBufferInfo> bufferInfos;
-
-	BindingMap<VkDescriptorImageInfo> imageInfos;
 };
 }
