@@ -65,6 +65,14 @@ struct PushConstantRaster
 	int   lightType;
 };
 
+struct PushConstantRay
+{
+	vec4  clearColor;
+	vec3  lightPosition;
+	float lightIntensity;
+	int   lightType;
+};
+
 struct WaveFrontMaterial
 {
 	vec3  ambient;

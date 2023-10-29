@@ -122,6 +122,7 @@ void MiniVulkanRenderer::init(int width, int height)
 		createTopLevelAS();
 		LogTimerEnd("build AS");
 		createRtDescriptorSet();
+		createRtPipeline();
 	}
 
 
@@ -292,6 +293,26 @@ void MiniVulkanRenderer::updateRtDescriptorSet()
 	imageInfo.sampler = postRenderImageSampler->getHandle();
 	VkWriteDescriptorSet writeDescriptorSets = rtDescriptorSetBindings.makeWrite(rtDescriptorSet, RtBindings::eOutImage, &imageInfo);
 	vkUpdateDescriptorSets(device->getHandle(), 1, &writeDescriptorSets, 0, nullptr);
+
+}
+
+void MiniVulkanRenderer::createRtPipeline()
+{
+	enum StageIndices 
+	{
+		eRaygen,
+		eMiss,
+		eClosetHit,
+		eShaderGroupCount
+	};
+
+	// All stages 
+	std::vector<VkPipelineShaderStageCreateInfo> stages{};
+	stages.reserve(eShaderGroupCount);
+
+	ShaderModule rayGenShader("../../spv/raytrace.rgen.spv",*device,VK_SHADER_STAGE_RAYGEN_BIT_KHR);
+
+
 
 }
 
@@ -702,7 +723,7 @@ void MiniVulkanRenderer::handleSizeChange()
 	//rasterPipeline->build(*rasterRenderPass);
 
 	std::vector<std::shared_ptr<DescriptorSetLayout>> layouts{descSetLayout};
-	renderContext->prepare(*rasterRenderPass,*resourceManager,layouts
+	renderContext->prepare(*postRenderPass,*resourceManager,layouts
 	, rasterPipeline->getShaderModules().front()->getShaderInfo());
 
 	

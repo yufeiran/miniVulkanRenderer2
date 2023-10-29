@@ -1,47 +1,48 @@
 #pragma once
-#include<iostream>
+#include <iostream>
 
 
-#include"Common/common.h"
+#include "Common/common.h"
 
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_ZERO_TO_ONE
-#include"glm/vec4.hpp"
-#include"glm/mat4x4.hpp"
-#include"Common/miniLog.h"
-#include"Common/camera.h"
+#include "glm/vec4.hpp"
+#include "glm/mat4x4.hpp"
+#include "Common/miniLog.h"
+#include "Common/camera.h"
 
-#include"Platform/GUIWindow.h"
+#include "Platform/GUIWindow.h"
 
-#include"Rendering/renderContext.h"
-#include"Rendering/postQuad.h"
+#include "Rendering/renderContext.h"
+#include "Rendering/postQuad.h"
 
-#include"ResourceManagement/ResourceManager.h"
+#include "ResourceManagement/ResourceManager.h"
 
 
-#include"Vulkan/instance.h"
-#include"Vulkan/physicalDevice.h"
-#include"Vulkan/deviceMemory.h"
-#include"Vulkan/device.h"
-#include"Vulkan/imageView.h"
-#include"Vulkan/image.h"
-#include"Vulkan/swapchain.h"
-#include"Vulkan/shaderModule.h"
-#include"Vulkan/GraphicPipeline.h"
-#include"Vulkan/commandPool.h"
-#include"Vulkan/commandBuffer.h"
-#include"Vulkan/framebuffer.h"
-#include"Vulkan/fence.h"
-#include"Vulkan/semaphore.h"
-#include"Vulkan/descriptorSetLayout.h"
-#include"Vulkan/descriptorPool.h"
-#include"Vulkan/descriptorSet.h"
-#include"Vulkan/buffer.h"
-#include"Vulkan/pipelineLayout.h"
-#include"Vulkan/renderPass.h"
-#include"Vulkan/rayTracingBuilder.h"
-#include"Vulkan/descriptorSetBindings.h"
+#include "Vulkan/instance.h"
+#include "Vulkan/physicalDevice.h"
+#include "Vulkan/deviceMemory.h"
+#include "Vulkan/device.h"
+#include "Vulkan/imageView.h"
+#include "Vulkan/image.h"
+#include "Vulkan/swapchain.h"
+#include "Vulkan/shaderModule.h"
+#include "Vulkan/GraphicPipeline.h"
+#include "Vulkan/commandPool.h"
+#include "Vulkan/commandBuffer.h"
+#include "Vulkan/framebuffer.h"
+#include "Vulkan/fence.h"
+#include "Vulkan/semaphore.h"
+#include "Vulkan/descriptorSetLayout.h"
+#include "Vulkan/descriptorPool.h"
+#include "Vulkan/descriptorSet.h"
+#include "Vulkan/buffer.h"
+#include "Vulkan/pipelineLayout.h"
+#include "Vulkan/renderPass.h"
+#include "Vulkan/rayTracingBuilder.h"
+#include "Vulkan/rayTracingPipeline.h"
+#include "Vulkan/descriptorSetBindings.h"
 
 
 
@@ -98,6 +99,8 @@ public:
 
 	void updateRtDescriptorSet();
 
+	void createRtPipeline();
+
 
 	//post -----------------
 	void initPostRender();
@@ -138,6 +141,8 @@ public:
 		0                    // light type
 	};
 
+	PushConstantRay pcRay{};
+
 private:
 	bool useRaytracing = false;
 	int width, height;
@@ -176,16 +181,16 @@ private:
 	// raster pipeline data
 	std::vector<std::unique_ptr<ShaderModule>> rasterShaderModules;
 
-	DescriptorSetBindings                descSetBindings;
-	std::shared_ptr<DescriptorSetLayout> descSetLayout;
-	std::unique_ptr<DescriptorPool>      descPool;
-	VkDescriptorSet descSet;
-	std::unique_ptr<Buffer>          globalsBuffer;
-	std::unique_ptr<Buffer>          objDescBuffer;
+	DescriptorSetBindings                 descSetBindings;
+	std::shared_ptr<DescriptorSetLayout>  descSetLayout;
+	std::unique_ptr<DescriptorPool>       descPool;
+	VkDescriptorSet                       descSet;
+	std::unique_ptr<Buffer>               globalsBuffer;
+	std::unique_ptr<Buffer>               objDescBuffer;
 
-	std::unique_ptr<PipelineLayout>  rasterPipelineLayout;
-	std::unique_ptr<RenderPass>      rasterRenderPass;
-	std::unique_ptr<GraphicPipeline> rasterPipeline;
+	std::unique_ptr<PipelineLayout>       rasterPipelineLayout;
+	std::unique_ptr<RenderPass>           rasterRenderPass;
+	std::unique_ptr<GraphicPipeline>      rasterPipeline;
 
 
 
@@ -199,6 +204,9 @@ private:
 	std::unique_ptr<DescriptorPool>                    rtDescriptorPool;
 	std::unique_ptr<DescriptorSetLayout>               rtDescriptorSetLayout;
 	VkDescriptorSet                                    rtDescriptorSet;
+	std::vector<VkRayTracingShaderGroupCreateInfoKHR>  rtShaderGroups;
+	std::unique_ptr<PipelineLayout>                    rtPipelineLayout;
+
 
 	// post pipeline data
 	std::vector<std::unique_ptr<ShaderModule>>         postShaderModules;
