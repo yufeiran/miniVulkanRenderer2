@@ -9,18 +9,10 @@ MiniVulkanRenderer miniRenderer;
 
 int main()
 {
-	try {
-		miniRenderer.init();
 
-		miniRenderer.loop();
+	miniRenderer.init();
 
-	}
-	catch (const std::exception& e) {
-		std::cerr << e.what() << std::endl;
-		Log(e.what(),LOG_TYPE::ERROR_TYPE);
-		return EXIT_FAILURE;
-	}
-
+	miniRenderer.loop();
 
 	return 0;
 }

@@ -96,6 +96,8 @@ public:
 
 	void createRtDescriptorSet();
 
+	void updateRtDescriptorSet();
+
 
 	//post -----------------
 	void initPostRender();
@@ -143,8 +145,11 @@ private:
 
 	unsigned long long frameCount=0;
 
-	VkFormat defaultColorFormat=VK_FORMAT_R8G8B8A8_SRGB;
-	VkFormat defaultDepthFormat=VK_FORMAT_X8_D24_UNORM_PACK32;
+	VkFormat defaultSurfaceColorFormat=VK_FORMAT_R8G8B8A8_SRGB;
+	VkFormat defaultSurfaceDepthFormat=VK_FORMAT_X8_D24_UNORM_PACK32;
+
+	VkFormat offscreenColorFormat{VK_FORMAT_R32G32B32A32_SFLOAT};
+	VkFormat offscreenDepthFormat{VK_FORMAT_X8_D24_UNORM_PACK32};
 
 	
 	std::unique_ptr<Instance>        instance;
@@ -166,8 +171,7 @@ private:
 	std::unique_ptr<RenderTarget> offscreenRenderTarget;
 	std::unique_ptr<FrameBuffer> offscreenFramebuffer;
 	
-	VkFormat offscreenColorFormat{VK_FORMAT_B8G8R8A8_SRGB};
-	VkFormat offscreenDepthFormat{VK_FORMAT_X8_D24_UNORM_PACK32};
+
 
 	// raster pipeline data
 	std::vector<std::unique_ptr<ShaderModule>> rasterShaderModules;

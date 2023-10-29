@@ -41,7 +41,7 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	physicalDevice=std::make_shared<PhysicalDevice>(gpu);
 
-	defaultDepthFormat =gpu.findDepthFormat();
+	defaultSurfaceDepthFormat =gpu.findDepthFormat();
 
 	std::vector<const char*> deviceExtension = {
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME ,
@@ -55,6 +55,7 @@ void MiniVulkanRenderer::init(int width, int height)
 	device = std::make_unique<Device>(gpu, surface, deviceExtension);
 
 	useRaytracing = device->enableRayTracing();
+
 
 	LogSpace();
 
@@ -106,7 +107,7 @@ void MiniVulkanRenderer::init(int width, int height)
 
 
 	std::vector<std::shared_ptr<DescriptorSetLayout>> layouts{descSetLayout};
-	renderContext->prepare(*rasterRenderPass,*resourceManager,layouts,
+	renderContext->prepare(*postRenderPass,*resourceManager,layouts,
 		rasterPipeline->getShaderModules().front()->getShaderInfo());
 
 
@@ -120,6 +121,7 @@ void MiniVulkanRenderer::init(int width, int height)
 		createBottomLevelAS();
 		createTopLevelAS();
 		LogTimerEnd("build AS");
+		createRtDescriptorSet();
 	}
 
 
@@ -280,6 +282,19 @@ void MiniVulkanRenderer::createRtDescriptorSet()
 	vkUpdateDescriptorSets(device->getHandle(),static_cast<uint32_t>(writes.size()),writes.data(),0,nullptr);
 }
 
+void MiniVulkanRenderer::updateRtDescriptorSet()
+{
+	// update output buffer
+	const auto &offscreenColorImageView=offscreenRenderTarget->getImageViewByIndex(0);
+	VkDescriptorImageInfo imageInfo{};
+	imageInfo.imageLayout =    VK_IMAGE_LAYOUT_GENERAL;
+	imageInfo.imageView=offscreenColorImageView.getHandle();
+	imageInfo.sampler = postRenderImageSampler->getHandle();
+	VkWriteDescriptorSet writeDescriptorSets = rtDescriptorSetBindings.makeWrite(rtDescriptorSet, RtBindings::eOutImage, &imageInfo);
+	vkUpdateDescriptorSets(device->getHandle(), 1, &writeDescriptorSets, 0, nullptr);
+
+}
+
 void MiniVulkanRenderer::loop()
 {
 	std::vector<VkClearValue> clearValues(2);
@@ -300,6 +315,8 @@ void MiniVulkanRenderer::loop()
 
 		auto& cmd = renderContext->getCurrentCommandBuffer();
 		auto& renderFrame = renderContext->getActiveFrame();
+
+		const auto& swapChainFormat = renderContext->getFormat();
 
 		auto& frameBuffer = renderFrame.getFrameBuffer();
 
@@ -675,7 +692,7 @@ void MiniVulkanRenderer::handleSizeChange()
 
 	
 	createOffScreenFrameBuffer();
-
+	updateRtDescriptorSet();
 	updatePostDescriptorSet();
 
 
@@ -699,7 +716,7 @@ Camera& MiniVulkanRenderer::getCamera()
 
 void MiniVulkanRenderer::createOffScreenFrameBuffer()
 {
-	auto imageColor = Image(*device,surfaceExtent,defaultColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
+	auto imageColor = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT);
 	offscreenRenderTarget=RenderTarget::DEFAULT_CREATE_FUNC(std::move(imageColor));
 	offscreenFramebuffer=std::make_unique<FrameBuffer>(*device,*offscreenRenderTarget,*rasterRenderPass);
 
@@ -741,10 +758,11 @@ void MiniVulkanRenderer::initPostRender()
 
 	postPipelineLayout = std::make_unique<PipelineLayout>(*device,postDescriptorSetLayouts,pushConstants);
 
-	postRenderPass = std::make_unique<RenderPass>(*device,defaultColorFormat);
+	postRenderPass = std::make_unique<RenderPass>(*device,defaultSurfaceColorFormat);
 
 	
 	surfaceExtent=renderContext->getSurfaceExtent();
+	auto swapChainFormat = renderContext->getFormat();
 	postPipeline = std::make_unique<GraphicPipeline>(postShaderModules,*postPipelineLayout,*device,surfaceExtent);
 
 	postPipeline->build(*postRenderPass);
@@ -846,7 +864,7 @@ void MiniVulkanRenderer::createRasterPipeline()
 
 	rasterPipelineLayout = std::make_unique<PipelineLayout>(*device,descSetLayouts,pushConstants);
 
-	rasterRenderPass     = std::make_unique<RenderPass>(*device,defaultColorFormat,  VK_IMAGE_LAYOUT_GENERAL);
+	rasterRenderPass     = std::make_unique<RenderPass>(*device,offscreenColorFormat,  VK_IMAGE_LAYOUT_GENERAL);
 
 
 	surfaceExtent=renderContext->getSurfaceExtent();
