@@ -199,11 +199,11 @@ private:
 	// Raytracing pipeline data
 	VkPhysicalDeviceRayTracingPipelinePropertiesKHR    rtProperties{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR};
 	std::unique_ptr<RayTracingBuilder>                 rayTracingBuilder;
-	DescriptorSetBindings                              rtDescriptorSetBindings;
+	DescriptorSetBindings                              rtDescSetBindings;
 	std::vector<std::unique_ptr<ShaderModule>>         rtShaderModules;
-	std::unique_ptr<DescriptorPool>                    rtDescriptorPool;
-	std::unique_ptr<DescriptorSetLayout>               rtDescriptorSetLayout;
-	VkDescriptorSet                                    rtDescriptorSet;
+	std::unique_ptr<DescriptorPool>                    rtDescPool;
+	std::unique_ptr<DescriptorSetLayout>               rtDescSetLayout;
+	VkDescriptorSet                                    rtDescSet;
 	std::vector<VkRayTracingShaderGroupCreateInfoKHR>  rtShaderGroups;
 	std::unique_ptr<PipelineLayout>                    rtPipelineLayout;
 

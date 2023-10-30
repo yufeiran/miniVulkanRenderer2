@@ -254,21 +254,21 @@ void MiniVulkanRenderer::createTopLevelAS()
 
 void MiniVulkanRenderer::createRtDescriptorSet()
 {
-	rtDescriptorSetBindings.addBinding(RtBindings::eTlas,VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR,1,
+	rtDescSetBindings.addBinding(RtBindings::eTlas,VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR,1,
 									  VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR); // TLAS
-	rtDescriptorSetBindings.addBinding(RtBindings::eOutImage,VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,1,
+	rtDescSetBindings.addBinding(RtBindings::eOutImage,VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,1,
 									  VK_SHADER_STAGE_RAYGEN_BIT_KHR);   // Output image
 
-	rtDescriptorPool      = rtDescriptorSetBindings.createPool(*device);
-	rtDescriptorSetLayout = rtDescriptorSetBindings.createLayout(*device);
+	rtDescPool      = rtDescSetBindings.createPool(*device);
+	rtDescSetLayout = rtDescSetBindings.createLayout(*device);
 
-	auto descSetLayout = rtDescriptorSetLayout->getHandle();
+	auto descSetLayout = rtDescSetLayout->getHandle();
 
 	VkDescriptorSetAllocateInfo allocateInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
-	allocateInfo.descriptorPool      = rtDescriptorPool->getHandle();
+	allocateInfo.descriptorPool      = rtDescPool->getHandle();
 	allocateInfo.descriptorSetCount  = 1;
 	allocateInfo.pSetLayouts         = &descSetLayout;
-	vkAllocateDescriptorSets(device->getHandle(),&allocateInfo,&rtDescriptorSet);
+	vkAllocateDescriptorSets(device->getHandle(),&allocateInfo,&rtDescSet);
 
 	VkAccelerationStructureKHR                         tlas  = rayTracingBuilder->getAccelerationStructure();
 	VkWriteDescriptorSetAccelerationStructureKHR       descASInfo{VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR};
@@ -277,8 +277,8 @@ void MiniVulkanRenderer::createRtDescriptorSet()
 	VkDescriptorImageInfo imageInfo{{},offscreenRenderTarget->getImageViewByIndex(0).getHandle(),VK_IMAGE_LAYOUT_GENERAL};
 
 	std::vector<VkWriteDescriptorSet> writes;
-	writes.emplace_back(rtDescriptorSetBindings.makeWrite(rtDescriptorSet,RtBindings::eTlas,&descASInfo));
-	writes.emplace_back(rtDescriptorSetBindings.makeWrite(rtDescriptorSet,RtBindings::eOutImage,&imageInfo));
+	writes.emplace_back(rtDescSetBindings.makeWrite(rtDescSet,RtBindings::eTlas,&descASInfo));
+	writes.emplace_back(rtDescSetBindings.makeWrite(rtDescSet,RtBindings::eOutImage,&imageInfo));
 
 	vkUpdateDescriptorSets(device->getHandle(),static_cast<uint32_t>(writes.size()),writes.data(),0,nullptr);
 }
@@ -291,7 +291,7 @@ void MiniVulkanRenderer::updateRtDescriptorSet()
 	imageInfo.imageLayout =    VK_IMAGE_LAYOUT_GENERAL;
 	imageInfo.imageView=offscreenColorImageView.getHandle();
 	imageInfo.sampler = postRenderImageSampler->getHandle();
-	VkWriteDescriptorSet writeDescriptorSets = rtDescriptorSetBindings.makeWrite(rtDescriptorSet, RtBindings::eOutImage, &imageInfo);
+	VkWriteDescriptorSet writeDescriptorSets = rtDescSetBindings.makeWrite(rtDescSet, RtBindings::eOutImage, &imageInfo);
 	vkUpdateDescriptorSets(device->getHandle(), 1, &writeDescriptorSets, 0, nullptr);
 
 }
@@ -301,17 +301,93 @@ void MiniVulkanRenderer::createRtPipeline()
 	enum StageIndices 
 	{
 		eRaygen,
-		eMiss,
+		eMiss0,
+		eMiss1,
 		eClosetHit,
 		eShaderGroupCount
 	};
 
-	// All stages 
-	std::vector<VkPipelineShaderStageCreateInfo> stages{};
-	stages.reserve(eShaderGroupCount);
 
 	ShaderModule rayGenShader("../../spv/raytrace.rgen.spv",*device,VK_SHADER_STAGE_RAYGEN_BIT_KHR);
+	ShaderModule rayCHitShader("../../spv/raytrace.rchit.spv",*device,VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
+	ShaderModule rayMissShader("../../spv/raytrace.rmiss.spv",*device,VK_SHADER_STAGE_MISS_BIT_KHR);
+	ShaderModule rayShadowMissShader("../../spv/raytraceShadow.rmiss.spv",*device,VK_SHADER_STAGE_MISS_BIT_KHR);
 
+	// All stages 
+	std::vector<VkPipelineShaderStageCreateInfo> stages{};
+	stages.resize(eShaderGroupCount);
+
+	VkPipelineShaderStageCreateInfo stage{VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO};
+	stage.pName = "main";  // All the same entry point
+	// Raygen
+	stage.module       = rayGenShader.getHandle();
+	stage.stage        = VK_SHADER_STAGE_RAYGEN_BIT_KHR;
+	stages[eRaygen]    = stage;
+	// Miss0 
+	stage.module       = rayMissShader.getHandle();
+	stage.stage        = VK_SHADER_STAGE_MISS_BIT_KHR;
+	stages[eMiss0]     = stage;
+	// Miss1 shadow pass 
+	stage.module       = rayShadowMissShader.getHandle();
+	stage.stage        = VK_SHADER_STAGE_MISS_BIT_KHR;
+	stages[eMiss1]     = stage;
+	// Hit Group - Closest Hit
+	stage.module       = rayCHitShader.getHandle();
+	stage.stage        = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
+	stages[eClosetHit] = stage;
+
+	// Shader groups
+	VkRayTracingShaderGroupCreateInfoKHR group{VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR};
+	group.anyHitShader       = VK_SHADER_UNUSED_KHR;
+	group.closestHitShader   = VK_SHADER_UNUSED_KHR;
+	group.generalShader      = VK_SHADER_UNUSED_KHR;
+	group.intersectionShader = VK_SHADER_UNUSED_KHR;
+
+	// Raygen
+	group.type          = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
+	group.generalShader = eRaygen;
+	rtShaderGroups.push_back(group);
+
+	// Miss0 
+	group.type          = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
+	group.generalShader = eMiss0;
+	rtShaderGroups.push_back(group);
+
+	// Miss1 shadow
+	group.type          = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
+	group.generalShader = eMiss1;
+	rtShaderGroups.push_back(group);
+
+	// closet hit shader
+	group.type             = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR;
+	group.generalShader    = VK_SHADER_UNUSED_KHR;
+	group.closestHitShader = eClosetHit;
+	rtShaderGroups.push_back(group);
+
+	// Push constant
+	VkPushConstantRange pushConstant{VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR | VK_SHADER_STAGE_MISS_BIT_KHR ,
+									 0, sizeof(PushConstantRay)};
+	VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
+	pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
+	pipelineLayoutCreateInfo.pPushConstantRanges    = &pushConstant;
+
+	// Descriptor sets: set 0 for raytracing , set 1 for global scene
+	std::vector<VkDescriptorSetLayout> rtDescSetLayouts = {rtDescSetLayout->getHandle(),descSetLayout->getHandle()};
+	pipelineLayoutCreateInfo.setLayoutCount             = static_cast<uint32_t> (rtDescSetLayouts.size());
+	pipelineLayoutCreateInfo.pSetLayouts                = rtDescSetLayouts.data();
+
+	rtPipelineLayout = std::make_unique<PipelineLayout>(*device,pipelineLayoutCreateInfo);
+
+	// Assemble the shader stages and recursion depth info into the ray tracing pipeline
+	VkRayTracingPipelineCreateInfoKHR rayPipelineInfo{VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR};
+	rayPipelineInfo.stageCount = static_cast<uint32_t>(stages.size());  // Stages are shaders
+	rayPipelineInfo.pStages    = stages.data();
+
+	rayPipelineInfo.groupCount = static_cast<uint32_t>(rtShaderGroups.size());
+	rayPipelineInfo.pGroups    = rtShaderGroups.data();
+
+	rayPipelineInfo.maxPipelineRayRecursionDepth = 2; // Ray depth
+	rayPipelineInfo.layout                       = rtPipelineLayout->getHandle();
 
 
 }

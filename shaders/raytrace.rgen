@@ -4,6 +4,7 @@
 #extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
 
 #include "deviceDataStruct.h" 
+#include "raycommon.glsl"
 
 layout(location = 0) rayPayloadEXT hitPayload prd;
 
@@ -31,6 +32,7 @@ void main()
                 0xFF,          // cullMask
                 0,             // sbtRecordOffset
                 0,             // sbtRecordStride
+                0,             // missIndex
                 origin.xyz,    // ray origin
                 tMin,          // ray min range
                 direction.xyz, // ray direction 

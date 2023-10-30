@@ -28,6 +28,14 @@ PipelineLayout::PipelineLayout(Device& device, std::vector<std::shared_ptr<Descr
 	Log("Pipeline layout created!");
 }
 
+mini::PipelineLayout::PipelineLayout(Device& device, VkPipelineLayoutCreateInfo& createInfo):device(device)
+{
+	if (vkCreatePipelineLayout(device.getHandle(), &createInfo, nullptr, &handle) != VK_SUCCESS) {
+		throw Error("Failed to crate pipeline layout");
+	}
+	Log("Pipeline layout created!");
+}
+
 mini::PipelineLayout::~PipelineLayout()
 {
 	if(handle!=VK_NULL_HANDLE)
