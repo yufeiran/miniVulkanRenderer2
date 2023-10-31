@@ -54,7 +54,7 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	device = std::make_unique<Device>(gpu, surface, deviceExtension);
 
-	useRaytracing = device->enableRayTracing();
+	canRaytracing = device->enableRayTracing();
 
 
 	LogSpace();
@@ -114,7 +114,7 @@ void MiniVulkanRenderer::init(int width, int height)
 	initImGUI();
 	ImGui_ImplGlfw_InitForVulkan(window->getHandle(),true);
 
-	if(useRaytracing)
+	if(canRaytracing)
 	{
 		LogTimerStart("build AS");
 		initRayTracingRender();
@@ -123,6 +123,7 @@ void MiniVulkanRenderer::init(int width, int height)
 		LogTimerEnd("build AS");
 		createRtDescriptorSet();
 		createRtPipeline();
+		createRtShaderBindingTable();
 	}
 
 
@@ -226,7 +227,7 @@ void MiniVulkanRenderer::createBottomLevelAS()
 	
 	}
 
-	rayTracingBuilder->buildBlas(allBlas,VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR|VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_COMPACTION_BIT_KHR);
+	rayTracingBuilder->buildBlas(allBlas,VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR);
 }
 
 void MiniVulkanRenderer::createTopLevelAS()
@@ -388,8 +389,97 @@ void MiniVulkanRenderer::createRtPipeline()
 
 	rayPipelineInfo.maxPipelineRayRecursionDepth = 2; // Ray depth
 	rayPipelineInfo.layout                       = rtPipelineLayout->getHandle();
+	
+	rtPipeline = std::make_unique<RayTracingPipeline>(*device,rayPipelineInfo);
+}
 
 
+
+void MiniVulkanRenderer::createRtShaderBindingTable()
+{
+	uint32_t missCount{2};
+	uint32_t hitCount{1};
+	auto     handleCount = 1 + missCount + hitCount;
+	uint32_t handleSize  = rtProperties.shaderGroupHandleSize; 
+
+	uint32_t handleSizeAligned = align_up(handleSize, rtProperties.shaderGroupHandleAlignment);
+
+	rgenRegion.stride = align_up(handleSizeAligned, rtProperties.shaderGroupBaseAlignment); //step size
+	rgenRegion.size   = rgenRegion.stride;
+	missRegion.stride = handleSizeAligned;
+	missRegion.size   = align_up(missCount * handleSizeAligned, rtProperties.shaderGroupBaseAlignment);
+	hitRegion.stride  = handleSizeAligned;
+	hitRegion.size    = align_up(hitCount * handleSizeAligned, rtProperties.shaderGroupBaseAlignment);
+
+	// Get the shader group handles 
+	uint32_t             dataSize = handleCount * handleSize;
+	std::vector<uint8_t> handles(dataSize);
+	auto result = vkGetRayTracingShaderGroupHandlesKHR(device->getHandle(),rtPipeline->getHandle(), 0, handleCount, dataSize, handles.data());
+	assert(result == VK_SUCCESS);
+
+	// Allocate a buffer for storing the SBT
+	VkDeviceSize sbtSize = rgenRegion.size + missRegion.size + hitRegion.size + callRegion.size;
+	rtSBTBuffer          = std::make_unique<Buffer>(*device,
+													sbtSize,
+													VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT
+														| VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR,
+													VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+	// Find the SBT address of each group
+	VkBufferDeviceAddressInfo info{VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO, nullptr, rtSBTBuffer->getHandle()};
+	VkDeviceAddress           sbtAddress = rtSBTBuffer->getBufferDeviceAddress();
+	rgenRegion.deviceAddress             = sbtAddress;
+	missRegion.deviceAddress             = sbtAddress + rgenRegion.size;
+	hitRegion.deviceAddress              = sbtAddress + rgenRegion.size + missRegion.size;
+
+	// Helper to retrieve the handle data
+	auto getHandle = [&] (int i) { return handles.data() + i * handleSize; };
+
+	rtSBTBuffer->persistentMap(sbtSize);
+	// Map the SBT buffer and write in the handles.
+	auto*     pSBTBuffer = reinterpret_cast<uint8_t*>(rtSBTBuffer->getMapAddress());
+	uint8_t*  pData{nullptr};
+	uint32_t handleIdx{0};
+
+	// Raygen
+	pData = pSBTBuffer;
+	memcpy(pData, getHandle(handleIdx++), handleSize);
+
+	// Miss
+	pData = pSBTBuffer + rgenRegion.size;
+	for(uint32_t c = 0; c < missCount; c++)
+	{
+		memcpy(pData, getHandle(handleIdx++), handleSize);
+		pData += missRegion.stride;
+	}
+
+	// Hit 
+	pData = pSBTBuffer + rgenRegion.size + missRegion.size;
+	for(uint32_t c = 0; c < hitCount; c++)
+	{
+		memcpy(pData,getHandle(handleIdx++),handleSize);
+	}
+	rtSBTBuffer->unpersistentMap();
+
+}
+
+void MiniVulkanRenderer::raytrace(CommandBuffer& cmd, const glm::vec4& clearColor)
+{
+	// Initializing push constant vulues
+	pcRay.clearColor     = clearColor;
+	pcRay.lightPosition  = pcRaster.lightPosition;
+	pcRay.lightIntensity = pcRaster.lightIntensity;
+	pcRay.lightType      = pcRaster.lightType;
+
+	std::vector<VkDescriptorSet> descSets{rtDescSet, descSet};
+	vkCmdBindPipeline(cmd.getHandle(),VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR,rtPipeline->getHandle());
+	vkCmdBindDescriptorSets(cmd.getHandle(),VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, rtPipelineLayout->getHandle(), 0,
+							(uint32_t)descSets.size(), descSets.data(), 0, nullptr);
+	vkCmdPushConstants(cmd.getHandle(), rtPipelineLayout->getHandle(),
+		              VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR | VK_SHADER_STAGE_MISS_BIT_KHR,
+		              0, sizeof(PushConstantRay), &pcRay);
+
+	vkCmdTraceRaysKHR(cmd.getHandle(), &rgenRegion, &missRegion, &hitRegion, &callRegion, surfaceExtent.width,surfaceExtent.height,1);
 }
 
 void MiniVulkanRenderer::loop()
@@ -425,6 +515,7 @@ void MiniVulkanRenderer::loop()
 			ImGui::Begin("Hello World");
 			ImGui::Text("miniVulkanRenderer2");
 			ImGui::ColorEdit3("clearColor",reinterpret_cast<float*>(&clearValues[0].color));
+			ImGui::Checkbox("Ray Tracer mode",&useRaytracing);
 			ImGui::End();
 		}
 	
@@ -435,12 +526,23 @@ void MiniVulkanRenderer::loop()
 
 		// Raster render pass
 		{
-			cmd.beginRenderPass(*rasterRenderPass, *offscreenFramebuffer,clearValues);
+			
 
-			rasterize(cmd);
+			if(useRaytracing)
+			{
+				glm::vec4 clearColor = {clearValues[0].color.float32[0],
+										clearValues[0].color.float32[1],
+										clearValues[0].color.float32[2],
+										clearValues[0].color.float32[3]};
+				raytrace(cmd,clearColor);
+			}
+			else 
+			{
+				cmd.beginRenderPass(*rasterRenderPass, *offscreenFramebuffer,clearValues);
+				rasterize(cmd);
+				cmd.endRenderPass();
+			}
 
-
-			cmd.endRenderPass();
 		}
 
 		// Offscreen render pass

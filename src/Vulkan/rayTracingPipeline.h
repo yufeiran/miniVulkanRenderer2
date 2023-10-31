@@ -12,7 +12,13 @@ public:
 	RayTracingPipeline(std::vector<VkRayTracingShaderGroupCreateInfoKHR>& shaderGroup,
 		               PipelineLayout&                                    pipelineLayout, 
 		               Device&                                            device);
+
+	RayTracingPipeline(Device&                            device, 
+					   VkRayTracingPipelineCreateInfoKHR& createInfo);
+
 	~RayTracingPipeline();
+
+	VkPipeline getHandle() { return handle;}
 private:
 	Device&    device;
 	VkPipeline handle = VK_NULL_HANDLE;

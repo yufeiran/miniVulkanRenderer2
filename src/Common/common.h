@@ -62,4 +62,11 @@ const VkIndexType indexType = VK_INDEX_TYPE_UINT32;
 
 
 inline bool hasFlag(VkFlags item, VkFlags flag)  { return (item & flag) == flag; }
+
+template<class integral>
+constexpr integral align_up(integral x,size_t a) noexcept
+{
+	return integral((x + (integral(a) - 1)) & ~integral(a - 1));
+}
+
 } // namespace mini

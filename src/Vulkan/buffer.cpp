@@ -79,6 +79,11 @@ void Buffer::persistentMap(uint32_t size)
 	mapType = PERSISTENT_MAPPING;
 }
 
+void Buffer::unpersistentMap()
+{
+	vkUnmapMemory(device.getHandle(), deviceMemory->getHandle());
+}
+
 void* Buffer::getMapAddress()
 {
 	return mapAddress;

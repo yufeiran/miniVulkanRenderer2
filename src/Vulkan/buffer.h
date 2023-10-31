@@ -36,6 +36,8 @@ public:
 	// 持久的map 到mapAddress上
 	void persistentMap(uint32_t size);
 
+	void unpersistentMap();
+
 	void* getMapAddress();
 
 	BufferMapType getMapType();

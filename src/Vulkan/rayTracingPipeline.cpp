@@ -9,6 +9,11 @@ RayTracingPipeline::RayTracingPipeline(std::vector<VkRayTracingShaderGroupCreate
 
 }
 
+mini::RayTracingPipeline::RayTracingPipeline(Device& device, VkRayTracingPipelineCreateInfoKHR& createInfo):device(device)
+{
+	vkCreateRayTracingPipelinesKHR(device.getHandle(),{},{},1,&createInfo,nullptr,&handle);
+}
+
 RayTracingPipeline::~RayTracingPipeline()
 {
 	if(handle!=VK_NULL_HANDLE)

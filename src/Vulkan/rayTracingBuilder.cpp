@@ -170,6 +170,8 @@ void RayTracingBuilder::buildTlas(const std::vector<VkAccelerationStructureInsta
 	// Creating the TLAS
 	cmdCreateTlas(*cmdBuf,conutInstance,instBufferAddr,flags,update,motion);
 
+	cmdBuf->endSingleTime(device.getGraphicQueue());
+
 
 }
 

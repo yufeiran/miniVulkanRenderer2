@@ -52,6 +52,10 @@ Image::Image(Device& device, const VkExtent2D& extent, VkFormat format, VkImageU
 	{
 		transitionImageLayout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 	}
+	else 
+	{
+		transitionImageLayout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
+	}
 }
 
 Image::Image(Device& device, size_t size, const void* data):device(device)
@@ -262,6 +266,15 @@ void Image::transitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayo
 
 		sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 		destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+	}
+	else if(oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_GENERAL)
+	{
+		// may have bug
+		barrier.srcAccessMask = 0;
+		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+		sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 	}
 	else {
 		throw Error("unsupported layout transition!");

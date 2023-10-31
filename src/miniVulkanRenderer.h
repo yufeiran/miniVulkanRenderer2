@@ -78,28 +78,21 @@ public:
 	// init graphics pipeline -----
 
 	void createDescriptorSetLayout();
-
 	void createRasterPipeline();
-
 	void createUniformBuffer();
-
 	void createObjDescriptionBuffer();
-
 	void updateDescriptorSet();
-
 	void updateUniformBuffer(CommandBuffer& cmd);
 
 	// init raytracing-------
-
 	void createBottomLevelAS();
-
 	void createTopLevelAS();
-
 	void createRtDescriptorSet();
-
 	void updateRtDescriptorSet();
-
 	void createRtPipeline();
+	void createRtShaderBindingTable();
+
+	void raytrace(CommandBuffer& cmd, const glm::vec4& clearColor);
 
 
 	//post -----------------
@@ -144,7 +137,8 @@ public:
 	PushConstantRay pcRay{};
 
 private:
-	bool useRaytracing = false;
+	bool canRaytracing = false;
+	bool useRaytracing = true;
 	int width, height;
 	VkExtent2D surfaceExtent{};
 
@@ -206,6 +200,14 @@ private:
 	VkDescriptorSet                                    rtDescSet;
 	std::vector<VkRayTracingShaderGroupCreateInfoKHR>  rtShaderGroups;
 	std::unique_ptr<PipelineLayout>                    rtPipelineLayout;
+	std::unique_ptr<RayTracingPipeline>                rtPipeline;
+
+	std::unique_ptr<Buffer>                            rtSBTBuffer;
+	VkStridedDeviceAddressRegionKHR                    rgenRegion{};
+	VkStridedDeviceAddressRegionKHR                    missRegion{};
+	VkStridedDeviceAddressRegionKHR                    hitRegion{};
+	VkStridedDeviceAddressRegionKHR                    callRegion{};
+
 
 
 	// post pipeline data
