@@ -22,7 +22,8 @@ ResourceManager::ResourceManager(Device& device):
 
 ResourceManager::~ResourceManager()
 {
-
+	textures.clear();
+	
 }
 
 void ResourceManager::loadModel(std::string name, std::string path, glm::mat4 transform, bool flipTexture)
@@ -82,22 +83,45 @@ void ResourceManager::loadModel(std::string name, std::string path, glm::mat4 tr
 
 void ResourceManager::createTextureImages(const std::vector<std::string>& texturesStr, const std::string &modelPath, bool flipTexture)
 {
-	for(const auto& textureStr : texturesStr)
+
+	if(texturesStr.empty() && textures.empty())
 	{
-		std::string imagePath = modelPath + textureStr;
-		Log("imagePath"+imagePath);
-		std::unique_ptr<Image> image = std::make_unique<Image>(device,imagePath,flipTexture);
-		std::unique_ptr<ImageView> imageView = std::make_unique<ImageView>(*image);
-		
+		std::array<uint8_t,4>       color{255u, 255u, 255u,255u};
+		size_t                      imgBufferSize = sizeof(color);
+		VkExtent2D                  imgSize       = VkExtent2D{1, 1};
+		std::unique_ptr<Image>      image         = std::make_unique<Image>(device, imgSize, imgBufferSize, color.data());
+		std::unique_ptr<ImageView>  imageView     = std::make_unique<ImageView>(*image);
+
 		Texture texture;
-		texture.image     = image->getHandle();
+
+		texture.image  = image->getHandle();
 		texture.descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		texture.descriptor.imageView = imageView->getHandle();
-		texture.descriptor.sampler   = defaultSampler->getHandle();
-		
+		texture.descriptor.imageView   = imageView->getHandle();
+		texture.descriptor.sampler     = defaultSampler->getHandle();
+
 		images.push_back(std::move(image));
 		imageViews.push_back(std::move(imageView));
 		textures.push_back(texture);
+	}
+	else
+	{
+		for(const auto& textureStr : texturesStr)
+		{
+			std::string imagePath = modelPath + textureStr;
+			Log("imagePath"+imagePath);
+			std::unique_ptr<Image>     image     = std::make_unique<Image>(device,imagePath,flipTexture);
+			std::unique_ptr<ImageView> imageView = std::make_unique<ImageView>(*image);
+		
+			Texture texture;
+			texture.image                  = image->getHandle();
+			texture.descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			texture.descriptor.imageView   = imageView->getHandle();
+			texture.descriptor.sampler     = defaultSampler->getHandle();
+		
+			images.push_back(std::move(image));
+			imageViews.push_back(std::move(imageView));
+			textures.push_back(texture);
+		}
 	}
 }
 

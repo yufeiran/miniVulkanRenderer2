@@ -58,7 +58,8 @@ Image::Image(Device& device, const VkExtent2D& extent, VkFormat format, VkImageU
 	}
 }
 
-Image::Image(Device& device, size_t size, const void* data):device(device)
+Image::Image(Device& device, const VkExtent2D& extent, size_t size, const void* data,VkFormat format)
+	:device(device),extent(extent),format(format)
 {
 	
 	// Staging buffer
@@ -74,7 +75,7 @@ Image::Image(Device& device, size_t size, const void* data):device(device)
 	imageInfo.mipLevels = 1;
 	imageInfo.arrayLayers = 1;
 
-	imageInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
+	imageInfo.format = format;
 	format = imageInfo.format;
 	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 

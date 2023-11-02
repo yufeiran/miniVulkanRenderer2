@@ -71,7 +71,26 @@ void MiniVulkanRenderer::init(int width, int height)
 	resourceManager = std::make_unique<ResourceManager>(*device);
 
 	//resourceManagement->loadModel("BattleCruiser", "../../assets/BattleCruiser/BattleCruiser.obj");
-	resourceManager->loadModel("backpack", "../../assets/backpack/backpack.obj",glm::mat4(1), true);
+	
+
+	glm::mat4 objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{2,0,0});
+	objMat = glm::scale(objMat,{5,5,5});
+	resourceManager->loadModel("bunny", "../../assets/bunny/bunny.obj",objMat);
+
+	objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{4,2.5,0});
+	objMat = glm::scale(objMat,{2,2,2});
+	resourceManager->loadModel("smpl", "../../assets/smpl/smpl.obj",objMat);
+
+	resourceManager->loadModel("plane", "../../assets/plane/plane.obj");
+
+
+	objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{0,2,0});
+	objMat = glm::scale(objMat,{1,1,1});
+	resourceManager->loadModel("backpack", "../../assets/backpack/backpack.obj",objMat, true);
+	
 	//resourceManagement->loadModel("Medieval_building", "../../assets/nv_raytracing_tutorial_scene/Medieval_building.obj",true);
 
 	//resourceManagement->loadModel("plane", "../../assets/nv_raytracing_tutorial_scene/plane.obj",true);
@@ -1162,6 +1181,8 @@ MiniVulkanRenderer::~MiniVulkanRenderer()
 	}
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
+	resourceManager.reset();
+	offscreenRenderTarget.reset();
 }
 
 

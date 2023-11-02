@@ -23,9 +23,9 @@ public:
 	Image(Device& device, const VkExtent2D& extent, VkFormat format,
 		VkImageUsageFlags imageUsage, VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT);
 
-	Image(Device& device, size_t size, const void* data);
+	Image(Device& device, const VkExtent2D& extent, size_t size, const void* data, VkFormat format = VK_FORMAT_R8G8B8A8_SRGB);
 
-	Image(Device& device, const std::string& filename="../assets/images/yamato.jpg", bool flipTexture=false);
+	Image(Device& device, const std::string& filename="../assets/images/yamato.jpg", bool flipTexture = false);
 
 	Image(Image&& other);
 
