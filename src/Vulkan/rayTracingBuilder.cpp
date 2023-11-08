@@ -8,7 +8,7 @@ using namespace mini;
 RayTracingBuilder::RayTracingBuilder(Device& device, uint32_t queueIndex)
 	:device(device),queueIndex(queueIndex),commandPool(device)
 {
-
+	cmdBuf = commandPool.createCommandBuffer();
 }
 
 RayTracingBuilder::~RayTracingBuilder()
@@ -151,13 +151,14 @@ void RayTracingBuilder::buildTlas(const std::vector<VkAccelerationStructureInsta
 	uint32_t conutInstance = static_cast<uint32_t>(instances.size());
 
 	// Command buffer to create the TLAS 
-	std::unique_ptr<CommandBuffer> cmdBuf = commandPool.createCommandBuffer();
+	
 	cmdBuf->beginSingleTime();
 
-	Buffer instancesBuffer(device,instances,
+	instancesBuffer.reset();
+	instancesBuffer = std::make_unique<Buffer>(device,instances,
 		(VkBufferUsageFlagBits)(VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT|VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR));
 
-	VkDeviceAddress instBufferAddr = instancesBuffer.getBufferDeviceAddress();
+	VkDeviceAddress instBufferAddr = instancesBuffer->getBufferDeviceAddress();
 
 	// Make sure the copy of the instance buffer are copied before triggering the acceleration structure build
 	VkMemoryBarrier barrier{VK_STRUCTURE_TYPE_MEMORY_BARRIER};
@@ -171,7 +172,6 @@ void RayTracingBuilder::buildTlas(const std::vector<VkAccelerationStructureInsta
 	cmdCreateTlas(*cmdBuf,conutInstance,instBufferAddr,flags,update,motion);
 
 	cmdBuf->endSingleTime(device.getGraphicQueue());
-
 
 }
 
@@ -325,7 +325,9 @@ void RayTracingBuilder::cmdCreateTlas(CommandBuffer& cmdBuf, uint32_t countInsta
 		tlas = createAcceleration(createInfo);
 	}
 
+
 	scratchBuffer.reset();
+	
 	scratchBuffer = std::make_unique<Buffer>(device,static_cast<uint32_t>( sizeInfo.buildScratchSize),
 		VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT|VK_BUFFER_USAGE_STORAGE_BUFFER_BIT|VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 	VkDeviceAddress scratchAddress = scratchBuffer->getBufferDeviceAddress();
@@ -341,5 +343,6 @@ void RayTracingBuilder::cmdCreateTlas(CommandBuffer& cmdBuf, uint32_t countInsta
 
 	// Build the TLAS 
 	vkCmdBuildAccelerationStructuresKHR(cmdBuf.getHandle(),1,&buildInfo,&pBuildOffsetInfo);
+
 
 }

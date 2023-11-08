@@ -59,7 +59,7 @@ Image::Image(Device& device, const VkExtent2D& extent, VkFormat format, VkImageU
 }
 
 Image::Image(Device& device, const VkExtent2D& extent, size_t size, const void* data,VkFormat format)
-	:device(device),extent(extent),format(format)
+	:device(device),extent(extent),format(format),imageType(CREATED_IMG)
 {
 	
 	// Staging buffer

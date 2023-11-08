@@ -10,6 +10,7 @@
 #extension GL_ARB_shader_clock : enable
 
 #include "deviceDataStruct.h"
+#include "wavefront.glsl"
 
 
 layout(buffer_reference, scalar) buffer Vertices {Vertex v[]; };
@@ -26,10 +27,13 @@ layout( push_constant ) uniform _PushConstantRaster
 };
 
 
-layout(location = 0) out vec4 outColor;
 
-layout(location = 0) in vec3 fragColor; 
-layout(location = 1) in vec2 fragTexCoord;
+layout(location = 1) in vec3 inWorldPos;
+layout(location = 2) in vec3 inWorldNormal;
+layout(location = 3) in vec3 inViewDir;
+layout(location = 4) in vec2 inTexCoord;
+
+layout(location = 0) out vec4 outColor;
 
 
 void main() {
@@ -41,16 +45,35 @@ void main() {
     int               matIndex = matIndices.i[gl_PrimitiveID];
     WaveFrontMaterial mat      = materials.m[matIndex];
 
+    vec3 N = normalize(inWorldNormal);
 
-    // Diffuse 
-    vec3 diffuseTxt;
-    if(mat.textureId >= 0)
+    // Vector toward light 
+    vec3 L;
+    float lightIntensity = pcRaster.lightIntensity;
+    if(pcRaster.lightType == 0)
     {
-        int txtOffset = objDesc.i[pcRaster.objIndex].txtOffset;
-        uint txtId    = txtOffset + mat.textureId;
-        diffuseTxt = texture(textureSamplers[nonuniformEXT(txtId)],fragTexCoord).xyz; 
+        vec3  lDir     = pcRaster.lightPosition - inWorldPos;
+        float d        = length(lDir);
+        lightIntensity = pcRaster.lightIntensity / (d * d);
+        L              = normalize(lDir);   
+    }
+    else 
+    {
+        L = normalize(pcRaster.lightPosition);
     }
 
+    // Diffuse 
+    vec3 diffuse = computeDiffuse(mat, L, N);
+    if(mat.textureId >= 0)
+    {
+        int  txtOffset  = objDesc.i[pcRaster.objIndex].txtOffset;
+        uint txtId      = txtOffset + mat.textureId;
+        vec3 diffuseTxt = texture(textureSamplers[nonuniformEXT(txtId)], inTexCoord).xyz;
+        diffuse *=diffuseTxt;
+    }
 
-    outColor = vec4(diffuseTxt,1.0);
+    // Specular 
+    vec3 specular = computeSpecular(mat, inViewDir, L, N);
+
+    outColor = vec4(lightIntensity * (diffuse + specular), 1);
 }

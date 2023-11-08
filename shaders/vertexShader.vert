@@ -16,8 +16,11 @@ layout(location = 1) in vec3 inNormal;
 layout(location = 2) in vec3 inColor;
 layout(location = 3) in vec2 inTexCoord;
 
-layout(location = 0) out vec3 fragColor;
-layout(location = 1) out vec2 fragTexCoord;
+
+layout(location = 1) out vec3 outWorldPos;
+layout(location = 2) out vec3 outWorldNormal;
+layout(location = 3) out vec3 outViewDir;
+layout(location = 4) out vec2 outTexCoord;
 
 layout( push_constant ) uniform _PushConstantRaster
 {
@@ -30,8 +33,15 @@ layout(binding= eGlobals) uniform _GlobalUniforms{
 
 
 void main(){
-    gl_Position = uni.viewProj * pcRaster.modelMatrix * vec4(inPosition,1.0);
-    fragColor = inColor;
-    fragTexCoord = inTexCoord;
+    vec3 origin = vec3(uni.viewInverse * vec4(0,0,0,1));
+
+
+
+    outWorldPos = vec3(pcRaster.modelMatrix * vec4(inPosition, 1.0));
+    outViewDir     = vec3(outWorldPos - origin);
+    outTexCoord    = inTexCoord;
+    outWorldNormal = mat3(pcRaster.modelMatrix) * inNormal;
+
+    gl_Position = uni.viewProj * vec4(outWorldPos,1.0);
 
 }

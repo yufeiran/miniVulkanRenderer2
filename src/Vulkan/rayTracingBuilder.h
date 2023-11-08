@@ -88,9 +88,12 @@ private:
 
 	CommandPool commandPool;
 
-	std::unique_ptr<Buffer>scratchBuffer;
+	std::unique_ptr<Buffer> scratchBuffer;
+	std::unique_ptr<Buffer> instancesBuffer;
 
 	std::vector<AccelKHR> blasVec;
+
+	std::unique_ptr<CommandBuffer> cmdBuf;
 
 	AccelKHR tlas;
 };

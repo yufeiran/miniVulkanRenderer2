@@ -23,6 +23,7 @@ class CommandBuffer
 public:
 	CommandBuffer(CommandPool &commandPool);
 
+
 	//==============================Rendering=================================
 	void begin(VkCommandBufferUsageFlags flag = {});
 

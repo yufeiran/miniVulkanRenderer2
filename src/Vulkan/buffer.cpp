@@ -43,7 +43,6 @@ Buffer::Buffer(Device& device,VkDeviceSize size, const void* data, VkBufferUsage
 
 Buffer::~Buffer()
 {
-	//Log("~Buffer() call!");
 	if (handle != VK_NULL_HANDLE)
 	{
 		vkDestroyBuffer(device.getHandle(), handle, nullptr);

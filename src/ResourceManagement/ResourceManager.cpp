@@ -67,6 +67,7 @@ void ResourceManager::loadModel(std::string name, std::string path, glm::mat4 tr
 	ObjInstance instance;
 	instance.transform = transform;
 	instance.objIndex  = static_cast<uint32_t>(objModel.size());
+	instance.name = name;
 	instances.push_back(instance);
 
 	ObjDesc desc={};
@@ -123,6 +124,20 @@ void ResourceManager::createTextureImages(const std::vector<std::string>& textur
 			textures.push_back(texture);
 		}
 	}
+}
+
+uint32_t ResourceManager::getInstanceId(const std::string name)
+{
+	int id = 0;
+	for(auto & instance: instances)
+	{
+		if(name == instance.name)
+		{
+			return id;
+		}
+		id++;
+	}
+	throw id;
 }
 
 }

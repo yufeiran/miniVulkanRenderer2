@@ -102,6 +102,8 @@ public:
 
 	void loop();
 
+	void updateInstances();
+
 	void rasterize(CommandBuffer& cmd);
 
 	void processIO();
@@ -207,6 +209,8 @@ private:
 	VkStridedDeviceAddressRegionKHR                    missRegion{};
 	VkStridedDeviceAddressRegionKHR                    hitRegion{};
 	VkStridedDeviceAddressRegionKHR                    callRegion{};
+	std::vector<VkAccelerationStructureInstanceKHR>    tlas;
+	VkBuildAccelerationStructureFlagsKHR               rtFlags;
 
 
 

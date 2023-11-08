@@ -30,6 +30,7 @@ struct ObjInstance
 {
 	glm::mat4  transform;    // Obj matrix of the instance
 	uint32_t   objIndex{0};  // Model index reference
+	std::string name;
 };
 
 class ResourceManager
@@ -41,6 +42,8 @@ public:
 	void loadModel(std::string name,std::string path,glm::mat4 transform = glm::mat4(1), bool flipTexture=false);
 
 	void createTextureImages(const std::vector<std::string>& textures, const std::string &modelPath, bool flipTexture=false);
+
+	uint32_t getInstanceId(const std::string name);
 
 	const std::vector<std::unique_ptr<ObjModel>>&  getModels() const{return objModel;}
 	std::vector<ObjInstance>&     getInstances() {return instances;}

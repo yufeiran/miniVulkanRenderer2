@@ -252,7 +252,7 @@ void MiniVulkanRenderer::createBottomLevelAS()
 void MiniVulkanRenderer::createTopLevelAS()
 {
 	Log("start createTLAS");
-	std::vector<VkAccelerationStructureInstanceKHR> tlas;
+
 
 	const auto& instances = resourceManager->getInstances();
 	tlas.reserve(instances.size());
@@ -269,7 +269,9 @@ void MiniVulkanRenderer::createTopLevelAS()
 		rayInst.instanceShaderBindingTableRecordOffset=0;
 		tlas.emplace_back(rayInst);
 	}
-	rayTracingBuilder->buildTlas(tlas,VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR);
+	rtFlags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR;
+
+	rayTracingBuilder->buildTlas(tlas,rtFlags);
 }
 
 void MiniVulkanRenderer::createRtDescriptorSet()
@@ -512,12 +514,17 @@ void MiniVulkanRenderer::loop()
 		calFps();
 		processIO();
 
+
+		updateInstances();
+
 		auto result= renderContext->beginFrame();
 		if (result == VK_ERROR_OUT_OF_DATE_KHR)
 		{
 			handleSizeChange();
 			continue;
 		}
+
+
 
 		auto& cmd = renderContext->getCurrentCommandBuffer();
 		auto& renderFrame = renderContext->getActiveFrame();
@@ -589,6 +596,25 @@ void MiniVulkanRenderer::loop()
 
 	}
 	device->waitIdle();
+}
+
+auto start = std::chrono::system_clock::now();
+void MiniVulkanRenderer::updateInstances()
+{
+	auto now =std::chrono::system_clock::now();
+	std::chrono::duration<float> diff = now - start;
+	start = now;
+	auto bunnyId                      = resourceManager->getInstanceId("bunny");
+	auto & instances                  = resourceManager->getInstances();
+	const float deltaAngle            =  6.28318530718f;
+	const float offset                = diff.count() * 0.5;
+	auto& transform                   = instances[bunnyId].transform;
+	transform =  glm::rotate(transform,offset * deltaAngle,{0,1,0});
+
+	VkAccelerationStructureInstanceKHR& tinst = tlas[bunnyId];
+	tinst.transform                           = toTransformMatrixKHR(transform);
+
+	rayTracingBuilder->buildTlas(tlas, rtFlags, true);
 }
 
 void MiniVulkanRenderer::rasterize(CommandBuffer& cmd)

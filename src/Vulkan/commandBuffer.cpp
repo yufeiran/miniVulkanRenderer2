@@ -29,6 +29,7 @@ CommandBuffer::CommandBuffer(CommandPool& commandPool)
     }
 }
 
+
 void CommandBuffer::begin(VkCommandBufferUsageFlags flag)
 {
     VkCommandBufferBeginInfo beginInfo{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
@@ -147,6 +148,7 @@ void CommandBuffer::endSingleTime(Queue& queue)
     end();
 
     submitAndWaitIdle(queue);
+
 }
 
 void CommandBuffer::reset()
