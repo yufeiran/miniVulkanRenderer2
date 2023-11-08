@@ -8,6 +8,8 @@
 
 layout(location = 0) rayPayloadInEXT hitPayload prd;
 
+layout(set = 1, binding = eCubeMap) uniform samplerCube cubeMapTexture;
+
 layout(push_constant) uniform _PushConstantRay
 {
     PushConstantRay pcRay;
@@ -15,5 +17,7 @@ layout(push_constant) uniform _PushConstantRay
 
 void main()
 {
-    prd.hitValue = pcRay.clearColor.xyz * 0.8;
+
+    //prd.hitValue = pcRay.clearColor.xyz * 0.8;
+    prd.hitValue = texture(cubeMapTexture,gl_WorldRayDirectionEXT).xyz;
 }

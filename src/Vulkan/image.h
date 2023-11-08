@@ -27,6 +27,9 @@ public:
 
 	Image(Device& device, const std::string& filename="../assets/images/yamato.jpg", bool flipTexture = false);
 
+	// for cubemap
+	Image(Device& device, const std::vector<std::string>& filenames,bool flipTexture = false);
+
 	Image(Image&& other);
 
 	~Image();
@@ -49,9 +52,9 @@ private:
 
 	void bindImageMemory(DeviceMemory& deviceMemory);
 
-	void transitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayout);
+	void transitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayout, int layerCount = 1);
 
-	void copyBufferToImage(Buffer& buffer);
+	void copyBufferToImage(Buffer& buffer, int layerCount = 1);
 	
 	Device& device;
 

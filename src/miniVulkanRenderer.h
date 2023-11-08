@@ -71,10 +71,6 @@ public:
 
 	void initRayTracingRender();
 
-
-
-
-
 	// init graphics pipeline -----
 
 	void createDescriptorSetLayout();

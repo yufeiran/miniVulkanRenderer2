@@ -82,6 +82,20 @@ void ResourceManager::loadModel(std::string name, std::string path, glm::mat4 tr
 
 }
 
+void ResourceManager::loadCubemap(const std::vector<std::string>& cubeMapNames, bool flipTexture)
+{
+	cubeMap     = std::make_unique<Image>(device, cubeMapNames, flipTexture);
+	cubeMapView = std::make_unique<ImageView>(*cubeMap,VK_FORMAT_UNDEFINED,VK_IMAGE_VIEW_TYPE_CUBE);
+
+
+	cubeMapTexture.image  = cubeMap->getHandle();
+	cubeMapTexture.descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	cubeMapTexture.descriptor.imageView   = cubeMapView->getHandle();
+	cubeMapTexture.descriptor.sampler     = defaultSampler->getHandle();
+
+
+}
+
 void ResourceManager::createTextureImages(const std::vector<std::string>& texturesStr, const std::string &modelPath, bool flipTexture)
 {
 

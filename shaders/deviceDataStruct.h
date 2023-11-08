@@ -22,7 +22,8 @@ using uint = unsigned int;
 START_BINDING(SceneBindings)
 	eGlobals  = 0,
 	eObjDescs = 1,
-	eTextures = 2
+	eTextures = 2,
+	eCubeMap  = 3
 END_BINDING();
 
 START_BINDING(RtBindings)

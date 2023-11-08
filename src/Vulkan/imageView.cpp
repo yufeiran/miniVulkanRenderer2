@@ -37,7 +37,16 @@ ImageView::ImageView(Image& image ,VkFormat format, VkImageViewType viewType)
 	createInfo.subresourceRange.baseMipLevel = 0;
 	createInfo.subresourceRange.levelCount = 1;
 	createInfo.subresourceRange.baseArrayLayer = 0;
-	createInfo.subresourceRange.layerCount = 1;
+
+	if(viewType == VK_IMAGE_VIEW_TYPE_CUBE)
+	{
+		createInfo.subresourceRange.layerCount = 6;
+	}
+	else
+	{
+		createInfo.subresourceRange.layerCount = 1;
+	}
+
 	if (vkCreateImageView(device.getHandle(), &createInfo, nullptr, &handle) != VK_SUCCESS) {
 		throw Error("failed to create image views");
 	}

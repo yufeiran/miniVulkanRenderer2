@@ -95,6 +95,30 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	//resourceManagement->loadModel("plane", "../../assets/nv_raytracing_tutorial_scene/plane.obj",true);
 
+	std::vector<std::string> defaultCubeMapNames={
+		"../../assets/skybox/default/right.jpg",
+		"../../assets/skybox/default/left.jpg",
+		"../../assets/skybox/default/top.jpg",
+		"../../assets/skybox/default/bottom.jpg",
+		"../../assets/skybox/default/front.jpg",
+		"../../assets/skybox/default/back.jpg",
+	};
+
+	std::vector<std::string> yokohamaCubeMapNames={
+		"../../assets/skybox/Yokohama3/posx.jpg",
+		"../../assets/skybox/Yokohama3/negx.jpg",
+		"../../assets/skybox/Yokohama3/posy.jpg",
+		"../../assets/skybox/Yokohama3/negy.jpg",
+		"../../assets/skybox/Yokohama3/posz.jpg",
+		"../../assets/skybox/Yokohama3/negz.jpg"
+	};
+	
+
+
+	resourceManager->loadCubemap(yokohamaCubeMapNames);
+
+
+
 	LogTimerEnd("Load scene");
 
 	LogSpace();
@@ -1060,6 +1084,9 @@ void MiniVulkanRenderer::createDescriptorSetLayout()
 		                                    VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
 	descSetBindings.addBinding(SceneBindings::eTextures, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nbTxt,
 											VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
+	descSetBindings.addBinding(SceneBindings::eCubeMap,VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,1,
+											VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
+											| VK_SHADER_STAGE_MISS_BIT_KHR);
 
 	descSetLayout = descSetBindings.createLayout(*device);
 	descPool      = descSetBindings.createPool(*device,1);
@@ -1148,6 +1175,11 @@ void MiniVulkanRenderer::updateDescriptorSet()
 		diit.emplace_back(texture.descriptor);
 	}
 	writes.emplace_back(descSetBindings.makeWriteArray(descSet,SceneBindings::eTextures,diit.data()));
+
+	VkDescriptorImageInfo cubeMapInfo{resourceManager->cubeMapTexture.descriptor};
+	writes.emplace_back(descSetBindings.makeWrite(descSet,SceneBindings::eCubeMap,&cubeMapInfo));
+
+
 
 	vkUpdateDescriptorSets(device->getHandle(),static_cast<uint32_t>(writes.size()),writes.data(),0,nullptr);
 }

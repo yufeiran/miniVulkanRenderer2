@@ -41,6 +41,8 @@ public:
 
 	void loadModel(std::string name,std::string path,glm::mat4 transform = glm::mat4(1), bool flipTexture=false);
 
+	void loadCubemap(const std::vector<std::string>& cubeMapNames, bool flipTexture = false);
+
 	void createTextureImages(const std::vector<std::string>& textures, const std::string &modelPath, bool flipTexture=false);
 
 	uint32_t getInstanceId(const std::string name);
@@ -56,6 +58,11 @@ public:
 	std::vector<std::unique_ptr<Image>>       images;
 	std::vector<std::unique_ptr<ImageView>>   imageViews;
 	std::unique_ptr<Sampler>                  defaultSampler;
+
+	std::unique_ptr<Image>                    cubeMap;
+	std::unique_ptr<ImageView>                cubeMapView;
+	Texture                                   cubeMapTexture;
+
 private:
 	std::map<std::string, uint32_t> modelMap;
 

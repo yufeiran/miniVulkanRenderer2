@@ -159,6 +159,99 @@ Image::Image(Device& device, const std::string& filename, bool flipTexture):devi
 
 }
 
+
+// for create cubemap
+Image::Image(Device& device, const std::vector<std::string>& filenames, bool flipTexture):device(device),name(filenames[0]),imageType(CREATED_IMG)
+{
+
+	// only handle cubemap
+	assert(filenames.size()==6);
+
+	// Load Textures
+	int texWidth, texHeight, texChannels;
+	stbi_uc* pixels[6]={};
+
+	for(int i=0;i<6;i++)
+	{
+	
+		stbi_set_flip_vertically_on_load(flipTexture);
+
+
+		pixels[i] = stbi_load(filenames[i].c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+		extent.width = texWidth;
+		extent.height = texHeight;
+
+
+		if (!pixels) {
+			throw Error("Failed to load texture image:" + filenames[i]);
+		}
+	}
+
+	const VkDeviceSize imageSize = extent.width * extent.height * 4 * 6;
+	const VkDeviceSize layerSize = imageSize / 6;
+
+	// Staging buffer
+	Buffer stagingBuffer(device,imageSize,VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT|VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+
+	stagingBuffer.persistentMap(imageSize);
+
+	void* mapAddress = stagingBuffer.getMapAddress(); 
+
+
+	for(int i=0; i<6; i++)
+	{
+		memcpy( (char*) mapAddress +layerSize * i, pixels[i], (size_t)layerSize);
+	}
+
+	stagingBuffer.unpersistentMap();
+
+
+	for(int i=0; i < 6; i++)
+	{
+		stbi_image_free(pixels[i]);
+	}
+
+
+	VkImageCreateInfo imageInfo{VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
+	imageInfo.imageType = VK_IMAGE_TYPE_2D;
+	imageInfo.extent.width = extent.width;
+	imageInfo.extent.height = extent.height;
+	imageInfo.extent.depth = 1;
+	imageInfo.mipLevels = 1;
+	imageInfo.arrayLayers = 6;
+
+	imageInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
+	format = imageInfo.format;
+	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+
+	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+	imageInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+
+	if (vkCreateImage(device.getHandle(), &imageInfo, nullptr, &handle) != VK_SUCCESS) {
+		throw Error("Failed to create image");
+	}
+
+	deviceMemory = std::make_unique<DeviceMemory>(device, *this, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+	bindImageMemory(*deviceMemory);
+
+	transitionImageLayout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 6);
+
+	copyBufferToImage(stagingBuffer, 6);
+
+	transitionImageLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 6);
+
+
+
+
+}
+
 Image::Image(Image&& other):device(other.device),imageType(other.imageType),handle(other.handle),
 deviceMemory(std::move(other.deviceMemory)),extent(other.extent),format(other.format),
 usage(other.usage),sampleCount(other.sampleCount),tiling(other.tiling),subresource(other.subresource),name(other.name)
@@ -214,7 +307,7 @@ void Image::bindImageMemory(DeviceMemory& deviceMemory)
 	vkBindImageMemory(device.getHandle(), handle, deviceMemory.getHandle(), 0);
 }
 
-void Image::transitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayout)
+void Image::transitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayout, int layerCount)
 {
 	auto cmd = device.getCommandPoolForTransfer().createCommandBuffer();
 	cmd->beginSingleTime();
@@ -241,7 +334,7 @@ void Image::transitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayo
 	barrier.subresourceRange.baseMipLevel = 0;
 	barrier.subresourceRange.levelCount = 1;
 	barrier.subresourceRange.baseArrayLayer = 0;
-	barrier.subresourceRange.layerCount = 1;
+	barrier.subresourceRange.layerCount = layerCount;
 
 	VkPipelineStageFlags sourceStage;
 	VkPipelineStageFlags destinationStage;
@@ -295,7 +388,7 @@ void Image::transitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayo
 	cmd->endSingleTime(device.getGraphicQueue());
 }
 
-void Image::copyBufferToImage(Buffer& buffer)
+void Image::copyBufferToImage(Buffer& buffer, int layerCount)
 {
 	auto cmd = device.getCommandPoolForTransfer().createCommandBuffer();
 
@@ -309,7 +402,7 @@ void Image::copyBufferToImage(Buffer& buffer)
 	region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	region.imageSubresource.mipLevel = 0;
 	region.imageSubresource.baseArrayLayer = 0;
-	region.imageSubresource.layerCount = 1;
+	region.imageSubresource.layerCount = layerCount;
 
 	region.imageOffset = { 0,0,0 };
 	region.imageExtent = {
