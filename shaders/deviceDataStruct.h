@@ -72,6 +72,8 @@ struct PushConstantRay
 	vec3  lightPosition;
 	float lightIntensity;
 	int   lightType;
+	int   frame;
+	int   nbSample;
 };
 
 struct WaveFrontMaterial

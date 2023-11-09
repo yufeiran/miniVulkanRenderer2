@@ -90,10 +90,16 @@ public:
 
 	void raytrace(CommandBuffer& cmd, const glm::vec4& clearColor);
 
+	// ui---------------------
+	void renderUI(std::vector<VkClearValue>& clearValues );
+
 
 	//post -----------------
 	void initPostRender();
 	void updatePostDescriptorSet();
+
+	void resetFrame();
+	void updateFrame();
 
 
 	void loop();
@@ -132,7 +138,14 @@ public:
 		0                    // light type
 	};
 
-	PushConstantRay pcRay{};
+	PushConstantRay pcRay{
+		{},  // clearColor
+		{},  // lightPosition
+		0,   // lightIntensity
+		0,   // lightType
+		0,   // frame
+		10   // nbSample
+	};
 
 private:
 	bool canRaytracing = false;
@@ -141,6 +154,10 @@ private:
 	VkExtent2D surfaceExtent{};
 
 	unsigned long long frameCount=0;
+	
+	int maxFrames{10000};
+	const int MAX_FRAMES_LIMIT = {10000};
+	
 
 	VkFormat defaultSurfaceColorFormat=VK_FORMAT_R8G8B8A8_SRGB;
 	VkFormat defaultSurfaceDepthFormat=VK_FORMAT_X8_D24_UNORM_PACK32;

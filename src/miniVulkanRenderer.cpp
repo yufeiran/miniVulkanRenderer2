@@ -184,6 +184,24 @@ void MiniVulkanRenderer::initImGUI()
 	io.IniFilename = nullptr; // Avoiding the INI file
 	io.LogFilename = nullptr;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+	io.FontGlobalScale = 1.5f; 
+
+	ImGuiStyle& style = ImGui::GetStyle();
+
+	ImVec4 TETSU      = ImVec4(38.f / 255.f, 69.f / 255.f, 61.f / 255.f, 1.0f);
+	ImVec4 AIMIRUCHA  = ImVec4(15.f / 255.f, 76.f / 255.f, 58.f / 255.f, 1.0f);
+	ImVec4 KAMENOZOKI = ImVec4(165.f / 255.f, 222.f / 255.f, 228.f / 255.f, 1.0f);
+
+	// set background color
+	style.Colors[ImGuiCol_WindowBg] = TETSU;
+
+	// set text color
+	style.Colors[ImGuiCol_Text]     = KAMENOZOKI;
+
+	// set button background color 
+	style.Colors[ImGuiCol_Button]   = AIMIRUCHA;
+
+
 
 	imguiDescPool = std::make_unique<DescriptorPool>(*device);
 
@@ -212,6 +230,7 @@ void MiniVulkanRenderer::initImGUI()
 	tempCmd->beginSingleTime();
 	ImGui_ImplVulkan_CreateFontsTexture(tempCmd->getHandle());
 	tempCmd->endSingleTime(device->getGraphicQueue());
+
 
 }
 
@@ -510,6 +529,10 @@ void MiniVulkanRenderer::createRtShaderBindingTable()
 
 void MiniVulkanRenderer::raytrace(CommandBuffer& cmd, const glm::vec4& clearColor)
 {
+	updateFrame();
+	if(pcRay.frame >= maxFrames)
+		return;
+
 	// Initializing push constant vulues
 	pcRay.clearColor     = clearColor;
 	pcRay.lightPosition  = pcRaster.lightPosition;
@@ -527,12 +550,53 @@ void MiniVulkanRenderer::raytrace(CommandBuffer& cmd, const glm::vec4& clearColo
 	vkCmdTraceRaysKHR(cmd.getHandle(), &rgenRegion, &missRegion, &hitRegion, &callRegion, surfaceExtent.width,surfaceExtent.height,1);
 }
 
+void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>&  clearValues)
+{
+	static ImGuiTreeNodeFlags_ isLightHeaderOpen = ImGuiTreeNodeFlags_DefaultOpen;
+	static ImGuiTreeNodeFlags_ isRenderingHeaderOpen = ImGuiTreeNodeFlags_DefaultOpen;
+
+
+	bool changed = false;
+
+	ImGui::SetNextWindowSize(ImVec2(500,0));
+	ImGui::Begin("Setting");
+	changed |= ImGui::ColorEdit3("clearColor",(float*)(&(clearValues[0].color)));
+	changed |= ImGui::Checkbox("Ray Tracer mode",&useRaytracing);
+	
+	if(ImGui::CollapsingHeader("Light",ImGuiTreeNodeFlags_DefaultOpen ))
+	{
+		auto& pc = pcRaster;
+		changed |= ImGui::RadioButton("Point", &pc.lightType, 0);
+		ImGui::SameLine();
+		changed |= ImGui::RadioButton("Infinite", &pc.lightType,1);
+
+		changed |= ImGui::SliderFloat3("Position", &pc.lightPosition.x, -20.f, 20.f);
+		changed |= ImGui::SliderFloat("Intensity", &pc.lightIntensity, 0.f , 150.f);
+	}
+	if(ImGui::CollapsingHeader("Rendering",ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		changed |= ImGui::SliderInt("Max Frames", &maxFrames, 1, MAX_FRAMES_LIMIT);
+		changed |= ImGui::SliderInt("Sample Number", &pcRay.nbSample, 1, 10);
+		ImGui::Text("Now Frame %d ", pcRay.frame);
+	}
+
+	
+	ImGui::End();
+
+
+
+	if(changed)
+		resetFrame();
+}
+
 void MiniVulkanRenderer::loop()
 {
 	std::vector<VkClearValue> clearValues(2);
 	VkClearColorValue defaultClearColor = {106.0f/256,131.0f/256,114.0f/256,1.0f};
 	clearValues[0].color = defaultClearColor;
 	clearValues[1].depthStencil = { 1.0f,0 };
+
+
 
 	while(!window->shouldClose()){
 		calFps();
@@ -562,11 +626,7 @@ void MiniVulkanRenderer::loop()
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		{
-			ImGui::Begin("Hello World");
-			ImGui::Text("miniVulkanRenderer2");
-			ImGui::ColorEdit3("clearColor",reinterpret_cast<float*>(&clearValues[0].color));
-			ImGui::Checkbox("Ray Tracer mode",&useRaytracing);
-			ImGui::End();
+			renderUI(clearValues);
 		}
 	
 		cmd.reset();
@@ -1071,6 +1131,28 @@ void MiniVulkanRenderer::updatePostDescriptorSet()
 	VkWriteDescriptorSet writeDescriptorSets = postDescSetBind.makeWrite(postDescriptorSet, 1, &imageInfo);
 	vkUpdateDescriptorSets(device->getHandle(), 1, &writeDescriptorSets, 0, nullptr);
 
+}
+
+void MiniVulkanRenderer::resetFrame()
+{
+	pcRay.frame = -1;
+}
+
+void MiniVulkanRenderer::updateFrame()
+{
+	static glm::mat4 refCamMat;
+	static float  refFov = camera.getFov();
+
+	const auto & m = camera.getViewMat();
+	const auto fov = camera.getFov();
+
+	if(memcmp(&refCamMat[0][0], &m[0][0], sizeof(glm::mat4)) != 0 ||  refFov != fov)
+	{
+		resetFrame();
+		refCamMat = m;
+		refFov    = fov;
+	}
+	pcRay.frame++;
 }
 
 void MiniVulkanRenderer::createDescriptorSetLayout()

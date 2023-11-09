@@ -20,7 +20,7 @@ public:
 
 
 	Camera(glm::vec3 cameraPos=glm::vec3(2,2,2), glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f),
-		double yaw = -135, double pitch = -45, double roll = 0, double step = 3, double changeDirSensitivity=0.05);
+		double yaw = -135, double pitch = -45, double roll = 0,float fov = 90, double step = 3, double changeDirSensitivity=0.05);
 
 	void calViewMat();
 	void updateCameraVec();
@@ -31,6 +31,8 @@ public:
 
 	glm::mat4 getViewMat() const;
 
+	float getFov() { return fov; }
+
 private:
 	glm::vec3 cameraPos, cameraFront, cameraUp;
 	glm::vec3 cameraRight;
@@ -40,6 +42,7 @@ private:
 	double yaw, pitch, roll;
 	float step; 
 	float changeDirSensitivity;
+	float fov;
 
 };
 

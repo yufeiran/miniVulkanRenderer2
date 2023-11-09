@@ -6,8 +6,8 @@ namespace mini
 
 
 
-Camera::Camera(glm::vec3 cameraPos, glm::vec3 cameraUp, double yaw, double pitch, double roll, double step, double changeDirSensitivity):
-	cameraPos(cameraPos),cameraUp(cameraUp),yaw(yaw),pitch(pitch),roll(roll),step(step), changeDirSensitivity(changeDirSensitivity)
+Camera::Camera(glm::vec3 cameraPos, glm::vec3 cameraUp, double yaw, double pitch, double roll, float fov, double step, double changeDirSensitivity):
+	cameraPos(cameraPos),cameraUp(cameraUp),yaw(yaw),pitch(pitch),roll(roll),step(step), changeDirSensitivity(changeDirSensitivity),fov(fov)
 {
 	worldUp = cameraUp;
 	updateCameraVec();
