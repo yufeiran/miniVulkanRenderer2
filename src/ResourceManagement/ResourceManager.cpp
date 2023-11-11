@@ -9,6 +9,8 @@
 #include "Vulkan/buffer.h"
 #include <cmath>
 
+
+
 namespace mini
 {	
 
@@ -26,7 +28,32 @@ ResourceManager::~ResourceManager()
 	
 }
 
-void ResourceManager::loadModel(std::string name, std::string path, glm::mat4 transform, bool flipTexture)
+std::vector<Material> materialObjToMaterial(std::vector<MaterialObj> &objM)
+{
+	std::vector<Material> mVec;
+	for(const auto & m : objM)
+	{
+		Material nowM;
+		nowM.type = 0;
+		nowM.ambient       = m.ambient;
+		nowM.diffuse       = m.diffuse;
+		nowM.specular      = m.specular;
+		nowM.transmittance = m.transmittance;
+		nowM.emission      = m.emission;
+		nowM.shininess     = m.shininess;
+		nowM.ior           = m.ior;
+		nowM.dissolve      = m.dissolve;
+		nowM.illum         = m.illum;
+		nowM.textureId     = m.textureID;
+
+		mVec.push_back(nowM);
+
+	}
+	return mVec;
+
+}
+
+void ResourceManager::loadObjModel(std::string name, std::string path, glm::mat4 transform, bool flipTexture)
 {
 	//if(modelMap.find(name)!=modelMap.end())
 	//{
@@ -52,9 +79,11 @@ void ResourceManager::loadModel(std::string name, std::string path, glm::mat4 tr
 	VkBufferUsageFlags rayTracingFlags = 
 		flag | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
 
+	auto &mVec = materialObjToMaterial(loader.materials);
+
 	model->vertexBuffer   = std::make_unique<Buffer>(device, loader.vertices, static_cast<VkBufferUsageFlagBits>( VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | rayTracingFlags));
 	model->indexBuffer    = std::make_unique<Buffer>(device, loader.indices, static_cast<VkBufferUsageFlagBits>( VK_BUFFER_USAGE_INDEX_BUFFER_BIT | rayTracingFlags));
-	model->matColorBuffer = std::make_unique<Buffer>(device, loader.materials, static_cast<VkBufferUsageFlagBits>( VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | flag));
+	model->matColorBuffer = std::make_unique<Buffer>(device, mVec, static_cast<VkBufferUsageFlagBits>( VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | flag));
 	model->matIndexBuffer = std::make_unique<Buffer>(device, loader.matIndx, static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | flag));
 
 	auto txtOffset = static_cast<uint32_t>(textures.size());
@@ -80,6 +109,11 @@ void ResourceManager::loadModel(std::string name, std::string path, glm::mat4 tr
 	objModel.emplace_back(std::move(model));
 	objDesc.emplace_back(std::move(desc));
 
+}
+
+void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform)
+{
+	gltfLoader.loadScene(filename);
 }
 
 void ResourceManager::loadCubemap(const std::vector<std::string>& cubeMapNames, bool flipTexture)

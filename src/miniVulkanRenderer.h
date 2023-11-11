@@ -43,6 +43,7 @@
 #include "Vulkan/rayTracingBuilder.h"
 #include "Vulkan/rayTracingPipeline.h"
 #include "Vulkan/descriptorSetBindings.h"
+#include "Vulkan/image.h"
 
 
 
@@ -60,7 +61,6 @@ public:
 	MiniVulkanRenderer();
 
 	~MiniVulkanRenderer();
-
 
 	// init-----------------
 	void init(int width = 1920, int height = 1080);
@@ -92,7 +92,6 @@ public:
 
 	// ui---------------------
 	void renderUI(std::vector<VkClearValue>& clearValues );
-
 
 	//post -----------------
 	void initPostRender();

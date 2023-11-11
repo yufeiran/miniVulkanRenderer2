@@ -76,8 +76,11 @@ struct PushConstantRay
 	int   nbSample;
 };
 
-struct WaveFrontMaterial
+struct Material
 {
+	int type; // type = 0  Blinn-Phong type = 1 PBR
+
+	// Blinn-Phong
 	vec3  ambient;
 	vec3  diffuse;
 	vec3  specular;
@@ -88,6 +91,11 @@ struct WaveFrontMaterial
 	float dissolve;
 	int   illum;
 	int   textureId;
+	// PBR
+	vec4  pbrBaseColorFactor;
+	vec3  emissiveFactor;
+	int   pbrBaseColorTexture;
+
 };
 
 // for raytracing

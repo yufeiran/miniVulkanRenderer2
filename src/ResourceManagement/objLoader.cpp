@@ -15,6 +15,7 @@ void ObjLoader::loadModel(const std::string& filename)
 	for(const auto& material : reader.GetMaterials())
 	{
 		MaterialObj m;
+		
 		m.ambient          = glm::vec3(material.ambient[0],material.ambient[1],material.ambient[2]);
 		m.diffuse          = glm::vec3(material.diffuse[0],material.diffuse[1],material.diffuse[2]);
 		m.specular         = glm::vec3(material.specular[0],material.specular[1],material.specular[2]);

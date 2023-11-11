@@ -15,7 +15,7 @@
 
 layout(buffer_reference, scalar) buffer Vertices {Vertex v[]; };
 layout(buffer_reference, scalar) buffer Indices {uint i[]; };
-layout(buffer_reference, scalar) buffer Materials { WaveFrontMaterial m[]; };
+layout(buffer_reference, scalar) buffer Materials { Material m[]; };
 layout(buffer_reference, scalar) buffer MatIndices { int i[]; };
 
 layout(binding = eObjDescs, scalar) buffer ObjDesc_ { ObjDesc i[]; } objDesc;
@@ -43,7 +43,7 @@ void main() {
     Materials  materials   = Materials(objResource.materialAddress);
 
     int               matIndex = matIndices.i[gl_PrimitiveID];
-    WaveFrontMaterial mat      = materials.m[matIndex];
+    Material mat      = materials.m[matIndex];
 
     vec3 N = normalize(inWorldNormal);
 

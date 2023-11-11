@@ -10,6 +10,17 @@ namespace mini
 	void outputTag(LOG_TYPE logType = INFO_TYPE);
 	void Log(const char* message, LOG_TYPE logType = INFO_TYPE);
 	void Log(const std::string message, LOG_TYPE logType = INFO_TYPE);
+	void LogI(const char* message);
+	void LogE(const char* message);
+	void LogW(const char* message);
+	void LogN(const char* message);
+
+	void LogI(const std::string&& message);
+	void LogE(const std::string&& message);
+	void LogW(const std::string&& message);
+	void LogN(const std::string&& message);
+
+
 	
 	void LogSpace();
 	void LogLogo();

@@ -1,6 +1,5 @@
 #include "GUIWindow.h"
 #include"Vulkan/instance.h"
-#define STB_IMAGE_IMPLEMENTATION
 #include"stb_image.h"
 
 #define GLFW_EXPOSE_NATIVE_WIN32
@@ -178,6 +177,7 @@ void GUIWindow::hideWindow() const
 
 void GUIWindow::showWindow() const
 {
+	glfwSetWindowPos(handle, 100, 100);
 	glfwShowWindow(handle);
 }
 

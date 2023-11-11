@@ -79,6 +79,7 @@ set(COMMON_FILES
     ./Common/camera.h 
     ./Common/camera.cpp 
     ./Common/common.h
+    ./Common/common.cpp
 )
 
 set(PLATFORM_FILES
@@ -106,6 +107,9 @@ set(RESOURCE_MANAGEMENT_FILES
     ./ResourceManagement/ResourceManager.cpp 
     ./ResourceManagement/objLoader.h 
     ./ResourceManagement/objLoader.cpp 
+    ./ResourceManagement/gltfLoader.h 
+    ./ResourceManagement/gltfLoader.cpp
+    ./ResourceManagement/boundingBox.h
 
 )
 
@@ -143,7 +147,7 @@ if (WIN32)
 endif()
 
 target_include_directories(miniVulkanRenderer2 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
-target_link_libraries(miniVulkanRenderer2 glm tinyobjloader imgui stb_image volk)
+target_link_libraries(miniVulkanRenderer2 glm tinyobjloader tinygltf imgui stb_image volk )
 
 target_link_libraries(miniVulkanRenderer2 Vulkan::Vulkan glfw)
 

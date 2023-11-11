@@ -1,3 +1,6 @@
+
+
+
 #include "miniVulkanRenderer.h"
 #include <chrono>
 #include "Vulkan/shaderInfo.h"
@@ -76,20 +79,20 @@ void MiniVulkanRenderer::init(int width, int height)
 	glm::mat4 objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat,{2,0,0});
 	objMat = glm::scale(objMat,{5,5,5});
-	resourceManager->loadModel("bunny", "../../assets/bunny/bunny.obj",objMat);
+	resourceManager->loadObjModel("bunny", "../../assets/bunny/bunny.obj",objMat);
 
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat,{4,2.5,0});
 	objMat = glm::scale(objMat,{2,2,2});
-	resourceManager->loadModel("smpl", "../../assets/smpl/smpl.obj",objMat);
+	resourceManager->loadObjModel("smpl", "../../assets/smpl/smpl.obj",objMat);
 
-	resourceManager->loadModel("plane", "../../assets/plane/plane.obj");
+	resourceManager->loadObjModel("plane", "../../assets/plane/plane.obj");
 
 
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat,{0,2,0});
 	objMat = glm::scale(objMat,{1,1,1});
-	resourceManager->loadModel("backpack", "../../assets/backpack/backpack.obj",objMat, true);
+	resourceManager->loadObjModel("backpack", "../../assets/backpack/backpack.obj",objMat, true);
 	
 	//resourceManagement->loadModel("Medieval_building", "../../assets/nv_raytracing_tutorial_scene/Medieval_building.obj",true);
 
@@ -188,7 +191,7 @@ void MiniVulkanRenderer::initImGUI()
 
 	ImGuiStyle& style = ImGui::GetStyle();
 
-	ImVec4 TETSU      = ImVec4(38.f / 255.f, 69.f / 255.f, 61.f / 255.f, 1.0f);
+	ImVec4 TETSU      = ImVec4(38.f / 255.f, 69.f / 255.f, 61.f / 255.f, 0.5f);
 	ImVec4 AIMIRUCHA  = ImVec4(15.f / 255.f, 76.f / 255.f, 58.f / 255.f, 1.0f);
 	ImVec4 KAMENOZOKI = ImVec4(165.f / 255.f, 222.f / 255.f, 228.f / 255.f, 1.0f);
 
@@ -200,7 +203,6 @@ void MiniVulkanRenderer::initImGUI()
 
 	// set button background color 
 	style.Colors[ImGuiCol_Button]   = AIMIRUCHA;
-
 
 
 	imguiDescPool = std::make_unique<DescriptorPool>(*device);
@@ -1000,6 +1002,7 @@ void MiniVulkanRenderer::joystickCallback(int jid, int event)
 
 void MiniVulkanRenderer::handleSizeChange()
 {
+	resetFrame();
 	device->waitIdle();
 
 	auto extent=window->getExtent();

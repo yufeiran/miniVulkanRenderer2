@@ -18,7 +18,7 @@ layout(location = 1) rayPayloadEXT bool isShadowed;
 
 layout(buffer_reference, scalar) buffer Vertices {Vertex v[]; };
 layout(buffer_reference, scalar) buffer Indices {ivec3 i[]; };
-layout(buffer_reference, scalar) buffer Materials { WaveFrontMaterial m[]; };
+layout(buffer_reference, scalar) buffer Materials { Material m[]; };
 layout(buffer_reference, scalar) buffer MatIndices { int i[]; };
 
 layout(set = 0, binding = eTlas) uniform accelerationStructureEXT topLevelAS;
@@ -74,7 +74,7 @@ void main()
 
     // Material of the object 
     int               matIdx = matIndices.i[gl_PrimitiveID];
-    WaveFrontMaterial mat    = materials.m[matIdx];
+    Material mat    = materials.m[matIdx];
 
     // Diffuse
     vec3 diffuse = computeDiffuse(mat, L, worldNormal);

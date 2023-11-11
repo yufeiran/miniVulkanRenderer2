@@ -44,6 +44,46 @@ void Log(const std::string message, LOG_TYPE logType)
 	Log(message.c_str(), logType);
 }
 
+void LogI(const char* message)
+{
+	Log(message, LOG_TYPE::INFO_TYPE);
+}
+
+void LogE(const char* message)
+{
+	Log(message, LOG_TYPE::ERROR_TYPE);
+}
+
+void LogW(const char* message)
+{
+	Log(message, LOG_TYPE::WARNING_TYPE);
+}
+
+void LogN(const char* message)
+{
+	Log(message, LOG_TYPE::NONE_TYPE);
+}
+
+void LogI(const std::string&& message)
+{
+	LogI(message.c_str());
+}
+
+void LogE(const std::string&& message)
+{
+	LogE(message.c_str());
+}
+
+void LogW(const std::string&& message)
+{
+	LogW(message.c_str());
+}
+
+void LogN(const std::string&& message)
+{
+	LogN(message.c_str());
+}
+
 void LogSpace()
 {
 	Log("----------------------------------------------------------------------------",NONE_TYPE);

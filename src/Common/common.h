@@ -1,16 +1,17 @@
 #pragma once 
-#include<vector>
-#include<map>
-#include<unordered_map>
-#include<cstdint>
-#include<limits>
-#include<algorithm>
-#include<string>
-#include<set>
-#include<functional>
-#include<assert.h>
-#include<array>
-#include<chrono>
+#include <vector>
+#include <map>
+#include <unordered_map>
+#include <cstdint>
+#include <limits>
+#include <algorithm>
+#include <string>
+#include <set>
+#include <functional>
+#include <assert.h>
+#include <array>
+#include <chrono>
+#include "miniLog.h"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -61,7 +62,8 @@ using BindingMap = std::map<uint32_t, std::map<uint32_t, T>>;
 const VkIndexType indexType = VK_INDEX_TYPE_UINT32;
 
 
-inline bool hasFlag(VkFlags item, VkFlags flag)  { return (item & flag) == flag; }
+template <typename T, typename TFlag>
+inline bool hasFlag(T item, TFlag flag)  { return (item & flag) == flag; }
 
 template<class integral>
 constexpr integral align_up(integral x,size_t a) noexcept

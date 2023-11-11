@@ -4,6 +4,7 @@
 #include "../shaders/deviceDataStruct.h"
 #include "Vulkan/sampler.h"
 #include "Vulkan/commandPool.h"
+#include "ResourceManagement/gltfLoader.h"
 
 namespace mini
 {
@@ -39,7 +40,9 @@ public:
 	ResourceManager(Device&device);
 	~ResourceManager();
 
-	void loadModel(std::string name,std::string path,glm::mat4 transform = glm::mat4(1), bool flipTexture=false);
+	void loadObjModel(std::string name,std::string path,glm::mat4 transform = glm::mat4(1), bool flipTexture=false);
+
+	void loadScene(const std::string& filename, glm::mat4 transform = glm::mat4(1));
 
 	void loadCubemap(const std::vector<std::string>& cubeMapNames, bool flipTexture = false);
 
@@ -62,6 +65,8 @@ public:
 	std::unique_ptr<Image>                    cubeMap;
 	std::unique_ptr<ImageView>                cubeMapView;
 	Texture                                   cubeMapTexture;
+
+	GltfLoader                                gltfLoader;
 
 private:
 	std::map<std::string, uint32_t> modelMap;

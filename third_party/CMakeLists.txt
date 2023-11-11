@@ -5,21 +5,36 @@ find_package(glfw3  REQUIRED)
 add_library(glm INTERFACE)
 add_library(stb_image INTERFACE)
 add_library(tinyobjloader STATIC)
+add_library(tinygltf STATIC)
+
 
 
 # header only lib
 target_include_directories(glm INTERFACE glm)
 target_include_directories(stb_image INTERFACE stb_image)
 
+
+
 # tinyobj
 target_sources(tinyobjloader PRIVATE 
     tinyobjloader/tiny_obj_loader.h
     tinyobjloader/tiny_obj_loader.cc
     )
-
 target_include_directories(tinyobjloader PUBLIC tinyobjloader)
 
 set_property(TARGET tinyobjloader PROPERTY FOLDER third_party )
+
+# tinygltf
+target_sources(tinygltf PRIVATE 
+    tinygltf/tiny_gltf.h
+    tinygltf/json.hpp
+    tinygltf/tiny_gltf.cc
+    )
+target_include_directories(tinygltf PUBLIC tinygltf)
+
+set_property(TARGET tinygltf PROPERTY FOLDER third_party )
+
+
 
 # imgui
 add_definitions(-DVK_NO_PROTOTYPES)
