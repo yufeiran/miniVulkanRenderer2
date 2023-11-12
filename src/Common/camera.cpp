@@ -36,6 +36,20 @@ void Camera::updateCameraVec()
 	calViewMat();
 }
 
+void Camera::setPos(glm::vec3& pos)
+{
+	cameraPos = pos;
+	calViewMat();
+}
+
+void Camera::setViewDir(double yaw, double pitch)
+{
+	this->yaw   = yaw;
+	this->pitch = pitch;
+	updateCameraVec();
+	calViewMat();
+}
+
 void Camera::move(CAMERA_MOVE_DIR dir, float deltaTime)
 {
 

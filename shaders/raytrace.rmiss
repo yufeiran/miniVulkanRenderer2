@@ -18,6 +18,14 @@ layout(push_constant) uniform _PushConstantRay
 void main()
 {
 
+    vec3 cubeMapColor = texture(cubeMapTexture,gl_WorldRayDirectionEXT).xyz;
     //prd.hitValue = pcRay.clearColor.xyz * 0.8;
-    prd.hitValue = texture(cubeMapTexture,gl_WorldRayDirectionEXT).xyz;
+    if(prd.depth == 0)
+    {
+        prd.hitValue =  0.8 * cubeMapColor;
+    }
+    else {
+        prd.hitValue = 0.01 * cubeMapColor; // Tiny contribution from environment;
+    }
+    prd.depth = 100;
 }

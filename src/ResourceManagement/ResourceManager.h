@@ -50,7 +50,7 @@ public:
 
 	void createTextureImages(const std::vector<std::string>& textures, const std::string &modelPath, bool flipTexture = false);
 
-	uint32_t getInstanceId(const std::string name);
+	int32_t getInstanceId(const std::string name);
 
 	const std::vector<std::unique_ptr<ObjModel>>&  getModels() const{return objModel;}
 	std::vector<ObjInstance>&     getInstances() {return instances;}

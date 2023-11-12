@@ -10,6 +10,7 @@
 #include "deviceDataStruct.h"
 #include "raycommon.glsl"
 #include "wavefront.glsl"
+#include "sampling.glsl"
 
 hitAttributeEXT vec2 attribs;
 
@@ -52,7 +53,7 @@ void main()
 
     // Computing the normal at hit position 
     const vec3 normal      = v0.normal * barycentrics.x + v1.normal * barycentrics.y + v2.normal * barycentrics.z;
-    const vec3 worldNormal = vec3(gl_ObjectToWorldEXT * vec4(normal, 1.0)); // Transforming the normal to world space
+    const vec3 worldNormal = vec3(normal * gl_WorldToObjectEXT); // Transforming the normal to world space
 
     // Vector toward the light 
     vec3  L; // direction of light
@@ -127,19 +128,61 @@ void main()
     }
     else if(mat.type == 1)
     {
-        vec3 diffuse = computeDiffuse(mat, L, worldNormal);
-        // PBR
-        if(mat.pbrBaseColorTexture >= 0)
+
+        vec3 emittance = mat.emissiveFactor.xyz;
+
+        // Pick a random direction from here to keep going
+        vec3 tangent, bitangent;
+        createCoordinateSystem(worldNormal, tangent, bitangent);
+        vec3 rayOrigin       = worldPos;
+        vec3 rayDirection    = samplineHemisphere(prd.seed, tangent, bitangent, worldNormal);
+
+        const float cosTheta = dot(rayDirection, worldNormal);
+        // Probability density function of samplineHemisphere chossing this rayDrirecion
+        const float p = cosTheta / M_PI; // ??? why
+
+        // Compute the BRDF for this ray(assuming Lambertian reflection)
+        vec3 albedo = mat.pbrBaseColorFactor.xyz;
+        if(mat.pbrBaseColorTexture > -1)
         {
             uint txtId    = mat.pbrBaseColorTexture + objDesc.i[gl_InstanceCustomIndexEXT].txtOffset;
             vec2 texCoord = v0.texCoord * barycentrics.x + v1.texCoord * barycentrics.y + v2.texCoord * barycentrics.z;
-            prd.hitValue = texture(textureSamplers[nonuniformEXT(txtId)],texCoord).xyz;
+            albedo       *= texture(textureSamplers[nonuniformEXT(txtId)], texCoord).xyz;
+
         }
-        else 
+        vec3 BRDF = albedo / M_PI;
+
+        prd.rayOrigin    = rayOrigin;
+        prd.rayDirection = rayDirection;
+        prd.hitValue     = emittance;
+        prd.weight       = BRDF * cosTheta / p;
+        return;
+
+        // Recursively trace reflected light sources
+        if(prd.depth < 10)
         {
-            prd.hitValue = mat.pbrBaseColorFactor.xyz;
+            prd.depth++;
+            float tMin  = 0.001;
+            float tMax  = 100000000.0;
+            uint  flags = gl_RayFlagsOpaqueEXT;
+            traceRayEXT(topLevelAS,    // acceleration structure
+                        flags,         // rayFlags
+                        0xFF,          // cullMask
+                        0,             // sbtRecordOffset
+                        0,             // sbtRecordStride
+                        0,             // missIndex
+                        rayOrigin,     // ray origin
+                        tMin,          // ray min range 
+                        rayDirection,  // ray direction
+                        tMax,          // ray max range
+                        0              // payload (location = 0)
+            );
+
         }
 
+        vec3 incoming = prd.hitValue;
+
+        prd.hitValue = emittance + (BRDF * incoming * cosTheta / p);
 
     }
 

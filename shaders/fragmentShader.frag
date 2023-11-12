@@ -62,18 +62,45 @@ void main() {
         L = normalize(pcRaster.lightPosition);
     }
 
-    // Diffuse 
-    vec3 diffuse = computeDiffuse(mat, L, N);
-    if(mat.textureId >= 0)
+    if(mat.type == 0)
     {
-        int  txtOffset  = objDesc.i[pcRaster.objIndex].txtOffset;
-        uint txtId      = txtOffset + mat.textureId;
-        vec3 diffuseTxt = texture(textureSamplers[nonuniformEXT(txtId)], inTexCoord).xyz;
-        diffuse *=diffuseTxt;
+        // Diffuse 
+        vec3 diffuse = computeDiffuse(mat, L, N);
+        if(mat.textureId >= 0)
+        {
+            int  txtOffset  = objDesc.i[pcRaster.objIndex].txtOffset;
+            uint txtId      = txtOffset + mat.textureId;
+            vec3 diffuseTxt = texture(textureSamplers[nonuniformEXT(txtId)], inTexCoord).xyz;
+            diffuse *=diffuseTxt;
+        }
+
+        // Specular 
+        vec3 specular = computeSpecular(mat, inViewDir, L, N);
+
+        outColor = vec4(lightIntensity * (diffuse + specular), 1);
+    }
+    // PBR
+    else if(mat.type == 1)
+    {
+        // Diffuse 
+        vec3 diffuse = computeDiffuse(mat, L, N);
+        if(mat.pbrBaseColorTexture >= 0)
+        {
+            uint txtId    = mat.pbrBaseColorTexture + objDesc.i[pcRaster.objIndex].txtOffset;
+            vec3 diffuseTxt = texture(textureSamplers[nonuniformEXT(txtId)], inTexCoord).xyz;
+            diffuse *=diffuseTxt;
+        }
+        else 
+        {
+            diffuse *= mat.pbrBaseColorFactor.xyz;
+        }
+
+        // Specular 
+        vec3 specular = computeSpecular(mat, inViewDir, L, N);
+
+        outColor = vec4(lightIntensity * (diffuse + specular), 1);
+       
     }
 
-    // Specular 
-    vec3 specular = computeSpecular(mat, inViewDir, L, N);
 
-    outColor = vec4(lightIntensity * (diffuse + specular), 1);
 }

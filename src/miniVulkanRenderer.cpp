@@ -52,7 +52,8 @@ void MiniVulkanRenderer::init(int width, int height)
 		VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
 		VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
 		VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
-		VK_NV_DEVICE_DIAGNOSTICS_CONFIG_EXTENSION_NAME
+		VK_NV_DEVICE_DIAGNOSTICS_CONFIG_EXTENSION_NAME,
+		VK_KHR_SHADER_CLOCK_EXTENSION_NAME
 	};
 
 	device = std::make_unique<Device>(gpu, surface, deviceExtension);
@@ -79,14 +80,14 @@ void MiniVulkanRenderer::init(int width, int height)
 	glm::mat4 objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat,{2,0,0});
 	objMat = glm::scale(objMat,{5,5,5});
-	resourceManager->loadObjModel("bunny", "../../assets/bunny/bunny.obj",objMat);
+	//resourceManager->loadObjModel("bunny", "../../assets/bunny/bunny.obj",objMat);
 
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat,{4,2.5,0});
 	objMat = glm::scale(objMat,{2,2,2});
-	resourceManager->loadObjModel("smpl", "../../assets/smpl/smpl.obj",objMat);
+	//resourceManager->loadObjModel("smpl", "../../assets/smpl/smpl.obj",objMat);
 
-	resourceManager->loadObjModel("plane", "../../assets/plane/plane.obj");
+	//resourceManager->loadObjModel("plane", "../../assets/plane/plane.obj");
 
 
 	objMat = glm::mat4(1.0f);
@@ -94,7 +95,16 @@ void MiniVulkanRenderer::init(int width, int height)
 	objMat = glm::scale(objMat,{1,1,1});
 	//resourceManager->loadObjModel("backpack", "../../assets/backpack/backpack.obj",objMat, true);
 
-	resourceManager->loadScene("../../assets/glTFBox/Box.gltf",objMat);
+	//resourceManager->loadScene("../../assets/glTFBox/Box.gltf",objMat);
+
+	//resourceManager->loadScene("../../assets/glTFBox/Box.gltf");
+
+	resourceManager->loadScene("../../assets/cornellBox/cornellBox.gltf");
+
+	camera.setPos(glm::vec3(-0.0, 0, 15.0));
+	camera.setViewDir(-90, 0);
+	pcRaster.lightPosition = glm::vec3(0, 4.5f, 0.f);
+
 	
 	//resourceManagement->loadModel("Medieval_building", "../../assets/nv_raytracing_tutorial_scene/Medieval_building.obj",true);
 
@@ -193,7 +203,7 @@ void MiniVulkanRenderer::initImGUI()
 
 	ImGuiStyle& style = ImGui::GetStyle();
 
-	ImVec4 TETSU      = ImVec4(38.f / 255.f, 69.f / 255.f, 61.f / 255.f, 0.5f);
+	ImVec4 TETSU      = ImVec4(38.f / 255.f, 69.f / 255.f, 61.f / 255.f, 0.9f);
 	ImVec4 AIMIRUCHA  = ImVec4(15.f / 255.f, 76.f / 255.f, 58.f / 255.f, 1.0f);
 	ImVec4 KAMENOZOKI = ImVec4(165.f / 255.f, 222.f / 255.f, 228.f / 255.f, 1.0f);
 
@@ -455,7 +465,7 @@ void MiniVulkanRenderer::createRtPipeline()
 	rayPipelineInfo.groupCount = static_cast<uint32_t>(rtShaderGroups.size());
 	rayPipelineInfo.pGroups    = rtShaderGroups.data();
 
-	rayPipelineInfo.maxPipelineRayRecursionDepth = 2; // Ray depth
+	rayPipelineInfo.maxPipelineRayRecursionDepth = 31; // Ray depth
 	rayPipelineInfo.layout                       = rtPipelineLayout->getHandle();
 	
 	rtPipeline = std::make_unique<RayTracingPipeline>(*device,rayPipelineInfo);
@@ -581,7 +591,13 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>&  clearValues)
 	{
 		changed |= ImGui::SliderInt("Max Frames", &maxFrames, 1, MAX_FRAMES_LIMIT);
 		changed |= ImGui::SliderInt("Sample Number", &pcRay.nbSample, 1, 10);
+		changed |= ImGui::SliderInt("Max Depth", &pcRay.maxDepth, 1, 20);
 		ImGui::Text("Now Frame %d ", pcRay.frame);
+	}
+	if(ImGui::CollapsingHeader("Camera",ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		ImGui::Text("Camera pos:%.1f %.1f %.1f , yaw %.1f pitch %.1f ", camera.getPos()[0], camera.getPos()[1], camera.getPos()[2],
+			camera.getYaw(), camera.getPitch());
 	}
 
 	
@@ -693,6 +709,10 @@ void MiniVulkanRenderer::updateInstances()
 	std::chrono::duration<float> diff = now - start;
 	start = now;
 	auto bunnyId                      = resourceManager->getInstanceId("bunny");
+	if(bunnyId == -1)
+	{
+		return;
+	}
 	auto & instances                  = resourceManager->getInstances();
 	const float deltaAngle            =  6.28318530718f;
 	const float offset                = diff.count() * 0.5;

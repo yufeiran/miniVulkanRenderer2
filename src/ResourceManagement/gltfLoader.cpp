@@ -224,7 +224,7 @@ void GltfLoader::processMesh(const tinygltf::Model& tmodel, const tinygltf::Prim
 	GltfPrimMesh resultMesh;
 	resultMesh.name          = name;
 	resultMesh.materialIndex = std::max(0, tmesh.material);
-	resultMesh.vertexCount   = static_cast<uint32_t>(positions.size());
+	resultMesh.vertexOffset   = static_cast<uint32_t>(positions.size());
 	resultMesh.firstIndex    = static_cast<uint32_t>(indices.size());
 
 	// Create a key made of the attributes, to see if we cache the primitive then we just reused it 
@@ -640,6 +640,41 @@ void GltfLoader::createColors(GltfPrimMesh& resultMesh)
 	colors0.insert(colors0.end(), resultMesh.vertexCount, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 }
 
+glm::mat4 toMat(glm::quat &q)
+{
+	float x2      = q.x * 2;
+	float y2      = q.y * 2;
+	float z2      = q.z * 2;
+	float wx      = x2 * q.w;
+	float wy      = y2 * q.w;
+	float wz      = z2 * q.w;
+	float xx      = x2 * q.x;
+	float xy      = y2 * q.x;
+	float xz      = z2 * q.x;
+	float yy      = y2 * q.y;
+	float yz      = z2 * q.y;
+	float zz      = z2 * q.z;
+
+	glm::mat4 mat;
+	mat[0][0] = 1 - (yy + zz);
+	mat[0][1] = xy - wz;
+	mat[0][2] = xz + wy;
+	mat[0][3] = 0.0f;
+	mat[1][0] = xy + wz;
+	mat[1][1] = 1 - (xx + zz);
+	mat[1][2] = yz - wx;
+	mat[1][3] = 0.0f;
+	mat[2][0] = xz - wy;
+	mat[2][1] = yz + wx;
+	mat[2][2] = 1 - (xx + yy);
+	mat[2][3] = 0.0f;
+	mat[3][0] = 0.0f;
+	mat[3][1] = 0.0f;
+	mat[3][2] = 0.0f;
+	mat[3][3] = 1.0f;
+	return mat;
+}
+
 glm::mat4 getLocalMatrix(const tinygltf::Node& tnode)
 {
 	glm::mat4 mtranslation{1};
@@ -659,7 +694,7 @@ glm::mat4 getLocalMatrix(const tinygltf::Node& tnode)
 	if(!tnode.rotation.empty())
 	{
 		glm::quat mrotation = glm::quat(tnode.rotation[3], tnode.rotation[0], tnode.rotation[1], tnode.rotation[2]);
-		mrot = glm::mat4_cast(mrotation);
+		mrot = toMat(mrotation);
 
 	}
 	if(!tnode.matrix.empty())

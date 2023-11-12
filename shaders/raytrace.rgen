@@ -2,11 +2,12 @@
 #extension GL_EXT_ray_tracing : require
 #extension GL_GOOGLE_include_directive : enable
 #extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
+#extension GL_ARB_shader_clock : enable
 
 
 #include "deviceDataStruct.h"
 #include "raycommon.glsl"
-#include "random.glsl"
+#include "sampling.glsl"
 
 layout(location = 0) rayPayloadEXT hitPayload prd;
 
@@ -19,9 +20,9 @@ layout(push_constant) uniform _PushConstantRay {PushConstantRay pcRay; };
 void main() 
 {
     // Initialize the random number
-    uint seed = tea(gl_LaunchIDEXT.y * gl_LaunchSizeEXT.x + gl_LaunchIDEXT.x, pcRay.frame);
+    uint seed = tea(gl_LaunchIDEXT.y * gl_LaunchSizeEXT.x + gl_LaunchIDEXT.x, int(clockARB()));
 
-    vec3 hitValues = vec3(0);
+    vec3 totalHitValues = vec3(0);
 
     for(int smpl = 0; smpl < pcRay.nbSample; smpl++)
     {
@@ -43,24 +44,40 @@ void main()
         uint  rayFlags = gl_RayFlagsOpaqueEXT;
         float tMin     = 0.001;
         float tMax     = 10000.0;
-        traceRayEXT(topLevelAS, // acceleration structure
-                rayFlags,       // rayFlags
-                0xFF,           // cullMask
-                0,              // sbtRecordOffset
-                0,              // sbtRecordStride
-                0,              // missIndex
-                origin.xyz,     // ray origin
-                tMin,           // ray min range
-                direction.xyz,  // ray direction
-                tMax,           // ray max range
-                0               // payload (location = 0)
-        );
 
-        hitValues += prd.hitValue;
+        prd.hitValue     = vec3(0);
+        prd.seed         = seed;
+        prd.depth        = 0;
+        prd.rayOrigin    = origin.xyz;
+        prd.rayDirection = direction.xyz;
+        prd.weight       = vec3(0);
+        
+        vec3 curWeight   = vec3(1);
+        vec3 hitValues    = vec3(0);
+        
+        for(; prd.depth < pcRay.maxDepth; prd.depth++)
+        {
+            traceRayEXT(topLevelAS, // acceleration structure
+                        rayFlags,       // rayFlags
+                        0xFF,           // cullMask
+                        0,              // sbtRecordOffset
+                        0,              // sbtRecordStride
+                        0,              // missIndex
+                        prd.rayOrigin,  // ray origin
+                        tMin,           // ray min range
+                        prd.rayDirection,  // ray direction
+                        tMax,           // ray max range
+                        0               // payload (location = 0)
+            );
 
+            hitValues += prd.hitValue * curWeight;
+            curWeight *= prd.weight;
+        }
+        totalHitValues += hitValues;
+    
     }
 
-    prd.hitValue = hitValues / pcRay.nbSample;
+    vec3 avgHitValue = totalHitValues / pcRay.nbSample;
 
 
     // Do accumulation over time 
@@ -68,12 +85,12 @@ void main()
     {
         float a        = 1.0f / float(pcRay.frame + 1);
         vec3  oldColor = imageLoad(image, ivec2(gl_LaunchIDEXT.xy)).xyz;
-        imageStore(image, ivec2(gl_LaunchIDEXT.xy), vec4(mix(oldColor, prd.hitValue, a), 1.f));
+        imageStore(image, ivec2(gl_LaunchIDEXT.xy), vec4(mix(oldColor, avgHitValue, a), 1.f));
     }
     else 
     {
         // First frame, replace the value in the buffer
-        imageStore(image, ivec2(gl_LaunchIDEXT.xy), vec4(prd.hitValue, 1.0));
+        imageStore(image, ivec2(gl_LaunchIDEXT.xy), vec4(avgHitValue, 1.0));
     }
 
 

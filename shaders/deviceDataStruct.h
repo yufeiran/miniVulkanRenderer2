@@ -74,6 +74,7 @@ struct PushConstantRay
 	int   lightType;
 	int   frame;
 	int   nbSample;
+	int   maxDepth;
 };
 
 struct Material

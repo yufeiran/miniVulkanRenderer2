@@ -91,19 +91,23 @@ Device::Device(PhysicalDevice& gpu,
 	features12.scalarBlockLayout                         = VK_TRUE;
 	features12.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
 	
-
-
-
+	VkPhysicalDeviceShaderClockFeaturesKHR arbClockFeatures{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CLOCK_FEATURES_KHR};
+	arbClockFeatures.shaderDeviceClock = VK_TRUE;
+	arbClockFeatures.shaderSubgroupClock = VK_TRUE;
+	features12.pNext = &arbClockFeatures;
 	
 	VkPhysicalDeviceAccelerationStructureFeaturesKHR asFeatures{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR};
 	asFeatures.accelerationStructure = VK_TRUE;
 	
-	features12.pNext = &asFeatures;
+	arbClockFeatures.pNext = &asFeatures;
 
 	VkPhysicalDeviceRayTracingPipelineFeaturesKHR rtFeatures{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR};
 	rtFeatures.rayTracingPipeline = VK_TRUE;
 	
 	asFeatures.pNext = &rtFeatures;
+
+
+
 
 	VkDeviceCreateInfo createInfo{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
 

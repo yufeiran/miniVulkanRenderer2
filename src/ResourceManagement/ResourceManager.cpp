@@ -28,9 +28,30 @@ ResourceManager::~ResourceManager()
 	
 }
 
+void initMaterial(Material& mat)
+{
+	mat.type = 0;
+	mat.ambient        = glm::vec3(0.1f, 0.1f, 0.1f);
+	mat.diffuse        = glm::vec3(0.7f, 0.7f, 0.7f);
+	mat.specular       = glm::vec3(1.0f, 1.0f, 1.0f);
+	mat.transmittance  = glm::vec3(0.0f, 0.0f, 0.0f);
+	mat.emission       = glm::vec3(0.0f, 0.0f, 0.10);
+	mat.shininess      = 0.f;
+	mat.ior            = 1.0f;
+	mat.dissolve       = 1.f;
+
+	mat.illum     = 1;
+	mat.textureId = -1;
+
+	mat.pbrBaseColorFactor = glm::vec4(0.7f, 0.7f, 0.7f, 1.0f);
+	mat.pbrBaseColorTexture = -1;
+	mat.emissiveFactor  = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+}
+
 Material  toMaterial(GltfMaterial& gltfm)
 {
 	Material m;
+	initMaterial(m);
 	m.type                = 1;
 	m.pbrBaseColorFactor  = gltfm.baseColorFactor;
 	m.emissiveFactor      = gltfm.emissiveFactor;
@@ -44,6 +65,7 @@ std::vector<Material> toMaterial(std::vector<MaterialObj> &objM)
 	for(const auto & m : objM)
 	{
 		Material nowM;
+		initMaterial(nowM);
 		nowM.type = 0;
 		nowM.ambient       = m.ambient;
 		nowM.diffuse       = m.diffuse;
@@ -225,6 +247,8 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 		objDesc.emplace_back(std::move(desc));
 	}
 
+	int maxCount = 2;
+	int nowCount = 0; 
 	// for every node
 	for(auto& node : gltfLoader.nodes)
 	{
@@ -234,7 +258,10 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 			instance.transform = transform * node.worldMatrix ;
 			instance.objIndex  = gltfToGobalMeshMap[node.primMesh];
 			instance.name = gltfLoader.primMeshes[node.primMesh].name;
+		
 			instances.push_back(instance);
+			nowCount++;
+			//if(nowCount == maxCount) break;
 		}
 	}
 
@@ -339,7 +366,7 @@ void ResourceManager::createTextureImages(const std::vector<std::string>& textur
 	}
 }
 
-uint32_t ResourceManager::getInstanceId(const std::string name)
+int32_t ResourceManager::getInstanceId(const std::string name)
 {
 	int id = 0;
 	for(auto & instance: instances)
@@ -350,7 +377,7 @@ uint32_t ResourceManager::getInstanceId(const std::string name)
 		}
 		id++;
 	}
-	throw id;
+	return -1;
 }
 
 }

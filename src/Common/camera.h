@@ -25,6 +25,10 @@ public:
 	void calViewMat();
 	void updateCameraVec();
 
+	void setPos(glm::vec3& pos);
+
+	void setViewDir(double yaw, double pitch);
+
 	void move(CAMERA_MOVE_DIR dir,float deltaTime);
 
 	void changeDir(double xoffset, double yoffset);
@@ -32,6 +36,12 @@ public:
 	glm::mat4 getViewMat() const;
 
 	float getFov() { return fov; }
+
+	glm::vec3 getPos() { return cameraPos; }
+
+	double getYaw() { return yaw; }
+
+	double getPitch() { return pitch; }
 
 private:
 	glm::vec3 cameraPos, cameraFront, cameraUp;

@@ -1,6 +1,6 @@
 #pragma once
 #include "Common/common.h"
-
+#include <glm/gtc/matrix_access.hpp>
 
 // BoundingBox
 struct BBox
@@ -61,9 +61,9 @@ struct BBox
 	BBox transform(glm::mat4 mat)
 	{
 		// 3d transformation + translation
-		auto r = mat[3];
+		auto r = glm::row(mat,3);
 		const float epsilon = 1e-6f;
-		assert(fabs(r.x) < epsilon && fabs(r.y) < epsilon && fabs(r.z) < epsilon && fabs(r.w - 1.0f) < epsilon);
+		assert(fabs(r.x) <  epsilon && fabs(r.y) <  epsilon && fabs(r.z) <  epsilon && fabs(r.w - 1.0f) <  epsilon);
 
 		std::vector<glm::vec3> corners(8);
 		corners[0] = glm::vec3(mat * glm::vec4(min.x, min.y, min.z, 1));
