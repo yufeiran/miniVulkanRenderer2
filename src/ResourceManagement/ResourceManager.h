@@ -42,11 +42,13 @@ public:
 
 	void loadObjModel(std::string name,std::string path,glm::mat4 transform = glm::mat4(1), bool flipTexture=false);
 
-	void loadScene(const std::string& filename, glm::mat4 transform = glm::mat4(1));
+	void loadScene(const std::string& filename, glm::mat4 transform = glm::mat4(1), bool flipTexture = false);
 
 	void loadCubemap(const std::vector<std::string>& cubeMapNames, bool flipTexture = false);
 
-	void createTextureImages(const std::vector<std::string>& textures, const std::string &modelPath, bool flipTexture=false);
+	void createTextureImages(const std::vector<tinygltf::Image*>& loadImages, bool flipTexture = false);
+
+	void createTextureImages(const std::vector<std::string>& textures, const std::string &modelPath, bool flipTexture = false);
 
 	uint32_t getInstanceId(const std::string name);
 

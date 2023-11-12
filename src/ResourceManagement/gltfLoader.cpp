@@ -9,7 +9,7 @@
 using namespace mini;
 void GltfLoader::loadScene(const std::string& filename, glm::mat4 transform)
 {
-	tinygltf::Model    tmodel;
+	
 	tinygltf::TinyGLTF tcontext;
 	std::string        warn, error;
 	Log("Loading file:" + filename);
@@ -22,7 +22,7 @@ void GltfLoader::loadScene(const std::string& filename, glm::mat4 transform)
 	
 	importMaterials(tmodel);
 
-	importDrawableNodes(tmodel, transform, GltfAttributes::Normal | GltfAttributes::Texcoord_0 );
+	importDrawableNodes(tmodel, transform, GltfAttributes::Normal | GltfAttributes::Texcoord_0 | GltfAttributes::Color_0 );
 
 
 }

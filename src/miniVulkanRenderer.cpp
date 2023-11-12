@@ -92,7 +92,9 @@ void MiniVulkanRenderer::init(int width, int height)
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat,{0,2,0});
 	objMat = glm::scale(objMat,{1,1,1});
-	resourceManager->loadObjModel("backpack", "../../assets/backpack/backpack.obj",objMat, true);
+	//resourceManager->loadObjModel("backpack", "../../assets/backpack/backpack.obj",objMat, true);
+
+	resourceManager->loadScene("../../assets/glTFBox/Box.gltf",objMat);
 	
 	//resourceManagement->loadModel("Medieval_building", "../../assets/nv_raytracing_tutorial_scene/Medieval_building.obj",true);
 

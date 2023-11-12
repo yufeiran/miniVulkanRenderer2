@@ -128,6 +128,8 @@ public:
 	std::vector<glm::vec2>    texcoords1;
 	std::vector<glm::vec4>    colors0;
 
+	tinygltf::Model    tmodel;
+
 
 	struct Dimensions
 	{

@@ -76,51 +76,73 @@ void main()
     int               matIdx = matIndices.i[gl_PrimitiveID];
     Material mat    = materials.m[matIdx];
 
+    if(mat.type == 0)
+    {
     // Diffuse
-    vec3 diffuse = computeDiffuse(mat, L, worldNormal);
-    if(mat.textureId >= 0)
-    {
-        uint txtId    = mat.textureId + objDesc.i[gl_InstanceCustomIndexEXT].txtOffset;
-        vec2 texCoord = v0.texCoord * barycentrics.x + v1.texCoord * barycentrics.y + v2.texCoord * barycentrics.z;
-        diffuse *= texture(textureSamplers[nonuniformEXT(txtId)],texCoord).xyz;
-    }
-
-    vec3  specular   = vec3(0);
-    float attenuation = 1;
-
-    // Tracing shadow ray only if the light is visible from the surface 
-    if(dot(worldNormal, L) > 0)
-    {
-        float tMin   = 0.001;
-        float tMax   = lightDistance;
-        vec3  origin = gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT;
-        vec3  rayDir = L;
-        uint  flags  = gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsOpaqueEXT | gl_RayFlagsSkipClosestHitShaderEXT;
-        isShadowed   = true;
-        traceRayEXT(topLevelAS,    // acceleration structure
-                    flags,         // rayFlags
-                    0xFF,          // cullMask
-                    0,             // sbtRecordOffset
-                    0,             // sbtRecordStride
-                    1,             // missIndex
-                    origin,        // ray origin
-                    tMin,          // ray min range 
-                    rayDir,        // ray direction
-                    tMax,          // ray max range
-                    1              // payload (location = 1)
-        );
-
-        if(isShadowed)
+        vec3 diffuse = computeDiffuse(mat, L, worldNormal);
+        if(mat.textureId >= 0)
         {
-            attenuation = 0.3;
+            uint txtId    = mat.textureId + objDesc.i[gl_InstanceCustomIndexEXT].txtOffset;
+            vec2 texCoord = v0.texCoord * barycentrics.x + v1.texCoord * barycentrics.y + v2.texCoord * barycentrics.z;
+            diffuse *= texture(textureSamplers[nonuniformEXT(txtId)],texCoord).xyz;
+        }
+
+        vec3  specular   = vec3(0);
+        float attenuation = 1;
+
+        // Tracing shadow ray only if the light is visible from the surface 
+        if(dot(worldNormal, L) > 0)
+        {
+            float tMin   = 0.001;
+            float tMax   = lightDistance;
+            vec3  origin = gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT;
+            vec3  rayDir = L;
+            uint  flags  = gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsOpaqueEXT | gl_RayFlagsSkipClosestHitShaderEXT;
+            isShadowed   = true;
+            traceRayEXT(topLevelAS,    // acceleration structure
+                        flags,         // rayFlags
+                        0xFF,          // cullMask
+                        0,             // sbtRecordOffset
+                        0,             // sbtRecordStride
+                        1,             // missIndex
+                        origin,        // ray origin
+                        tMin,          // ray min range 
+                        rayDir,        // ray direction
+                        tMax,          // ray max range
+                        1              // payload (location = 1)
+            );
+
+            if(isShadowed)
+            {
+                attenuation = 0.3;
+            }
+            else 
+            {
+                // Specular 
+                specular = computeSpecular(mat, gl_WorldRayDirectionEXT, L, worldNormal);
+            }
+        }
+
+        prd.hitValue = vec3(lightIntensity * attenuation * (diffuse + specular));
+    }
+    else if(mat.type == 1)
+    {
+        vec3 diffuse = computeDiffuse(mat, L, worldNormal);
+        // PBR
+        if(mat.pbrBaseColorTexture >= 0)
+        {
+            uint txtId    = mat.pbrBaseColorTexture + objDesc.i[gl_InstanceCustomIndexEXT].txtOffset;
+            vec2 texCoord = v0.texCoord * barycentrics.x + v1.texCoord * barycentrics.y + v2.texCoord * barycentrics.z;
+            prd.hitValue = texture(textureSamplers[nonuniformEXT(txtId)],texCoord).xyz;
         }
         else 
         {
-            // Specular 
-            specular = computeSpecular(mat, gl_WorldRayDirectionEXT, L, worldNormal);
+            prd.hitValue = mat.pbrBaseColorFactor.xyz;
         }
+
 
     }
 
-    prd.hitValue = vec3(lightIntensity * attenuation * (diffuse + specular));
+
+
 }
