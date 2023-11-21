@@ -30,10 +30,13 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	width = width;
 	height = height;
+
 	window = std::make_unique<GUIWindow>(width, height, "miniVulkanRenderer2");
+	window->setApp(this);
 	window->setMouseCallBack(mouseCallBack);
 	window->setJoystickCallBack(joystickCallback);
-	window->setMouseButtonCallBack(mouseButtonCallbcak);
+	window->setMouseButtonCallBack(mouseButtonCallback);
+	window->setDropCallback(dropCallback);
 
 	LogSpace();
 	instance = std::make_unique<Instance>();
@@ -59,7 +62,6 @@ void MiniVulkanRenderer::init(int width, int height)
 	device = std::make_unique<Device>(gpu, surface, deviceExtension);
 
 	canRaytracing = device->enableRayTracing();
-
 
 	LogSpace();
 
@@ -87,7 +89,7 @@ void MiniVulkanRenderer::init(int width, int height)
 	objMat = glm::scale(objMat,{2,2,2});
 	//resourceManager->loadObjModel("smpl", "../../assets/smpl/smpl.obj",objMat);
 
-	//resourceManager->loadObjModel("plane", "../../assets/plane/plane.obj");
+
 
 
 	objMat = glm::mat4(1.0f);
@@ -98,8 +100,26 @@ void MiniVulkanRenderer::init(int width, int height)
 	//resourceManager->loadScene("../../assets/glTFBox/Box.gltf",objMat);
 
 	//resourceManager->loadScene("../../assets/glTFBox/Box.gltf");
+	objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{-12,5,0});
+	resourceManager->loadScene("../../assets/cornellBox/cornellBox.gltf",objMat);
+	objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{0,-1,0});
+	objMat = glm::scale(objMat,{3,1,3});
+	resourceManager->loadScene( "../../assets/plane/plane1.gltf",objMat);
 
-	resourceManager->loadScene("../../assets/cornellBox/cornellBox.gltf");
+	resourceManager->loadScene("../../assets/lightScene.gltf");
+
+
+	
+
+	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoxTextured/glTF/BoxTextured.gltf");
+
+
+
+	objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{-200,-1,0});
+	//resourceManager->loadScene("D://yufeiran/model/AMD/GI/GI.gltf",objMat);
 
 	camera.setPos(glm::vec3(-0.0, 0, 15.0));
 	camera.setViewDir(-90, 0);
@@ -130,7 +150,7 @@ void MiniVulkanRenderer::init(int width, int height)
 	
 
 
-	resourceManager->loadCubemap(yokohamaCubeMapNames);
+	resourceManager->loadCubemap(defaultCubeMapNames);
 
 
 
@@ -174,14 +194,7 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	if(canRaytracing)
 	{
-		LogTimerStart("build AS");
-		initRayTracingRender();
-		createBottomLevelAS();
-		createTopLevelAS();
-		LogTimerEnd("build AS");
-		createRtDescriptorSet();
-		createRtPipeline();
-		createRtShaderBindingTable();
+		buildRayTracing();
 	}
 
 
@@ -286,6 +299,20 @@ auto MiniVulkanRenderer::objModelToVkGeometryKHR(const ObjModel& model)
 	
 	return input;
 
+}
+
+void MiniVulkanRenderer::buildRayTracing()
+{
+	tlas.clear();
+	
+	LogTimerStart("build AS");
+	initRayTracingRender();
+	createBottomLevelAS();
+	createTopLevelAS();
+	LogTimerEnd("build AS");
+	createRtDescriptorSet();
+	createRtPipeline();
+	createRtShaderBindingTable();
 }
 
 void MiniVulkanRenderer::createBottomLevelAS()
@@ -991,7 +1018,7 @@ void MiniVulkanRenderer::mouseCallBack(GLFWwindow* window, double xpos, double y
 
 }
 
-void MiniVulkanRenderer::mouseButtonCallbcak(GLFWwindow* window, int button, int action, int mods)
+void MiniVulkanRenderer::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
 	if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
 	{
@@ -1019,6 +1046,51 @@ void MiniVulkanRenderer::joystickCallback(int jid, int event)
 	}
 
 
+}
+
+void MiniVulkanRenderer::dropCallback(GLFWwindow* window, int count, const char** path)
+{
+	
+	auto app = static_cast<MiniVulkanRenderer*>(glfwGetWindowUserPointer(window));
+	app->cleanScene();
+	const char* filename_ = path[0];
+	std::string filename = filename_;
+	auto offset = filename.find_last_of('.');
+	std::string extName = filename.substr(offset);
+	if(extName == ".gltf")
+	{
+		app->resourceManager->loadScene(filename);
+	}
+	app->buildRayTracing();
+
+
+
+}
+
+void MiniVulkanRenderer::cleanScene()
+{
+	resetFrame();
+	device->waitIdle();
+
+
+
+	renderContext.reset();
+	renderContext = std::make_unique<RenderContext>(*device, surface, *window);
+
+	surfaceExtent=renderContext->getSurfaceExtent();
+
+	resourceManager.reset();
+	resourceManager = std::make_unique<ResourceManager>(*device);
+
+	
+	createOffScreenFrameBuffer();
+	updateRtDescriptorSet();
+	updatePostDescriptorSet();
+
+
+	std::vector<std::shared_ptr<DescriptorSetLayout>> layouts{descSetLayout};
+	renderContext->prepare(*postRenderPass,*resourceManager,layouts
+	, rasterPipeline->getShaderModules().front()->getShaderInfo());
 }
 
 
@@ -1078,6 +1150,10 @@ void MiniVulkanRenderer::createOffScreenFrameBuffer()
 
 void MiniVulkanRenderer::initRayTracingRender()
 {
+	if(!rayTracingBuilder)
+	{
+		rayTracingBuilder.reset();
+	}
 	// Requesting ray tracing properties
 	VkPhysicalDeviceProperties2 prop2{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2};
 	prop2.pNext = &rtProperties;

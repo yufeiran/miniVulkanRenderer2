@@ -9,7 +9,9 @@
 using namespace mini;
 void GltfLoader::loadScene(const std::string& filename, glm::mat4 transform)
 {
-	
+	reset();
+
+
 	tinygltf::TinyGLTF tcontext;
 	std::string        warn, error;
 	Log("Loading file:" + filename);
@@ -161,6 +163,32 @@ void GltfLoader::importDrawableNodes(const tinygltf::Model& tmodel, glm::mat4 tr
 
 	computeSceneDimensions();
 	computeCamera();
+
+	meshToPrimMeshes.clear();
+	primitiveIndices32u.clear();
+	primitiveIndices16u.clear();
+	primitiveIndices8u.clear();
+}
+
+void GltfLoader::reset()
+{
+	materials.clear();   // Material for shading
+	nodes.clear();       // Drawable nodes, flat hierarchy
+	primMeshes.clear();  // Primitive promoted to meshes
+	cameras.clear();
+	lights.clear();
+
+	// Attributes, all same length if valid
+	positions.clear();
+	indices.clear();
+	normals.clear();
+	tangents.clear();
+	texcoords0.clear();
+	texcoords1.clear();
+	colors0.clear();
+	cachePrimMesh.clear();
+
+	tmodel = tinygltf::Model();
 
 	meshToPrimMeshes.clear();
 	primitiveIndices32u.clear();

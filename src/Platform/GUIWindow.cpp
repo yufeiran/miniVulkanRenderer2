@@ -44,6 +44,11 @@ GUIWindow::~GUIWindow()
 	glfwTerminate();
 }
 
+void GUIWindow::setApp(void* app)
+{
+	glfwSetWindowUserPointer(handle,app);
+}
+
 void GUIWindow::joystickInput()
 {
 	int present = glfwJoystickPresent(GLFW_JOYSTICK_1);
@@ -121,6 +126,11 @@ void GUIWindow::setMouseButtonCallBack(GLFWmousebuttonfun callback)
 void GUIWindow::setJoystickCallBack(GLFWjoystickfun callback)
 {
 	glfwSetJoystickCallback(callback);
+}
+
+void GUIWindow::setDropCallback(GLFWdropfun callback)
+{
+	glfwSetDropCallback(handle, callback);
 }
 
 void GUIWindow::setCursorMode(CURSOR_MODE mode)

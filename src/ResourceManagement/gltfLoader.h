@@ -110,7 +110,7 @@ public:
 							 GltfAttributes         forceRequested = GltfAttributes::All);
 
 	
-
+	void reset();
 
 	// Scene data
 	std::vector<GltfMaterial> materials;   // Material for shading

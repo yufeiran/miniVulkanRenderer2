@@ -207,8 +207,9 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 
 		std::vector<tinygltf::Image*> meshTxt;
 
-		if(meshColorTxtIndex != -1)
+		if(meshColorTxtIndex != -1 && meshColorTxtIndex < gltfLoader.tmodel.images.size())
 		{
+			
 			tinygltf::Image* meshColrTxt = &gltfLoader.tmodel.images[meshColorTxtIndex];
 
 			// retarget image index
@@ -306,7 +307,7 @@ void ResourceManager::createTextureImages(const std::vector<tinygltf::Image*>& l
 		for(const auto& gltfImage : loadImages)
 		{
 			VkExtent2D                 imageSize{gltfImage->width , gltfImage->height};
-			std::unique_ptr<Image>     image     = std::make_unique<Image>(device, imageSize, gltfImage->image.size(),(void*)(gltfImage->image[0]));
+			std::unique_ptr<Image>     image     = std::make_unique<Image>(device, imageSize, gltfImage->image.size(),(void*)(&gltfImage->image[0]));
 			std::unique_ptr<ImageView> imageView = std::make_unique<ImageView>(*image);
 		
 			Texture texture;

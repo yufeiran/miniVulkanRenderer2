@@ -19,6 +19,8 @@ public:
 
 	~GUIWindow();
 
+	void setApp(void* app);
+
 	void joystickInput();
 
 	GLFWwindow* getHandle() const;
@@ -34,6 +36,8 @@ public:
 	void setMouseButtonCallBack(GLFWmousebuttonfun callback);
 
 	void setJoystickCallBack(GLFWjoystickfun callback);
+
+	void setDropCallback(GLFWdropfun callback);
 
 	void setCursorMode(CURSOR_MODE mode);
 

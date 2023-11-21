@@ -154,8 +154,9 @@ void RenderContext::submit(const Queue& queue, const CommandBuffer* cmd)
 	submitInfo.signalSemaphoreCount = 1;
 	submitInfo.pSignalSemaphores = singnalSemaphores;
 
-	if (vkQueueSubmit(device.getGraphicQueue().getHandle(), 1, &submitInfo, inFlightFence->getHandle()) != VK_SUCCESS) {
-		throw Error("Failed to submit draw command buffer!");
+	VkResult result = vkQueueSubmit(device.getGraphicQueue().getHandle(), 1, &submitInfo, inFlightFence->getHandle());
+	if (result != VK_SUCCESS) {
+		throw Error("Failed to submit draw command buffer! result:"+ std::to_string(result));
 	}
 
 }

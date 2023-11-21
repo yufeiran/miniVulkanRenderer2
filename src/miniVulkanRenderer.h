@@ -81,6 +81,7 @@ public:
 	void updateUniformBuffer(CommandBuffer& cmd);
 
 	// init raytracing-------
+	void buildRayTracing();
 	void createBottomLevelAS();
 	void createTopLevelAS();
 	void createRtDescriptorSet();
@@ -100,7 +101,6 @@ public:
 	void resetFrame();
 	void updateFrame();
 
-
 	void loop();
 
 	void updateInstances();
@@ -117,9 +117,13 @@ public:
 
 	static void mouseCallBack(GLFWwindow* window, double xpos, double ypos);
 
-	static void mouseButtonCallbcak(GLFWwindow* window, int button, int action, int mods);
+	static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 
 	static void joystickCallback(int jid, int event);
+
+	static void dropCallback(GLFWwindow* window, int count, const char** path);
+
+	void cleanScene();
 
 	void calFps();
 
@@ -143,8 +147,8 @@ public:
 		0,   // lightIntensity
 		0,   // lightType
 		0,   // frame
-		5,   // nbSample
-		5,   // maxDepth
+		1,   // nbSample
+		1,   // maxDepth
 	};
 
 private:

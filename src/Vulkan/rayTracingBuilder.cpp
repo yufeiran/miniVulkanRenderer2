@@ -36,6 +36,7 @@ RayTracingBuilder::~RayTracingBuilder()
 
 void RayTracingBuilder::buildBlas(const std::vector<BlasInput>& input, VkBuildAccelerationStructureFlagsKHR flags)
 {
+	blasVec.clear();
 	Log("start buildBlas");
 	auto         nbBlas = static_cast<uint32_t>(input.size());
 	VkDeviceSize asTotalSize{0};    
@@ -72,6 +73,10 @@ void RayTracingBuilder::buildBlas(const std::vector<BlasInput>& input, VkBuildAc
 
 	}
 
+	if(!scratchBuffer)
+	{
+		scratchBuffer.reset();
+	}
 	scratchBuffer=std::make_unique<Buffer>(device,static_cast<uint32_t>(maxScratchSize),
 		VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT|VK_BUFFER_USAGE_STORAGE_BUFFER_BIT|VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
