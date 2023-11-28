@@ -78,6 +78,7 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	//resourceManagement->loadModel("BattleCruiser", "../../assets/BattleCruiser/BattleCruiser.obj");
 	
+	resourceManager->loadScene("D://yufeiran/model/AMD/Robot/Robot.gltf");
 
 	glm::mat4 objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat,{2,0,0});
@@ -100,6 +101,8 @@ void MiniVulkanRenderer::init(int width, int height)
 	//resourceManager->loadScene("../../assets/glTFBox/Box.gltf",objMat);
 
 	//resourceManager->loadScene("../../assets/glTFBox/Box.gltf");
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf");
+
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat,{-12,5,0});
 	resourceManager->loadScene("../../assets/cornellBox/cornellBox.gltf",objMat);
@@ -108,18 +111,25 @@ void MiniVulkanRenderer::init(int width, int height)
 	objMat = glm::scale(objMat,{3,1,3});
 	resourceManager->loadScene( "../../assets/plane/plane1.gltf",objMat);
 
+
 	resourceManager->loadScene("../../assets/lightScene.gltf");
 
 
-	
 
 	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoxTextured/glTF/BoxTextured.gltf");
 
 
 
 	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat,{-200,-1,0});
+	objMat = glm::translate(objMat,{0, 5, -3});
+	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/cube/glTF/cube.gltf", objMat);
+
+
+	objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{-60,-1,0});
 	//resourceManager->loadScene("D://yufeiran/model/AMD/GI/GI.gltf",objMat);
+	
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",objMat);
 
 	camera.setPos(glm::vec3(-0.0, 0, 15.0));
 	camera.setViewDir(-90, 0);
@@ -1264,12 +1274,14 @@ void MiniVulkanRenderer::createDescriptorSetLayout()
 	descSetBindings.addBinding(SceneBindings::eGlobals,  VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
 											VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_RAYGEN_BIT_KHR);
 	descSetBindings.addBinding(SceneBindings::eObjDescs, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1,
-		                                    VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
+		                                    VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
+											| VK_SHADER_STAGE_RAYGEN_BIT_KHR);
 	descSetBindings.addBinding(SceneBindings::eTextures, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nbTxt,
-											VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
+											VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
+											| VK_SHADER_STAGE_RAYGEN_BIT_KHR);
 	descSetBindings.addBinding(SceneBindings::eCubeMap,VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,1,
 											VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
-											| VK_SHADER_STAGE_MISS_BIT_KHR);
+											| VK_SHADER_STAGE_MISS_BIT_KHR | VK_SHADER_STAGE_RAYGEN_BIT_KHR);
 
 	descSetLayout = descSetBindings.createLayout(*device);
 	descPool      = descSetBindings.createPool(*device,1);

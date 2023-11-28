@@ -68,7 +68,7 @@ void ObjLoader::loadModel(const std::string& filename)
 			if(!attrib.colors.empty())
 			{
 				const float* vc = &attrib.colors[3 * index.vertex_index];
-				vertex.color    = {*(vc + 0), *(vc + 1), *(vc + 2)};
+				vertex.color    = {*(vc + 0), *(vc + 1), *(vc + 2), 1.0f};
 			}
 
 			vertices.push_back(vertex);

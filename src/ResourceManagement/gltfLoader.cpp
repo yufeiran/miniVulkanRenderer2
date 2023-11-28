@@ -24,7 +24,7 @@ void GltfLoader::loadScene(const std::string& filename, glm::mat4 transform)
 	
 	importMaterials(tmodel);
 
-	importDrawableNodes(tmodel, transform, GltfAttributes::Normal | GltfAttributes::Texcoord_0 | GltfAttributes::Color_0 );
+	importDrawableNodes(tmodel, transform, GltfAttributes::Normal | GltfAttributes::Texcoord_0 | GltfAttributes::Color_0 | GltfAttributes::Tangent );
 
 
 }
@@ -737,6 +737,6 @@ glm::mat4 getLocalMatrix(const tinygltf::Node& tnode)
 		}
 	}
 
-
+	//return matrix * mscale * mrot * mtranslation;
 	return mtranslation * mrot * mscale * matrix;
 }

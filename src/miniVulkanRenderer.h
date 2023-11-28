@@ -148,12 +148,12 @@ public:
 		0,   // lightType
 		0,   // frame
 		1,   // nbSample
-		1,   // maxDepth
+		3,   // maxDepth
 	};
 
 private:
 	bool canRaytracing = false;
-	bool useRaytracing = true;
+	bool useRaytracing = false;
 	int width, height;
 	VkExtent2D surfaceExtent{};
 

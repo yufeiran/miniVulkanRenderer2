@@ -28,7 +28,7 @@ ResourceManager::~ResourceManager()
 	
 }
 
-void initMaterial(Material& mat)
+void initMaterial(GltfShadeMaterial& mat)
 {
 	mat.type = 0;
 	mat.ambient        = glm::vec3(0.1f, 0.1f, 0.1f);
@@ -48,23 +48,71 @@ void initMaterial(Material& mat)
 	mat.emissiveFactor  = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
-Material  toMaterial(GltfMaterial& gltfm)
+GltfShadeMaterial  toMaterial(GltfMaterial& gltfm)
 {
-	Material m;
+	GltfShadeMaterial m;
 	initMaterial(m);
 	m.type                = 1;
 	m.pbrBaseColorFactor  = gltfm.baseColorFactor;
 	m.emissiveFactor      = gltfm.emissiveFactor;
 	m.pbrBaseColorTexture = gltfm.baseColorTexture;
+	m.pbrMetallicFactor   = gltfm.metallicFactor;
+	m.pbrMetallicRoughnessTexture = gltfm.metallicRoughnessTexture;
+
+	m.emissiveTexture = gltfm.emissiveTexture;
+
+	m.pbrRoughnessFactor  = gltfm.roughnessFactor;
+
+	m.khrDiffuseFactor = { 1.0f, 1.0f, 1.0f ,1.0f } ;   // KHR_materials_pbrSpecularGlossiness
+	m.khrSpecularFactor = { 1.0f, 1.0f, 1.0f };
+	m.khrDiffuseTexture = -1;
+
+	m.shadingModel = MATERIAL_METALLICROUGHNESS;
+	m.khrGlossinessFactor = 0;
+	m.khrSpecularGlossinessTexture = -1;
+
+	m.alphaMode = gltfm.alphaMode;
+
+	m.alphaCutoff = gltfm.alphaCutoff;
+	m.doubleSided = gltfm.doubleSided;
+	m.normalTexture = gltfm.normalTexture;
+	m.normalTextureScale = gltfm.normalTextureScale;
+
+	m.uvTransform;
+
+	m.unlit = 0;
+
+	m.transmissionFactor = 0;
+	m.transmissionTexture = -1;
+
+	m.ior = 1.33;
+
+	vec3  anisotropyDirection;
+	float anisotropy;
+
+	vec3  attenuationColor ;
+	float thicknessFactor;
+	int   thicknessTexture;
+	float attenuationDistance;
+
+	float clearcoatFactor;
+	float clearcoatRoughness;
+
+	int   clearcoatTexture;
+	int   clearcoatRoughnessTexture;
+	vec4  sheen;
+	int   pad;
+	
+
 	return m;
 }
 
-std::vector<Material> toMaterial(std::vector<MaterialObj> &objM)
+std::vector<GltfShadeMaterial> toMaterial(std::vector<MaterialObj> &objM)
 {
-	std::vector<Material> mVec;
+	std::vector<GltfShadeMaterial> mVec;
 	for(const auto & m : objM)
 	{
-		Material nowM;
+		GltfShadeMaterial nowM;
 		initMaterial(nowM);
 		nowM.type = 0;
 		nowM.ambient       = m.ambient;
@@ -163,7 +211,7 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 		// get now mesh indices and vertexs
 		std::vector<uint32_t> indices;
 		std::vector<VertexObj> vertices;
-		std::vector<Material> matColor;
+		std::vector<GltfShadeMaterial> matColor;
 		std::vector<int32_t> matIndex;
 
 
@@ -180,14 +228,16 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 			v.pos      = gltfLoader.positions[i];
 			v.normal   = gltfLoader.normals[i];
 			v.color    = gltfLoader.colors0[i];
+			v.tangent  = gltfLoader.tangents[i];
 			v.texCoord = gltfLoader.texcoords0[i];
+			
 			vertices.push_back(v);
 		}
 
 
 		// TODO: support real per face material
 		auto& gltfmat = gltfLoader.materials[m.materialIndex];
-		Material mat = toMaterial(gltfmat);
+		GltfShadeMaterial mat = toMaterial(gltfmat);
 		// per face material
 		for(int i = 0; i < m.vertexCount / 3; i++)
 		{

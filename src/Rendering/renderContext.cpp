@@ -109,6 +109,7 @@ VkResult RenderContext::beginFrame()
 
 
 	inFlightFence->wait();
+	inFlightFence->reset();
 
 	VkResult result=VK_SUCCESS;
 	if (swapchain)

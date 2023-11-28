@@ -53,9 +53,12 @@ struct Vertex
 {
 	vec3 pos;
 	vec3 normal;
-	vec3 color;
+	vec4 color;
+	vec4 tangent;
 	vec2 texCoord;
 };
+
+
 
 struct PushConstantRaster
 {
@@ -75,28 +78,84 @@ struct PushConstantRay
 	int   frame;
 	int   nbSample;
 	int   maxDepth;
+	int   pbrMode;                // 0-Disney, 1-Gltf
 };
 
-struct Material
+#define MATERIAL_METALLICROUGHNESS 0
+#define MATERIAL_SPECULARGLOSSINESS 1
+#define ALPHA_OPAQUE 0
+#define ALPHA_MASK 1
+#define ALPHA_BLEND 2
+struct GltfShadeMaterial
 {
+
 	int type; // type = 0  Blinn-Phong type = 1 PBR
 
 	// Blinn-Phong
 	vec3  ambient;
+
 	vec3  diffuse;
 	vec3  specular;
 	vec3  transmittance;
 	vec3  emission;
+
 	float shininess;
-	float ior;
+
 	float dissolve;
 	int   illum;
+
 	int   textureId;
+
+
 	// PBR
 	vec4  pbrBaseColorFactor;
-	vec3  emissiveFactor;
-	int   pbrBaseColorTexture;
 
+    int   pbrBaseColorTexture;
+	float pbrMetallicFactor;
+	float pbrRoughnessFactor;
+	int   pbrMetallicRoughnessTexture;
+
+	vec4  khrDiffuseFactor;   // KHR_materials_pbrSpecularGlossiness
+	vec3  khrSpecularFactor;
+	int   khrDiffuseTexture;
+
+	int   shadingModel; // 0: metallic-roughness, 1: specular-glossiness
+	float khrGlossinessFactor;
+	int   khrSpecularGlossinessTexture;
+	int   emissiveTexture;
+
+	vec3  emissiveFactor; 
+	int   alphaMode;
+
+	float alphaCutoff;
+	int   doubleSided;
+	int   normalTexture;
+	float normalTextureScale;
+
+	mat4  uvTransform;
+
+	int   unlit;
+
+	float transmissionFactor;
+	int   transmissionTexture;
+
+	float ior;
+
+	vec3  anisotropyDirection;
+	float anisotropy;
+
+	vec3  attenuationColor ;
+	float thicknessFactor;
+	int   thicknessTexture;
+	float attenuationDistance;
+
+	float clearcoatFactor;
+	float clearcoatRoughness;
+
+	int   clearcoatTexture;
+	int   clearcoatRoughnessTexture;
+	vec4  sheen;
+	int   pad;
 };
 
 // for raytracing

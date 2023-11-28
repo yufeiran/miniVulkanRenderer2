@@ -26,6 +26,8 @@ struct GltfMaterial
 	int    occlusionTexture{-1};
 	float  occlusionTextureStrength{1};
 
+
+
 	// Tiny Reference
 	const tinygltf::Material* tmaterial{nullptr};
 };
