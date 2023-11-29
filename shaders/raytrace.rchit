@@ -10,7 +10,7 @@
 #include "deviceDataStruct.h"
 #include "globals.glsl"
 #include "wavefront.glsl"
-#include "sampling.glsl"
+#include "random.glsl"
 
 hitAttributeEXT vec2 bary;
 
@@ -19,7 +19,7 @@ layout(location = 1) rayPayloadEXT bool isShadowed;
 
 layout(buffer_reference, scalar) buffer Vertices {Vertex v[]; };
 layout(buffer_reference, scalar) buffer Indices {ivec3 i[]; };
-layout(buffer_reference, scalar) buffer Materials { Material m[]; };
+layout(buffer_reference, scalar) buffer Materials { GltfShadeMaterial m[]; };
 layout(buffer_reference, scalar) buffer MatIndices { int i[]; };
 
 layout(set = 0, binding = eTlas) uniform accelerationStructureEXT topLevelAS;
