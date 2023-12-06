@@ -16,7 +16,8 @@ vec3 Sample(in State state, in vec3 V, in vec3 N,inout vec3 L, inout float pdf, 
 
 void ClosestHit(Ray r)
 {
-    uint  rayFlags = gl_RayFlagsOpaqueEXT | gl_RayFlagsCullBackFacingTrianglesEXT;
+    //uint  rayFlags = gl_RayFlagsOpaqueEXT | gl_RayFlagsCullBackFacingTrianglesEXT;
+    uint  rayFlags = gl_RayFlagsOpaqueEXT;
     prd.hitT       = INFINITY;
 
     traceRayEXT(topLevelAS, // acceleration structure
@@ -53,10 +54,10 @@ vec3 PathTrace(Ray r)
             float factor;
             if(depth == 0)
             {
-                factor =  0.01;
+                factor =  1;
             }
             else {
-                factor = 0.01; // Tiny contribution from environment;
+                factor = 1; // Tiny contribution from environment;
             }
 
             return radiance + cubeMapColor * factor * throughput;
@@ -127,7 +128,8 @@ vec3 PathTrace(Ray r)
         }
 
         r.direction = bsdfSampleRec.L;
-        r.origin    = OffsetRay(sstate.position, dot(bsdfSampleRec.L, state.ffnormal) > 0 ? state.ffnormal : -state.ffnormal );
+        r.origin    = sstate.position;
+        // r.origin    = OffsetRay(sstate.position, dot(bsdfSampleRec.L, state.ffnormal) > 0 ? state.ffnormal : -state.ffnormal );
 
     }
 

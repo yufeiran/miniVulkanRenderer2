@@ -21,10 +21,15 @@ struct GltfMaterial
 	float     alphaCutoff{0.5f};
 	int       doubleSided{0};
 
-	int    normalTexture{-1};
-	float  normalTextureScale{1.f};
-	int    occlusionTexture{-1};
-	float  occlusionTextureStrength{1};
+	int        normalTexture{-1};
+	float      normalTextureScale{1.f};
+	int        occlusionTexture{-1};
+	float      occlusionTextureStrength{1};
+
+	glm::vec3  attenuationColor;
+	float      thicknessFactor;
+	int        thicknessTexture;
+	float      attenuationDistance;
 
 
 

@@ -61,6 +61,8 @@ void GltfLoader::importMaterials(const tinygltf::Model& tmodel)
 		gmat.roughnessFactor          = static_cast<float>(tpbr.roughnessFactor);
 
 		
+
+		
 		//TODO: extension
 
 		materials.emplace_back(gmat);

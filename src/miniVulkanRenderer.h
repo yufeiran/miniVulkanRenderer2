@@ -148,7 +148,7 @@ public:
 		0,   // lightType
 		0,   // frame
 		1,   // nbSample
-		3,   // maxDepth
+		2,   // maxDepth
 	};
 
 private:

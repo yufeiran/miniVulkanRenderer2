@@ -46,6 +46,54 @@ void initMaterial(GltfShadeMaterial& mat)
 	mat.pbrBaseColorFactor = glm::vec4(0.7f, 0.7f, 0.7f, 1.0f);
 	mat.pbrBaseColorTexture = -1;
 	mat.emissiveFactor  = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+
+
+	mat.pbrMetallicFactor   = {1.0f};
+	mat.pbrMetallicRoughnessTexture = -1;
+
+	mat.emissiveTexture = -1;
+
+	mat.pbrRoughnessFactor  = 1.0f;
+
+	mat.khrDiffuseFactor = { 1.0f, 1.0f, 1.0f ,1.0f } ;   // KHR_materials_pbrSpecularGlossiness
+	mat.khrSpecularFactor = { 1.0f, 1.0f, 1.0f };
+	mat.khrDiffuseTexture = -1;
+
+	mat.shadingModel = MATERIAL_METALLICROUGHNESS;
+	mat.khrGlossinessFactor = 0;
+	mat.khrSpecularGlossinessTexture = -1;
+
+	mat.alphaMode = {0};
+
+	mat.alphaCutoff = { 0.5f };
+	mat.doubleSided = { 0 };
+	mat.normalTexture = -1;
+	mat.normalTextureScale = { 1.0f };
+
+	mat.uvTransform = glm::mat4(1);
+
+	mat.unlit = 0;
+
+	mat.transmissionFactor = 0;
+	mat.transmissionTexture = -1;
+
+	mat.ior = 1.33;
+
+	mat.anisotropyDirection = {1.0f, 1.0f, 1.0f};
+	mat.anisotropy = 0;
+
+	mat.attenuationColor = {0.0f, 0.0f, 0.0f};
+	mat.thicknessFactor = 0;
+	mat.thicknessTexture = -1;
+	mat.attenuationDistance = 0;
+
+	mat.clearcoatFactor = 0;
+	mat.clearcoatRoughness = 0;
+
+	mat.clearcoatTexture = -1;
+	mat.clearcoatRoughnessTexture = -1;
+	mat.sheen = {0.0, 0.0, 0.0, 0.0};
+	mat.pad;
 }
 
 GltfShadeMaterial  toMaterial(GltfMaterial& gltfm)

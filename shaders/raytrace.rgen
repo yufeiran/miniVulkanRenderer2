@@ -46,9 +46,9 @@ void main()
 
     vec3 avgHitValue = totalHitValues / pcRay.nbSample;
 
-    if( isnan(avgHitValue.r) || isnan(avgHitValue.g) || isnan(avgHitValue.b) ) {
-        avgHitValue = vec3(1.0, 0.0, 0.0);
-    }
+    // if( isnan(avgHitValue.r) || isnan(avgHitValue.g) || isnan(avgHitValue.b) ) {
+    //     avgHitValue = vec3(1.0, 0.0, 0.0);
+    // }
     // Do accumulation over time 
     if(pcRay.frame > 0)
     {

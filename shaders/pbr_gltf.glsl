@@ -178,7 +178,7 @@ vec3 PbrSample(in State state, vec3 V, vec3 N, inout vec3 L, inout float pdf, in
         {
             // TODO: support clearcoat!
             float roughness;
-            roughness = state.mat.clearcoatRoughness;
+            roughness = state.mat.roughness;
 
             vec3 H = GgxSampling(roughness, r1, r2);
             H      = T * H.x + B * H.y + N * H.z;
@@ -189,8 +189,8 @@ vec3 PbrSample(in State state, vec3 V, vec3 N, inout vec3 L, inout float pdf, in
             
         }
 
-        brdf *= (1.0 - transWeight);
-        pdf  *= (1.0 - transWeight);
+        // brdf *= (1.0 - transWeight);
+        // pdf  *= (1.0 - transWeight);
 
     }
     return brdf;
