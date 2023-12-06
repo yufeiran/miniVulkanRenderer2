@@ -31,9 +31,9 @@ void GetMetallicRoughness(inout State state, in GltfShadeMaterial material, int 
     {
         // Roughness is stored in the 'g' channel, metallic is stored in the 'b' channel.
         // This layout intentionally reserves the 'r' channel for (optional) occlusion map data
-        vec4 mrSample = textureLod(textureSamplers[nonuniformEXT(txtOffset + material.pbrMetallicRoughnessTexture)], state.texCoord, 0);
-        perceptualRoughness = mrSample.g * perceptualRoughness;
-        metallic            = mrSample.b * metallic;
+        // vec4 mrSample = textureLod(textureSamplers[nonuniformEXT(txtOffset + material.pbrMetallicRoughnessTexture)], state.texCoord, 0);
+        // perceptualRoughness = mrSample.g * perceptualRoughness;
+        // metallic            = mrSample.b * metallic;
     }
 
     // get albedo
@@ -128,9 +128,9 @@ void GetMaterialsAndTextures(inout State state,in hitPayload prd, in Ray r)
     // }
 
     // KHR_materials_volume
-    // state.mat.attenuationColor     = material.attenuationColor;
-    // state.mat.attenuationDistance  = material.attenuationDistance;
-    // state.mat.thinwalled           = material.thicknessFactor == 0;
+    state.mat.attenuationColor     = material.attenuationColor;
+    state.mat.attenuationDistance  = material.attenuationDistance;
+    state.mat.thinwalled           = material.thicknessFactor == 0;
 
     // KHR_materials_clearcoat 
     // state.mat.clearcoat            = material.clearcoatFactor;

@@ -54,13 +54,13 @@ vec3 PathTrace(Ray r)
             float factor;
             if(depth == 0)
             {
-                factor =  1;
+                factor =  0.8;
             }
             else {
-                factor = 1; // Tiny contribution from environment;
+                factor = 0.01; // Tiny contribution from environment;
             }
 
-            return radiance + cubeMapColor * factor * throughput;
+            return radiance + cubeMapColor * throughput;
         }
 
         BsdfSampleRec bsdfSampleRec;
@@ -94,10 +94,10 @@ vec3 PathTrace(Ray r)
         // }
 
         // Reset absorption when ray is going out of surface
-        if(dot(state.normal, state.ffnormal) > 0.0)
-        {
-            absorption = vec3(0.0);
-        }
+        // if(dot(state.normal, state.ffnormal) > 0.0)
+        // {
+        //     absorption = vec3(0.0);
+        // }
 
         // Emissive
         radiance += state.mat.emission * throughput;
@@ -109,13 +109,14 @@ vec3 PathTrace(Ray r)
         // TODO:add cubemap light
 
         // Sampling for the next ray
+        // find next direction and weight
         bsdfSampleRec.f = Sample(state, -r.direction, state.ffnormal, bsdfSampleRec.L, bsdfSampleRec.pdf, prd.seed);
 
         // Set absorption only if the ray is currently inside the object
-        if(dot(state.ffnormal, bsdfSampleRec.L) < 0.0)
-        {
-            absorption = - log(state.mat.attenuationColor) / vec3(state.mat.attenuationDistance);
-        }
+        // if(dot(state.ffnormal, bsdfSampleRec.L) < 0.0)
+        // {
+        //     absorption = - log(state.mat.attenuationColor) / vec3(state.mat.attenuationDistance);
+        // }
 
 
         if(bsdfSampleRec.pdf > 0.0)
@@ -128,8 +129,8 @@ vec3 PathTrace(Ray r)
         }
 
         r.direction = bsdfSampleRec.L;
-        r.origin    = sstate.position;
-        // r.origin    = OffsetRay(sstate.position, dot(bsdfSampleRec.L, state.ffnormal) > 0 ? state.ffnormal : -state.ffnormal );
+        //r.origin    = sstate.position;
+        r.origin    = OffsetRay(sstate.position, dot(bsdfSampleRec.L, state.ffnormal) > 0 ? state.ffnormal : -state.ffnormal );
 
     }
 

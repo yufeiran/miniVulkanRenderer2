@@ -122,7 +122,7 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat,{0, 5, -3});
-	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/cube/glTF/cube.gltf", objMat);
+	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/cube/glTF/cube.gltf", objMat);
 
 
 	objMat = glm::mat4(1.0f);

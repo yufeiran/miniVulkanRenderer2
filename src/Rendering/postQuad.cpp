@@ -24,6 +24,7 @@ PostQuad::PostQuad(Device& device)
         v.pos=quadVerticesPos[i];
         v.normal ={0.0f,0.0f,0.0f};
         v.color={1.0f,1.0f,1.0f,1.0f};
+        v.tangent = {0.0f, 0.0f, 0.0f, 0.0f};
         v.texCoord=quadVerticesCoords[i];
         vertexs.push_back(v);
     }

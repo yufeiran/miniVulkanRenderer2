@@ -12,12 +12,12 @@ float clampedDot(vec3 x, vec3 y)
 
 vec3 CosineSampleHemisphere(float r1, float r2)
 {
-    vec3  dir;
-    float r   = sqrt(r1);
-    float phi = TWO_PI * r2;
-    dir.x     = r * cos(phi);
-    dir.y     = r * sin(phi);
-    dir.z     = sqrt(max(0.0, 1.0 - dir.x * dir.x - dir.y * dir.y));
+  vec3  dir;
+  float r   = sqrt(r1);
+  float phi = TWO_PI * r2;
+  dir.x     = r * cos(phi);
+  dir.y     = r * sin(phi);
+  dir.z     = sqrt(max(0.0, 1.0 - dir.x * dir.x - dir.y * dir.y));
 
     return dir;
 }
@@ -97,17 +97,21 @@ vec3 EvalDiffuseGltf(State state, vec3 f0, vec3 f90, vec3 V, vec3 N, vec3 L, vec
     float NdotV  = dot(N, V);
     float NdotL  = dot(N, L);
 
-    if(NdotL < 0.0 || NdotV < 0.0)
-        return vec3(0.0);
+    // if(NdotL < 0.0 || NdotV < 0.0)
+    //     return vec3(0.0);
     
-    NdotL = clamp(NdotL, 0.001, 1.0);
-    NdotV = clamp(abs(NdotV), 0.001, 1.0);
+    // NdotL = clamp(NdotL, 0.001, 1.0);
+    // NdotV = clamp(abs(NdotV), 0.001, 1.0);
+    NdotL = abs(NdotL);
+    //NdotV = abs(NdotV);
 
     float VdotH = dot(V, H);
 
     pdf = NdotL * M_1_OVER_PI;
-    return BRDF_lambertian(f0, f90, state.mat.albedo, VdotH, state.mat.metallic);
+    return BRDF_lambertian(f0, f90, state.mat.albedo.xyz, VdotH, state.mat.metallic);
+
 }
+
 
 vec3 EvalSpecularGltf(State state, vec3 f0, vec3 f90, vec3 V, vec3 N, vec3 L, vec3 H, out float pdf)
 {
@@ -170,8 +174,11 @@ vec3 PbrSample(in State state, vec3 V, vec3 N, inout vec3 L, inout float pdf, in
 
             vec3 H = normalize(L + V);
 
+            brdf = state.mat.albedo / M_PI * (1.0 - state.mat.metallic);
+            pdf = dot(L, N) / M_PI;
             brdf = EvalDiffuseGltf(state, f0, f90, V, N, L, H, pdf);
-            pdf *= (1.0 - state.mat.subsurface) * diffuseRatio;
+            //pdf *= (1.0 - state.mat.subsurface) * diffuseRatio;
+            pdf *= 1.0 * diffuseRatio;
         }
         // cal f_cook-torrance
         else 
@@ -183,6 +190,7 @@ vec3 PbrSample(in State state, vec3 V, vec3 N, inout vec3 L, inout float pdf, in
             vec3 H = GgxSampling(roughness, r1, r2);
             H      = T * H.x + B * H.y + N * H.z;
             L      = reflect(-V, H);
+
 
             brdf = EvalSpecularGltf(state, f0, f90, V, N, L, H, pdf);
             pdf *= specularRatio;
