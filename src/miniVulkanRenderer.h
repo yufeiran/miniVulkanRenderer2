@@ -63,6 +63,8 @@ public:
 	~MiniVulkanRenderer();
 
 	// init-----------------
+	void loadTestGltf();
+
 	void init(int width = 1920, int height = 1080);
 
 	void initImGUI();
@@ -148,12 +150,12 @@ public:
 		0,   // lightType
 		0,   // frame
 		1,   // nbSample
-		2,   // maxDepth
+		5,   // maxDepth
 	};
 
 private:
 	bool canRaytracing = false;
-	bool useRaytracing = false;
+	bool useRaytracing = true;
 	int width, height;
 	VkExtent2D surfaceExtent{};
 

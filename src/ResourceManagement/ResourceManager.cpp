@@ -299,9 +299,7 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 		std::vector<std::string> texture;
 		
 		int32_t meshColorTxtIndex = mat.pbrBaseColorTexture;
-
-
-		
+		int32_t meshMetallicRoughnessTxtIndex = mat.pbrMetallicRoughnessTexture;
 
 		std::vector<tinygltf::Image*> meshTxt;
 
@@ -313,6 +311,19 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 			// retarget image index
 			mat.pbrBaseColorTexture = textures.size();
 			meshTxt.emplace_back(meshColrTxt);
+
+		}
+
+
+		if(meshMetallicRoughnessTxtIndex != -1 && meshMetallicRoughnessTxtIndex < gltfLoader.tmodel.images.size())
+		{
+			
+			tinygltf::Image* meshMetallicRoughnessTxt = &gltfLoader.tmodel.images[meshMetallicRoughnessTxtIndex];
+
+			// retarget image index
+			mat.pbrMetallicRoughnessTexture = textures.size();
+			meshTxt.emplace_back(meshMetallicRoughnessTxt);
+
 		}
 
 

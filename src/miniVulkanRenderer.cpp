@@ -17,10 +17,93 @@
 using namespace mini;
 using namespace std::chrono;
 
+void MiniVulkanRenderer::loadTestGltf()
+{
+	
+	resourceManager->loadScene("D://yufeiran/model/AMD/Robot/Robot.gltf");
+
+	glm::mat4 objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{2,0,0});
+	objMat = glm::scale(objMat,{5,5,5});
+	//resourceManager->loadObjModel("bunny", "../../assets/bunny/bunny.obj",objMat);
+
+	objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{4,2.5,0});
+	objMat = glm::scale(objMat,{2,2,2});
+	//resourceManager->loadObjModel("smpl", "../../assets/smpl/smpl.obj",objMat);
+
+	objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{0,2,0});
+	objMat = glm::scale(objMat,{1,1,1});
+	//resourceManager->loadObjModel("backpack", "../../assets/backpack/backpack.obj",objMat, true);
+
+	//resourceManager->loadScene("../../assets/glTFBox/Box.gltf",objMat);
+
+	//resourceManager->loadScene("../../assets/glTFBox/Box.gltf");
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf");
+
+	objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{-12,5,0});
+	resourceManager->loadScene("../../assets/cornellBox/cornellBox.gltf",objMat);
+	objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{0,-1,0});
+	objMat = glm::scale(objMat,{3,1,3});
+	resourceManager->loadScene( "../../assets/plane/plane1.gltf",objMat);
+
+
+	resourceManager->loadScene("../../assets/lightScene.gltf");
+
+
+
+	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoxTextured/glTF/BoxTextured.gltf");
+
+
+
+	objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{0, 5, -3});
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/cube/glTF/cube.gltf", objMat);
+
+	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoxVertexColors/glTF/BoxVertexColors.gltf", objMat);
+
+	objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{0, 8, -3});
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/cube/glTF/cube.gltf", objMat);
+
+	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/Duck/glTF/Duck.gltf", objMat);
+
+	
+
+	objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{5, 2, 1});
+	objMat = glm::scale(objMat, {0.005, 0.005, 0.005});
+
+
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/cube/glTF/cube.gltf", objMat);
+
+	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/2CylinderEngine/glTF/2CylinderEngine.gltf", objMat);
+
+
+	objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{-60,-1,0});
+	//resourceManager->loadScene("D://yufeiran/model/AMD/GI/GI.gltf",objMat);
+	
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",objMat);
+
+	camera.setPos(glm::vec3(-0.0, 0, 15.0));
+	camera.setViewDir(-90, 0);
+	pcRaster.lightPosition = glm::vec3(0, 4.5f, 0.f);
+
+	
+	//resourceManagement->loadModel("Medieval_building", "../../assets/nv_raytracing_tutorial_scene/Medieval_building.obj",true);
+
+	//resourceManagement->loadModel("plane", "../../assets/nv_raytracing_tutorial_scene/plane.obj",true);
+}
+
 MiniVulkanRenderer::MiniVulkanRenderer()
 {
 	volkInitialize();
 }
+
 
 void MiniVulkanRenderer::init(int width, int height)
 {
@@ -77,68 +160,9 @@ void MiniVulkanRenderer::init(int width, int height)
 	resourceManager = std::make_unique<ResourceManager>(*device);
 
 	//resourceManagement->loadModel("BattleCruiser", "../../assets/BattleCruiser/BattleCruiser.obj");
+
+	loadTestGltf();
 	
-	resourceManager->loadScene("D://yufeiran/model/AMD/Robot/Robot.gltf");
-
-	glm::mat4 objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat,{2,0,0});
-	objMat = glm::scale(objMat,{5,5,5});
-	//resourceManager->loadObjModel("bunny", "../../assets/bunny/bunny.obj",objMat);
-
-	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat,{4,2.5,0});
-	objMat = glm::scale(objMat,{2,2,2});
-	//resourceManager->loadObjModel("smpl", "../../assets/smpl/smpl.obj",objMat);
-
-
-
-
-	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat,{0,2,0});
-	objMat = glm::scale(objMat,{1,1,1});
-	//resourceManager->loadObjModel("backpack", "../../assets/backpack/backpack.obj",objMat, true);
-
-	//resourceManager->loadScene("../../assets/glTFBox/Box.gltf",objMat);
-
-	//resourceManager->loadScene("../../assets/glTFBox/Box.gltf");
-	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf");
-
-	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat,{-12,5,0});
-	resourceManager->loadScene("../../assets/cornellBox/cornellBox.gltf",objMat);
-	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat,{0,-1,0});
-	objMat = glm::scale(objMat,{3,1,3});
-	resourceManager->loadScene( "../../assets/plane/plane1.gltf",objMat);
-
-
-	resourceManager->loadScene("../../assets/lightScene.gltf");
-
-
-
-	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoxTextured/glTF/BoxTextured.gltf");
-
-
-
-	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat,{0, 5, -3});
-	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/cube/glTF/cube.gltf", objMat);
-
-
-	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat,{-60,-1,0});
-	//resourceManager->loadScene("D://yufeiran/model/AMD/GI/GI.gltf",objMat);
-	
-	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",objMat);
-
-	camera.setPos(glm::vec3(-0.0, 0, 15.0));
-	camera.setViewDir(-90, 0);
-	pcRaster.lightPosition = glm::vec3(0, 4.5f, 0.f);
-
-	
-	//resourceManagement->loadModel("Medieval_building", "../../assets/nv_raytracing_tutorial_scene/Medieval_building.obj",true);
-
-	//resourceManagement->loadModel("plane", "../../assets/nv_raytracing_tutorial_scene/plane.obj",true);
 
 	std::vector<std::string> defaultCubeMapNames={
 		"../../assets/skybox/default/right.jpg",

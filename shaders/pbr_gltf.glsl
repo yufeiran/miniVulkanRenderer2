@@ -103,7 +103,7 @@ vec3 EvalDiffuseGltf(State state, vec3 f0, vec3 f90, vec3 V, vec3 N, vec3 L, vec
     // NdotL = clamp(NdotL, 0.001, 1.0);
     // NdotV = clamp(abs(NdotV), 0.001, 1.0);
     NdotL = abs(NdotL);
-    //NdotV = abs(NdotV);
+    NdotV = abs(NdotV);
 
     float VdotH = dot(V, H);
 
@@ -176,9 +176,9 @@ vec3 PbrSample(in State state, vec3 V, vec3 N, inout vec3 L, inout float pdf, in
 
             brdf = state.mat.albedo / M_PI * (1.0 - state.mat.metallic);
             pdf = dot(L, N) / M_PI;
-            brdf = EvalDiffuseGltf(state, f0, f90, V, N, L, H, pdf);
-            //pdf *= (1.0 - state.mat.subsurface) * diffuseRatio;
-            pdf *= 1.0 * diffuseRatio;
+            // brdf = EvalDiffuseGltf(state, f0, f90, V, N, L, H, pdf);
+            // //pdf *= (1.0 - state.mat.subsurface) * diffuseRatio;
+            // pdf *= 1.0 * diffuseRatio;
         }
         // cal f_cook-torrance
         else 

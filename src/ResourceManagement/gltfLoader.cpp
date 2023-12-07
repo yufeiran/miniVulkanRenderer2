@@ -5,6 +5,18 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include "ResourceManagement/boundingBox.h"
+#include <glm/gtc/type_ptr.hpp>
+
+
+template <class T, class Y>
+struct TypeCast
+{
+	Y operator()(T value) const noexcept
+	{
+		return static_cast<Y>(value);
+	}
+};
+
 
 using namespace mini;
 void GltfLoader::loadScene(const std::string& filename, glm::mat4 transform)
@@ -670,40 +682,6 @@ void GltfLoader::createColors(GltfPrimMesh& resultMesh)
 	colors0.insert(colors0.end(), resultMesh.vertexCount, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 }
 
-glm::mat4 toMat(glm::quat &q)
-{
-	float x2      = q.x * 2;
-	float y2      = q.y * 2;
-	float z2      = q.z * 2;
-	float wx      = x2 * q.w;
-	float wy      = y2 * q.w;
-	float wz      = z2 * q.w;
-	float xx      = x2 * q.x;
-	float xy      = y2 * q.x;
-	float xz      = z2 * q.x;
-	float yy      = y2 * q.y;
-	float yz      = z2 * q.y;
-	float zz      = z2 * q.z;
-
-	glm::mat4 mat;
-	mat[0][0] = 1 - (yy + zz);
-	mat[0][1] = xy - wz;
-	mat[0][2] = xz + wy;
-	mat[0][3] = 0.0f;
-	mat[1][0] = xy + wz;
-	mat[1][1] = 1 - (xx + zz);
-	mat[1][2] = yz - wx;
-	mat[1][3] = 0.0f;
-	mat[2][0] = xz - wy;
-	mat[2][1] = yz + wx;
-	mat[2][2] = 1 - (xx + yy);
-	mat[2][3] = 0.0f;
-	mat[3][0] = 0.0f;
-	mat[3][1] = 0.0f;
-	mat[3][2] = 0.0f;
-	mat[3][3] = 1.0f;
-	return mat;
-}
 
 glm::mat4 getLocalMatrix(const tinygltf::Node& tnode)
 {
@@ -723,8 +701,12 @@ glm::mat4 getLocalMatrix(const tinygltf::Node& tnode)
 		mscale = glm::scale(mscale, {tnode.scale[0], tnode.scale[1], tnode.scale[2]});
 	if(!tnode.rotation.empty())
 	{
-		glm::quat mrotation = glm::quat(tnode.rotation[3], tnode.rotation[0], tnode.rotation[1], tnode.rotation[2]);
-		mrot = toMat(mrotation);
+		glm::quat rotation;
+
+		std::transform(tnode.rotation.begin(), tnode.rotation.end(), glm::value_ptr(rotation), TypeCast<double, float>{});
+		//glm::quat mrotation = glm::quat(tnode.rotation[3], tnode.rotation[0], tnode.rotation[1], tnode.rotation[2]);
+
+		mrot = glm::mat4_cast(rotation);
 
 	}
 	if(!tnode.matrix.empty())
