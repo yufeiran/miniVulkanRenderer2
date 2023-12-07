@@ -63,7 +63,14 @@ public:
 	~MiniVulkanRenderer();
 
 	// init-----------------
+
+	void load();
+	
 	void loadTestGltf();
+
+	void loadShowCase();
+	
+	void loadSponza();
 
 	void init(int width = 1920, int height = 1080);
 

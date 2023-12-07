@@ -86,7 +86,8 @@ void main() {
         vec3 diffuse = computeDiffuse(mat, L, N);
         if(mat.pbrBaseColorTexture >= 0)
         {
-            uint txtId    = mat.pbrBaseColorTexture + objDesc.i[pcRaster.objIndex].txtOffset;
+            // uint txtId    = mat.pbrBaseColorTexture + objDesc.i[pcRaster.objIndex].txtOffset;
+            uint txtId    = mat.pbrBaseColorTexture;
             vec3 diffuseTxt = texture(textureSamplers[nonuniformEXT(txtId)], inTexCoord).xyz;
             diffuse *=diffuseTxt;
         }

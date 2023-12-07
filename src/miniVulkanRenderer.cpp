@@ -17,6 +17,24 @@
 using namespace mini;
 using namespace std::chrono;
 
+void MiniVulkanRenderer::load()
+{
+	int testCase = 0;
+	switch(testCase)
+	{
+	case 0:
+		loadShowCase();
+		break;
+	case 1:
+		loadTestGltf();
+		break;
+	case 2:
+		loadSponza();
+		break;
+	}
+
+}
+
 void MiniVulkanRenderer::loadTestGltf()
 {
 	
@@ -83,11 +101,7 @@ void MiniVulkanRenderer::loadTestGltf()
 	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/2CylinderEngine/glTF/2CylinderEngine.gltf", objMat);
 
 
-	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat,{-60,-1,0});
-	//resourceManager->loadScene("D://yufeiran/model/AMD/GI/GI.gltf",objMat);
-	
-	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",objMat);
+
 
 	camera.setPos(glm::vec3(-0.0, 0, 15.0));
 	camera.setViewDir(-90, 0);
@@ -97,6 +111,37 @@ void MiniVulkanRenderer::loadTestGltf()
 	//resourceManagement->loadModel("Medieval_building", "../../assets/nv_raytracing_tutorial_scene/Medieval_building.obj",true);
 
 	//resourceManagement->loadModel("plane", "../../assets/nv_raytracing_tutorial_scene/plane.obj",true);
+}
+
+void MiniVulkanRenderer::loadSponza()
+{
+	glm::mat4 objMat = glm::mat4(1.0f);
+	objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{-60,-1,0});
+	//resourceManager->loadScene("D://yufeiran/model/AMD/GI/GI.gltf",objMat);
+	
+	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",objMat);
+
+	resourceManager->loadScene("../../assets/lightScene.gltf");
+}
+
+void MiniVulkanRenderer::loadShowCase()
+{
+	glm::mat4 objMat = glm::mat4(1.0f);
+	objMat = glm::mat4(1.0f);
+	objMat = glm::scale(objMat, {0.3, 0.3, 0.3});
+
+	objMat = glm::translate(objMat,{0,-3,0});
+	//resourceManager->loadScene("D://yufeiran/model/AMD/GI/GI.gltf",objMat);
+	
+	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/AntiqueCamera/glTF/AntiqueCamera.gltf",objMat);
+
+	resourceManager->loadScene("../../assets/lightScene.gltf");
+
+	objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{0,-1,0});
+	objMat = glm::scale(objMat,{3,1,3});
+	resourceManager->loadScene( "../../assets/plane/plane1.gltf",objMat);
 }
 
 MiniVulkanRenderer::MiniVulkanRenderer()
@@ -161,7 +206,8 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	//resourceManagement->loadModel("BattleCruiser", "../../assets/BattleCruiser/BattleCruiser.obj");
 
-	loadTestGltf();
+	load();
+	//loadSponza();
 	
 
 	std::vector<std::string> defaultCubeMapNames={

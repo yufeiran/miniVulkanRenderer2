@@ -31,7 +31,7 @@ void GetMetallicRoughness(inout State state, in GltfShadeMaterial material, int 
     {
         // Roughness is stored in the 'g' channel, metallic is stored in the 'b' channel.
         // This layout intentionally reserves the 'r' channel for (optional) occlusion map data
-        vec4 mrSample = textureLod(textureSamplers[nonuniformEXT(txtOffset + material.pbrMetallicRoughnessTexture)], state.texCoord, 0);
+        vec4 mrSample = textureLod(textureSamplers[nonuniformEXT(material.pbrMetallicRoughnessTexture)], state.texCoord, 0);
         perceptualRoughness = mrSample.g * perceptualRoughness;
         metallic            = mrSample.b * metallic;
     }
@@ -40,7 +40,7 @@ void GetMetallicRoughness(inout State state, in GltfShadeMaterial material, int 
     baseColor = material.pbrBaseColorFactor;
     if(material.pbrBaseColorTexture > -1)
     {
-        baseColor *= SRGBtoLINEAR(textureLod(textureSamplers[nonuniformEXT(txtOffset + material.pbrBaseColorTexture)], state.texCoord, 0));
+        baseColor *= SRGBtoLINEAR(textureLod(textureSamplers[nonuniformEXT(material.pbrBaseColorTexture)], state.texCoord, 0));
     }
 
     f0 = mix(vec3(dielectricSpecular), baseColor.xyz, metallic);
@@ -79,22 +79,22 @@ void GetMaterialsAndTextures(inout State state,in hitPayload prd, in Ray r)
     mat3  TBN      = mat3(state.tangent, state.bitangent, state.normal);
 
     // apply normal map if this material have a nomal map
-    // if(material.normalTexture > -1)
-    // {
-    //     vec3 normalVector = textureLod(textureSamplers[nonuniformEXT(txtOffset + material.normalTexture)], state.texCoord, 0).xyz;
-    //     normalVector      = normalize(normalVector * 2.0 - 1.0);
-    //     normalVector  *= vec3(material.normalTextureScale, material.normalTextureScale, 1.0);
-    //     state.normal   = normalize(TBN * normalVector);
-    //     state.ffnormal = dot(state.normal, r.direction) <= 0.0 ? state.normal : -state.normal;
-    //     createCoordinateSystem(state.ffnormal, state.tangent, state.bitangent);
-    // }
+    if(material.normalTexture > -1)
+    {
+        vec3 normalVector = textureLod(textureSamplers[nonuniformEXT(material.normalTexture)], state.texCoord, 0).xyz;
+        normalVector      = normalize(normalVector * 2.0 - 1.0);
+        normalVector  *= vec3(material.normalTextureScale, material.normalTextureScale, 1.0);
+        state.normal   = normalize(TBN * normalVector);
+        state.ffnormal = dot(state.normal, r.direction) <= 0.0 ? state.normal : -state.normal;
+        createCoordinateSystem(state.ffnormal, state.tangent, state.bitangent);
+    }
 
     // Emissive term
     state.mat.emission = material.emissiveFactor;
     if(material.emissiveTexture > -1)
     {
         state.mat.emission *= 
-            SRGBtoLINEAR(textureLod(textureSamplers[nonuniformEXT(txtOffset + material.emissiveTexture)], state.texCoord, 0)).rgb;
+            SRGBtoLINEAR(textureLod(textureSamplers[nonuniformEXT(material.emissiveTexture)], state.texCoord, 0)).rgb;
     }
 
     // Basic material

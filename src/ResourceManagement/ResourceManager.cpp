@@ -286,20 +286,17 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 		// TODO: support real per face material
 		auto& gltfmat = gltfLoader.materials[m.materialIndex];
 		GltfShadeMaterial mat = toMaterial(gltfmat);
-		// per face material
-		for(int i = 0; i < m.vertexCount / 3; i++)
-		{
-			matColor.emplace_back(mat);
-			matIndex.emplace_back(0);
-		}
 
 		// load texture
 		auto txtOffset = static_cast<uint32_t>(textures.size());
 		
 		std::vector<std::string> texture;
 		
+		
 		int32_t meshColorTxtIndex = mat.pbrBaseColorTexture;
 		int32_t meshMetallicRoughnessTxtIndex = mat.pbrMetallicRoughnessTexture;
+		int32_t meshEmissiveTxtIndex = mat.emissiveTexture;
+		int32_t meshNormalTxtIndex = mat.normalTexture;
 
 		std::vector<tinygltf::Image*> meshTxt;
 
@@ -309,7 +306,7 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 			tinygltf::Image* meshColrTxt = &gltfLoader.tmodel.images[meshColorTxtIndex];
 
 			// retarget image index
-			mat.pbrBaseColorTexture = textures.size();
+			mat.pbrBaseColorTexture = textures.size() + meshTxt.size();
 			meshTxt.emplace_back(meshColrTxt);
 
 		}
@@ -321,9 +318,36 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 			tinygltf::Image* meshMetallicRoughnessTxt = &gltfLoader.tmodel.images[meshMetallicRoughnessTxtIndex];
 
 			// retarget image index
-			mat.pbrMetallicRoughnessTexture = textures.size();
+			mat.pbrMetallicRoughnessTexture = textures.size() + meshTxt.size();
 			meshTxt.emplace_back(meshMetallicRoughnessTxt);
 
+		}
+
+		if(meshEmissiveTxtIndex != -1 && meshEmissiveTxtIndex < gltfLoader.tmodel.images.size())
+		{
+			
+			tinygltf::Image* meshEmissiveTxt = &gltfLoader.tmodel.images[meshEmissiveTxtIndex];
+
+			// retarget image index
+			mat.emissiveTexture = textures.size() + meshTxt.size();
+			meshTxt.emplace_back(meshEmissiveTxt);
+
+		}
+		if(meshNormalTxtIndex != -1 && meshNormalTxtIndex < gltfLoader.tmodel.images.size())
+		{
+			
+			tinygltf::Image* meshNormalTxt = &gltfLoader.tmodel.images[meshNormalTxtIndex];
+
+			// retarget image index
+			mat.normalTexture = textures.size() + meshTxt.size();
+			meshTxt.emplace_back(meshNormalTxt);
+
+		}
+				// per face material
+		for(int i = 0; i < m.vertexCount / 3; i++)
+		{
+			matColor.emplace_back(mat);
+			matIndex.emplace_back(0);
 		}
 
 
