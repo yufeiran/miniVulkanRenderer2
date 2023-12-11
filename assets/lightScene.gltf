@@ -44,7 +44,7 @@
 			"scale":[
 				9.631665229797363,
 				1,
-				11.075927734375
+				11.075926780700684
 			],
 			"translation":[
 				0,
@@ -62,9 +62,9 @@
 				3.090862321641907e-08
 			],
 			"scale":[
-				10.97944164276123,
+				10.979442596435547,
 				1,
-				9.702230453491211
+				9.702232360839844
 			],
 			"translation":[
 				11.229055404663086,
@@ -83,7 +83,7 @@
 			],
 			"extensions":{
 				"KHR_materials_emissive_strength":{
-					"emissiveStrength":10
+					"emissiveStrength":50
 				}
 			},
 			"name":"cube_instance_8_material",
@@ -101,7 +101,7 @@
 			],
 			"extensions":{
 				"KHR_materials_emissive_strength":{
-					"emissiveStrength":10
+					"emissiveStrength":20
 				}
 			},
 			"name":"cube_instance_8_material.001",
@@ -119,7 +119,7 @@
 			],
 			"extensions":{
 				"KHR_materials_emissive_strength":{
-					"emissiveStrength":10
+					"emissiveStrength":30
 				}
 			},
 			"name":"cube_instance_8_material.002",

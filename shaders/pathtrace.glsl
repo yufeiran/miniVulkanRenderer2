@@ -20,6 +20,9 @@ void ClosestHit(Ray r)
     uint  rayFlags = gl_RayFlagsOpaqueEXT;
     prd.hitT       = INFINITY;
 
+    // set min to avoid self intersections
+    float tMin     = 0.01;
+
     traceRayEXT(topLevelAS, // acceleration structure
                 rayFlags,       // rayFlags 
                 0xFF,           // cullMask
@@ -27,7 +30,7 @@ void ClosestHit(Ray r)
                 0,              // sbtRecordStride
                 0,              // missIndex
                 r.origin,    // ray origin
-                0.0,             // ray min range
+                tMin,             // ray min range
                 r.direction,  // ray direction
                 INFINITY,        // ray max range
                 0                // payload (location = 0)
@@ -129,8 +132,10 @@ vec3 PathTrace(Ray r)
         }
 
         r.direction = bsdfSampleRec.L;
-        //r.origin    = sstate.position;
-        r.origin    = OffsetRay(sstate.position, dot(bsdfSampleRec.L, state.ffnormal) > 0 ? state.ffnormal : -state.ffnormal );
+        r.origin    = sstate.position;
+        //r.origin    = OffsetRay(sstate.position, dot(bsdfSampleRec.L, state.ffnormal) > 0 ? state.ffnormal : -state.ffnormal );
+        //r.origin = OffsetRay(sstate.position, dot(bsdfSampleRec.L, state.ffnormal) > 0 ? state.ffnormal : -state.ffnormal);
+
 
     }
 

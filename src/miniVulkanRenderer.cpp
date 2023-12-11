@@ -31,14 +31,31 @@ void MiniVulkanRenderer::load()
 	case 2:
 		loadSponza();
 		break;
+	case 3:
+		loadBugBox();
+		break;
 	}
 
+}
+
+
+void MiniVulkanRenderer::loadBugBox()
+{
+	glm::mat4 objMat = glm::mat4(1.0f);
+	objMat = glm::mat4(1.0f);
+	//resourceManager->loadScene("D://yufeiran/model/AMD/GI/GI.gltf",objMat);
+	
+	resourceManager->loadScene("D://yufeiran/model/bugbox/bugbox.gltf",objMat);
+
+	resourceManager->loadScene("../../assets/lightScene.gltf");
 }
 
 void MiniVulkanRenderer::loadTestGltf()
 {
 	
 	resourceManager->loadScene("D://yufeiran/model/AMD/Robot/Robot.gltf");
+
+	
 
 	glm::mat4 objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat,{2,0,0});
@@ -136,6 +153,19 @@ void MiniVulkanRenderer::loadShowCase()
 	
 	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/AntiqueCamera/glTF/AntiqueCamera.gltf",objMat);
 
+	objMat = glm::mat4(1.0f);
+	objMat = glm::scale(objMat, {2, 2, 2});
+
+	objMat = glm::translate(objMat,{0,1,1});
+	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BarramundiFish/glTF/BarramundiFish.gltf",objMat);
+
+	objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{0,0,3});
+	objMat = glm::scale(objMat, {20, 20, 20});
+
+
+	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoomBox/glTF/BoomBox.gltf",objMat);
+
 	resourceManager->loadScene("../../assets/lightScene.gltf");
 
 	objMat = glm::mat4(1.0f);
@@ -152,6 +182,11 @@ MiniVulkanRenderer::MiniVulkanRenderer()
 
 void MiniVulkanRenderer::init(int width, int height)
 {
+
+
+
+
+
 	LogLogo();
 	Log("init start");
 	LogTimerStart("init");

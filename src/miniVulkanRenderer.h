@@ -66,6 +66,8 @@ public:
 
 	void load();
 	
+	void loadBugBox();
+
 	void loadTestGltf();
 
 	void loadShowCase();

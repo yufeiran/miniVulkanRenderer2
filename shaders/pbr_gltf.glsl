@@ -96,19 +96,20 @@ vec3 EvalDiffuseGltf(State state, vec3 f0, vec3 f90, vec3 V, vec3 N, vec3 L, vec
     pdf          = 0;
     float NdotV  = dot(N, V);
     float NdotL  = dot(N, L);
+            // brdf = state.mat.albedo / M_PI * (1.0 - state.mat.metallic);
+            // pdf = dot(L, N) / M_PI;
 
-    // if(NdotL < 0.0 || NdotV < 0.0)
-    //     return vec3(0.0);
-    
-    // NdotL = clamp(NdotL, 0.001, 1.0);
-    // NdotV = clamp(abs(NdotV), 0.001, 1.0);
     NdotL = abs(NdotL);
     NdotV = abs(NdotV);
 
+    NdotL = clamp(abs(NdotL), 0.0000000000000000000001, 1.0);
+    NdotV = clamp(abs(NdotV), 0.0000000000000000000001, 1.0);
+
     float VdotH = dot(V, H);
 
-    pdf = NdotL * M_1_OVER_PI;
-    return BRDF_lambertian(f0, f90, state.mat.albedo.xyz, VdotH, state.mat.metallic);
+    pdf = dot(L, N)  * M_1_OVER_PI;
+
+    return (1.0 - state.mat.metallic) * (state.mat.albedo.xyz / M_PI);
 
 }
 
@@ -174,11 +175,11 @@ vec3 PbrSample(in State state, vec3 V, vec3 N, inout vec3 L, inout float pdf, in
 
             vec3 H = normalize(L + V);
 
-            brdf = state.mat.albedo / M_PI * (1.0 - state.mat.metallic);
-            pdf = dot(L, N) / M_PI;
-            // brdf = EvalDiffuseGltf(state, f0, f90, V, N, L, H, pdf);
-            // //pdf *= (1.0 - state.mat.subsurface) * diffuseRatio;
-            // pdf *= 1.0 * diffuseRatio;
+            // brdf = state.mat.albedo / M_PI * (1.0 - state.mat.metallic);
+            // pdf = dot(L, N) / M_PI;
+            brdf = EvalDiffuseGltf(state, f0, f90, V, N, L, H, pdf);
+            //pdf *= (1.0 - state.mat.subsurface) * diffuseRatio;
+            //pdf *= 1.0 * diffuseRatio;
         }
         // cal f_cook-torrance
         else 

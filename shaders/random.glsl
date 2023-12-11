@@ -69,25 +69,44 @@ vec3 samplineHemisphere(inout uint seed, in vec3 x, in vec3 y, in vec3 z)
 // Return the tangent and binormal from the incoming normal
 void createCoordinateSystem(in vec3 N, out vec3 Nt, out vec3 Nb)
 {
-    if(abs(N.x) > abs(N.y))
-        Nt = vec3(N.z, 0, -N.x) / sqrt(N.x * N.x + N.z * N.z);
-    else 
-        Nt = vec3(0, -N.z, N.y) / sqrt(N.y * N.y + N.z * N.z);
-    Nb = cross(N, Nt);
+    // if(abs(N.x) > abs(N.y))
+    //     Nt = vec3(N.z, 0, -N.x) / sqrt(N.x * N.x + N.z * N.z);
+    // else 
+    //     Nt = vec3(0, -N.z, N.y) / sqrt(N.y * N.y + N.z * N.z);
+    // Nb = cross(N, Nt);
+    Nt = normalize(((abs(N.z) > 0.99999f) ? vec3(-N.x * N.y, 1.0f - N.y * N.y, -N.y * N.z) :
+                                        vec3(-N.x * N.z, -N.y * N.z, 1.0f - N.z * N.z)));
+    Nb = cross(Nt, N);
 }
 
 // Avoiding self intersections (see Ray Tracing Gems, Ch.6)
+// vec3 OffsetRay(in vec3 p, in vec3 n)
+// {
+//     const float intScale   = 256.0f;
+//     const float floatScale = 1.0f / 65536.0f;
+//     const float origin     = 1.0f / 32.0f;
+
+//     ivec3 of_i = ivec3(intScale * n.x, intScale * n.y, intScale * n.z);
+
+//     vec3 p_i = vec3(intBitsToFloat(floatBitsToInt(p.x) + ((p.x < 0) ? -of_i.x : of_i.x)),
+//                     intBitsToFloat(floatBitsToInt(p.y) + ((p.y < 0) ? -of_i.y : of_i.y)),
+//                     intBitsToFloat(floatBitsToInt(p.z) + ((p.z < 0) ? -of_i.z : of_i.z)));
+
+//   return vec3(abs(p.x) < origin ? p.x + floatScale * n.x : p_i.x,  //
+//               abs(p.y) < origin ? p.y + floatScale * n.y : p_i.y,  //
+//               abs(p.z) < origin ? p.z + floatScale * n.z : p_i.z);
+// }
 vec3 OffsetRay(in vec3 p, in vec3 n)
 {
-    const float intScale   = 256.0f;
-    const float floatScale = 1.0f / 65536.0f;
-    const float origin     = 1.0f / 32.0f;
+  const float intScale   = 256.0f;
+  const float floatScale = 1.0f / 65536.0f;
+  const float origin     = 1.0f / 32.0f;
 
-    ivec3 of_i = ivec3(intScale * n.x, intScale * n.y, intScale * n.z);
+  ivec3 of_i = ivec3(intScale * n.x, intScale * n.y, intScale * n.z);
 
-    vec3 p_i = vec3(intBitsToFloat(floatBitsToInt(p.x) + ((p.x < 0) ? -of_i.x : of_i.x)),
-                    intBitsToFloat(floatBitsToInt(p.y) + ((p.y < 0) ? -of_i.y : of_i.y)),
-                    intBitsToFloat(floatBitsToInt(p.z) + ((p.z < 0) ? -of_i.z : of_i.z)));
+  vec3 p_i = vec3(intBitsToFloat(floatBitsToInt(p.x) + ((p.x < 0) ? -of_i.x : of_i.x)),
+                  intBitsToFloat(floatBitsToInt(p.y) + ((p.y < 0) ? -of_i.y : of_i.y)),
+                  intBitsToFloat(floatBitsToInt(p.z) + ((p.z < 0) ? -of_i.z : of_i.z)));
 
   return vec3(abs(p.x) < origin ? p.x + floatScale * n.x : p_i.x,  //
               abs(p.y) < origin ? p.y + floatScale * n.y : p_i.y,  //

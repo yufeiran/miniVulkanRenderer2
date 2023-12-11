@@ -25,6 +25,15 @@ void GetMetallicRoughness(inout State state, in GltfShadeMaterial material, int 
     vec4  baseColor           = vec4(0.0, 0.0, 0.0, 1.0);
     vec3  f0                  = vec3(dielectricSpecular);
 
+    // get albedo
+    baseColor = material.pbrBaseColorFactor;
+    if(material.pbrBaseColorTexture > -1)
+    {
+        //baseColor *= SRGBtoLINEAR(textureLod(textureSamplers[nonuniformEXT(material.pbrBaseColorTexture)], state.texCoord, 0));
+        baseColor *= textureLod(textureSamplers[nonuniformEXT(material.pbrBaseColorTexture)], state.texCoord, 0);
+    }
+
+
     perceptualRoughness = material.pbrRoughnessFactor;
     metallic            = material.pbrMetallicFactor;
     if(material.pbrMetallicRoughnessTexture > -1)
@@ -34,14 +43,9 @@ void GetMetallicRoughness(inout State state, in GltfShadeMaterial material, int 
         vec4 mrSample = textureLod(textureSamplers[nonuniformEXT(material.pbrMetallicRoughnessTexture)], state.texCoord, 0);
         perceptualRoughness = mrSample.g * perceptualRoughness;
         metallic            = mrSample.b * metallic;
+        baseColor           = mrSample.r * baseColor;
     }
 
-    // get albedo
-    baseColor = material.pbrBaseColorFactor;
-    if(material.pbrBaseColorTexture > -1)
-    {
-        baseColor *= SRGBtoLINEAR(textureLod(textureSamplers[nonuniformEXT(material.pbrBaseColorTexture)], state.texCoord, 0));
-    }
 
     f0 = mix(vec3(dielectricSpecular), baseColor.xyz, metallic);
 
