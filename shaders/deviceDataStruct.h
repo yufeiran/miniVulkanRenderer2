@@ -111,9 +111,12 @@ struct GltfShadeMaterial
 	vec4  pbrBaseColorFactor;
 
     int   pbrBaseColorTexture;
+	int   pbrOcclusionTexture;
+
 	float pbrMetallicFactor;
 	float pbrRoughnessFactor;
 	int   pbrMetallicRoughnessTexture;
+	float pbrOcclusionTextureStrength;
 
 	vec4  khrDiffuseFactor;   // KHR_materials_pbrSpecularGlossiness
 	vec3  khrSpecularFactor;

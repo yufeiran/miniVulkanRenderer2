@@ -72,6 +72,9 @@ void GltfLoader::importMaterials(const tinygltf::Model& tmodel)
 		gmat.metallicRoughnessTexture = tpbr.metallicRoughnessTexture.index;
 		gmat.roughnessFactor          = static_cast<float>(tpbr.roughnessFactor);
 
+		gmat.occlusionTexture         = tmat.occlusionTexture.index;
+		gmat.occlusionTextureStrength = tmat.occlusionTexture.strength;
+
 		
 
 		
@@ -392,7 +395,7 @@ void GltfLoader::processMesh(const tinygltf::Model& tmodel, const tinygltf::Prim
 			bool texcoordCreated = getAttribute<glm::vec2>(tmodel, tmesh, texcoords0, "TEXCOORD_0");
 			if(!texcoordCreated)
 				texcoordCreated = getAttribute<glm::vec2>(tmodel, tmesh, texcoords0, "TEXCOORD");
-			if(!texcoordCreated && hasFlag(forceRequested, GltfAttributes::Texcoord_0));
+			if(!texcoordCreated && hasFlag(forceRequested, GltfAttributes::Texcoord_0))
 				createTexcoords(resultMesh);
 		}
 

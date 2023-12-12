@@ -34,10 +34,26 @@ void MiniVulkanRenderer::load()
 	case 3:
 		loadBugBox();
 		break;
+	case 4:
+		loadFeatures();
+		break;
 	}
 
 }
 
+
+void MiniVulkanRenderer::loadFeatures()
+{
+	glm::mat4 objMat = glm::mat4(1.0f);
+	objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{-10,-1,0});
+	//resourceManager->loadScene("D://yufeiran/model/AMD/GI/GI.gltf",objMat);
+	
+	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/AlphaBlendModeTest/glTF/AlphaBlendModeTest.gltf",objMat);
+
+	resourceManager->loadScene("../../assets/lightScene.gltf");
+
+}
 
 void MiniVulkanRenderer::loadBugBox()
 {
@@ -108,6 +124,8 @@ void MiniVulkanRenderer::loadTestGltf()
 
 	
 
+	
+
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat,{5, 2, 1});
 	objMat = glm::scale(objMat, {0.005, 0.005, 0.005});
@@ -116,6 +134,8 @@ void MiniVulkanRenderer::loadTestGltf()
 	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/cube/glTF/cube.gltf", objMat);
 
 	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/2CylinderEngine/glTF/2CylinderEngine.gltf", objMat);
+
+
 
 
 
@@ -134,13 +154,15 @@ void MiniVulkanRenderer::loadSponza()
 {
 	glm::mat4 objMat = glm::mat4(1.0f);
 	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat,{-60,-1,0});
+	objMat = glm::translate(objMat,{-10,-1,0});
 	//resourceManager->loadScene("D://yufeiran/model/AMD/GI/GI.gltf",objMat);
 	
 	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",objMat);
 
 	resourceManager->loadScene("../../assets/lightScene.gltf");
 }
+
+
 
 void MiniVulkanRenderer::loadShowCase()
 {
@@ -172,6 +194,12 @@ void MiniVulkanRenderer::loadShowCase()
 	objMat = glm::translate(objMat,{0,-1,0});
 	objMat = glm::scale(objMat,{3,1,3});
 	resourceManager->loadScene( "../../assets/plane/plane1.gltf",objMat);
+
+		objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{0, 0, -5});
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/cube/glTF/cube.gltf", objMat);
+
+	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf", objMat);
 }
 
 MiniVulkanRenderer::MiniVulkanRenderer()

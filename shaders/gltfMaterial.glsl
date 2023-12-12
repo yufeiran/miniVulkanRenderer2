@@ -43,7 +43,7 @@ void GetMetallicRoughness(inout State state, in GltfShadeMaterial material, int 
         vec4 mrSample = textureLod(textureSamplers[nonuniformEXT(material.pbrMetallicRoughnessTexture)], state.texCoord, 0);
         perceptualRoughness = mrSample.g * perceptualRoughness;
         metallic            = mrSample.b * metallic;
-        baseColor           = mrSample.r * baseColor;
+
     }
 
 
@@ -98,7 +98,7 @@ void GetMaterialsAndTextures(inout State state,in hitPayload prd, in Ray r)
     if(material.emissiveTexture > -1)
     {
         state.mat.emission *= 
-            SRGBtoLINEAR(textureLod(textureSamplers[nonuniformEXT(material.emissiveTexture)], state.texCoord, 0)).rgb;
+            textureLod(textureSamplers[nonuniformEXT(material.emissiveTexture)], state.texCoord, 0).rgb;
     }
 
     // Basic material

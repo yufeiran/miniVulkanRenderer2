@@ -86,10 +86,11 @@ void main() {
         vec3 diffuse = computeDiffuse(mat, L, N);
         if(mat.pbrBaseColorTexture >= 0)
         {
-            // uint txtId    = mat.pbrBaseColorTexture + objDesc.i[pcRaster.objIndex].txtOffset;
+            //uint txtId    = mat.pbrBaseColorTexture + objDesc.i[pcRaster.objIndex].txtOffset;
             uint txtId    = mat.pbrBaseColorTexture;
             vec3 diffuseTxt = texture(textureSamplers[nonuniformEXT(txtId)], inTexCoord).xyz;
             diffuse *=diffuseTxt;
+
         }
         else 
         {
@@ -100,6 +101,8 @@ void main() {
         vec3 specular = computeSpecular(mat, inViewDir, L, N);
 
         outColor = vec4(lightIntensity * (diffuse + specular), 1);
+
+        //outColor = vec4(inTexCoord,0.0,1);
        
     }
 

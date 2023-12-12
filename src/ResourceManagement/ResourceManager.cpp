@@ -126,6 +126,9 @@ GltfShadeMaterial  toMaterial(GltfMaterial& gltfm)
 	m.normalTexture = gltfm.normalTexture;
 	m.normalTextureScale = gltfm.normalTextureScale;
 
+	m.pbrOcclusionTexture = gltfm.occlusionTexture;
+	m.pbrOcclusionTextureStrength = gltfm.occlusionTextureStrength;
+
 	m.uvTransform;
 
 	m.unlit = 0;
