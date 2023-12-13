@@ -11,6 +11,8 @@
 * Emission 
 ![Emission](assets/screenshot/emssion.png)
 ![Emission1](assets/screenshot/emssion1.png)
+* Alpha Test
+![Alpha Test](assets/screenshot/alphaTest.png)
 ## ThirdParty
 * imgui
 * tinygltf

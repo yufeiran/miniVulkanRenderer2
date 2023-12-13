@@ -17,7 +17,7 @@ vec3 Sample(in State state, in vec3 V, in vec3 N,inout vec3 L, inout float pdf, 
 void ClosestHit(Ray r)
 {
     //uint  rayFlags = gl_RayFlagsOpaqueEXT | gl_RayFlagsCullBackFacingTrianglesEXT;
-    uint  rayFlags = gl_RayFlagsOpaqueEXT;
+    uint  rayFlags = gl_RayFlagsCullBackFacingTrianglesEXT;
     prd.hitT       = INFINITY;
 
     // set min to avoid self intersections

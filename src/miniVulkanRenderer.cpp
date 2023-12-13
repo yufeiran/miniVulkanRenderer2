@@ -19,7 +19,7 @@ using namespace std::chrono;
 
 void MiniVulkanRenderer::load()
 {
-	int testCase = 0;
+	int testCase = 4;
 	switch(testCase)
 	{
 	case 0:
@@ -46,12 +46,17 @@ void MiniVulkanRenderer::loadFeatures()
 {
 	glm::mat4 objMat = glm::mat4(1.0f);
 	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat,{-10,-1,0});
+	objMat = glm::rotate(objMat,glm::radians(90.0f),glm::vec3(0.0,1.0,0.0));
 	//resourceManager->loadScene("D://yufeiran/model/AMD/GI/GI.gltf",objMat);
 	
 	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/AlphaBlendModeTest/glTF/AlphaBlendModeTest.gltf",objMat);
 
 	resourceManager->loadScene("../../assets/lightScene.gltf");
+
+	objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{0,-1,0});
+	objMat = glm::scale(objMat,{3,1,3});
+	resourceManager->loadScene( "../../assets/plane/plane1.gltf",objMat);
 
 }
 
@@ -426,7 +431,7 @@ auto MiniVulkanRenderer::objModelToVkGeometryKHR(const ObjModel& model)
 
 	VkAccelerationStructureGeometryKHR asGeom{VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR};
 	asGeom.geometryType       = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
-	asGeom.flags              = VK_GEOMETRY_OPAQUE_BIT_KHR;
+	asGeom.flags              = VK_GEOMETRY_NO_DUPLICATE_ANY_HIT_INVOCATION_BIT_KHR;  //Avoid double hits
 	asGeom.geometry.triangles = triangles;
 
 	VkAccelerationStructureBuildRangeInfoKHR offset={};
@@ -553,14 +558,17 @@ void MiniVulkanRenderer::createRtPipeline()
 		eMiss0,
 		eMiss1,
 		eClosetHit,
+		eAnyHit,
 		eShaderGroupCount
 	};
 
 
 	ShaderModule rayGenShader("../../spv/raytrace.rgen.spv",*device,VK_SHADER_STAGE_RAYGEN_BIT_KHR);
 	ShaderModule rayCHitShader("../../spv/raytrace.rchit.spv",*device,VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
+	ShaderModule rayAnyHitShader("../../spv/raytrace.rahit.spv",*device,VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
 	ShaderModule rayMissShader("../../spv/raytrace.rmiss.spv",*device,VK_SHADER_STAGE_MISS_BIT_KHR);
 	ShaderModule rayShadowMissShader("../../spv/raytraceShadow.rmiss.spv",*device,VK_SHADER_STAGE_MISS_BIT_KHR);
+
 
 	// All stages 
 	std::vector<VkPipelineShaderStageCreateInfo> stages{};
@@ -584,6 +592,10 @@ void MiniVulkanRenderer::createRtPipeline()
 	stage.module       = rayCHitShader.getHandle();
 	stage.stage        = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
 	stages[eClosetHit] = stage;
+	// Hit Group - Any Hit
+	stage.module       = rayAnyHitShader.getHandle();
+	stage.stage        = VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
+	stages[eAnyHit]    = stage;
 
 	// Shader groups
 	VkRayTracingShaderGroupCreateInfoKHR group{VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR};
@@ -611,10 +623,11 @@ void MiniVulkanRenderer::createRtPipeline()
 	group.type             = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR;
 	group.generalShader    = VK_SHADER_UNUSED_KHR;
 	group.closestHitShader = eClosetHit;
+	group.anyHitShader     = eAnyHit;
 	rtShaderGroups.push_back(group);
 
 	// Push constant
-	VkPushConstantRange pushConstant{VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR | VK_SHADER_STAGE_MISS_BIT_KHR ,
+	VkPushConstantRange pushConstant{VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR | VK_SHADER_STAGE_MISS_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR ,
 									 0, sizeof(PushConstantRay)};
 	VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
 	pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
@@ -728,7 +741,7 @@ void MiniVulkanRenderer::raytrace(CommandBuffer& cmd, const glm::vec4& clearColo
 	vkCmdBindDescriptorSets(cmd.getHandle(),VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, rtPipelineLayout->getHandle(), 0,
 							(uint32_t)descSets.size(), descSets.data(), 0, nullptr);
 	vkCmdPushConstants(cmd.getHandle(), rtPipelineLayout->getHandle(),
-		              VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR | VK_SHADER_STAGE_MISS_BIT_KHR,
+		              VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR | VK_SHADER_STAGE_MISS_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR,
 		              0, sizeof(PushConstantRay), &pcRay);
 
 	vkCmdTraceRaysKHR(cmd.getHandle(), &rgenRegion, &missRegion, &hitRegion, &callRegion, surfaceExtent.width,surfaceExtent.height,1);
@@ -1405,16 +1418,16 @@ void MiniVulkanRenderer::createDescriptorSetLayout()
 
 	// Camera matrices 
 	descSetBindings.addBinding(SceneBindings::eGlobals,  VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
-											VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_RAYGEN_BIT_KHR);
+											VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_RAYGEN_BIT_KHR |  VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
 	descSetBindings.addBinding(SceneBindings::eObjDescs, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1,
 		                                    VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
-											| VK_SHADER_STAGE_RAYGEN_BIT_KHR);
+											| VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
 	descSetBindings.addBinding(SceneBindings::eTextures, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nbTxt,
 											VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
-											| VK_SHADER_STAGE_RAYGEN_BIT_KHR);
+											| VK_SHADER_STAGE_RAYGEN_BIT_KHR |  VK_SHADER_STAGE_ANY_HIT_BIT_KHR );
 	descSetBindings.addBinding(SceneBindings::eCubeMap,VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,1,
 											VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
-											| VK_SHADER_STAGE_MISS_BIT_KHR | VK_SHADER_STAGE_RAYGEN_BIT_KHR);
+											| VK_SHADER_STAGE_MISS_BIT_KHR | VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
 
 	descSetLayout = descSetBindings.createLayout(*device);
 	descPool      = descSetBindings.createPool(*device,1);
