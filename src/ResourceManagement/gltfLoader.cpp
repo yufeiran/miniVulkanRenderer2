@@ -76,6 +76,20 @@ void GltfLoader::importMaterials(const tinygltf::Model& tmodel)
 		gmat.occlusionTextureStrength = tmat.occlusionTexture.strength;
 
 		
+		gmat.transmissionFactor = 0;
+		gmat.transmissionTexture = -1;
+		// KHR_materials_transmission
+		if(tmat.extensions.find(KHR_MATERIALS_TRANSMISSION_EXTENSION_NAME)!=tmat.extensions.end())
+		{
+			const auto& ext = tmat.extensions.find(KHR_MATERIALS_TRANSMISSION_EXTENSION_NAME)->second;
+			getFloat(ext, "transmissionFactor", gmat.transmissionFactor);
+			getTexId(ext, "transmissionTexture", gmat.transmissionTexture);
+			
+		}
+		else {
+			gmat.transmissionFactor = 0;
+			gmat.transmissionTexture = -1;
+		}
 
 		
 		//TODO: extension

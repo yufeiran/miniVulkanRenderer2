@@ -166,7 +166,7 @@ public:
 
 private:
 	bool canRaytracing = false;
-	bool useRaytracing = true;
+	bool useRaytracing = false;
 	int width, height;
 	VkExtent2D surfaceExtent{};
 

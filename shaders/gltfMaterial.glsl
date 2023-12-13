@@ -111,11 +111,11 @@ void GetMaterialsAndTextures(inout State state,in hitPayload prd, in Ray r)
     state.mat.roughness = max(state.mat.roughness, 0.001);
 
     // KHR_materials_transmission
-    // state.mat.transmission = material.transmissionFactor;
-    // if(material.transmissionTexture > -1)
-    // {
-    //     state.mat.transmission *= textureLod(textureSamplers[nonuniformEXT(txtOffset + material.transmissionTexture)], state.texCoord, 0).r;
-    // }
+    state.mat.transmission = material.transmissionFactor;
+    if(material.transmissionTexture > -1)
+    {
+        state.mat.transmission *= textureLod(textureSamplers[nonuniformEXT(material.transmissionTexture)], state.texCoord, 0).r;
+    }
 
     // KHR_materials_ior
     state.mat.ior = material.ior;

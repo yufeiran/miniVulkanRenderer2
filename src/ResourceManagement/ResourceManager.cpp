@@ -133,8 +133,9 @@ GltfShadeMaterial  toMaterial(GltfMaterial& gltfm)
 
 	m.unlit = 0;
 
-	m.transmissionFactor = 0;
-	m.transmissionTexture = -1;
+	m.transmissionFactor = gltfm.transmissionFactor;
+	m.transmissionTexture = gltfm.transmissionTexture;
+
 
 	m.ior = 1.33;
 
@@ -300,13 +301,14 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 		int32_t meshMetallicRoughnessTxtIndex = mat.pbrMetallicRoughnessTexture;
 		int32_t meshEmissiveTxtIndex = mat.emissiveTexture;
 		int32_t meshNormalTxtIndex = mat.normalTexture;
+		int32_t meshTransmissionTxtIndex = mat.transmissionTexture;
 
 		std::vector<tinygltf::Image*> meshTxt;
 
-		if(meshColorTxtIndex != -1 && meshColorTxtIndex < gltfLoader.tmodel.images.size())
+		if(meshColorTxtIndex != -1)
 		{
-			
-			tinygltf::Image* meshColrTxt = &gltfLoader.tmodel.images[meshColorTxtIndex];
+			int sourceIndex = gltfLoader.tmodel.textures[meshColorTxtIndex].source;
+			tinygltf::Image* meshColrTxt = &gltfLoader.tmodel.images[sourceIndex];
 
 			// retarget image index
 			mat.pbrBaseColorTexture = textures.size() + meshTxt.size();
@@ -315,10 +317,10 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 		}
 
 
-		if(meshMetallicRoughnessTxtIndex != -1 && meshMetallicRoughnessTxtIndex < gltfLoader.tmodel.images.size())
+		if(meshMetallicRoughnessTxtIndex != -1 )
 		{
-			
-			tinygltf::Image* meshMetallicRoughnessTxt = &gltfLoader.tmodel.images[meshMetallicRoughnessTxtIndex];
+			int sourceIndex = gltfLoader.tmodel.textures[meshMetallicRoughnessTxtIndex].source;
+			tinygltf::Image* meshMetallicRoughnessTxt = &gltfLoader.tmodel.images[sourceIndex];
 
 			// retarget image index
 			mat.pbrMetallicRoughnessTexture = textures.size() + meshTxt.size();
@@ -326,25 +328,34 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 
 		}
 
-		if(meshEmissiveTxtIndex != -1 && meshEmissiveTxtIndex < gltfLoader.tmodel.images.size())
+		if(meshEmissiveTxtIndex != -1)
 		{
-			
-			tinygltf::Image* meshEmissiveTxt = &gltfLoader.tmodel.images[meshEmissiveTxtIndex];
+			int sourceIndex = gltfLoader.tmodel.textures[meshEmissiveTxtIndex].source;
+			tinygltf::Image* meshEmissiveTxt = &gltfLoader.tmodel.images[sourceIndex];
 
 			// retarget image index
 			mat.emissiveTexture = textures.size() + meshTxt.size();
 			meshTxt.emplace_back(meshEmissiveTxt);
 
 		}
-		if(meshNormalTxtIndex != -1 && meshNormalTxtIndex < gltfLoader.tmodel.images.size())
+		if(meshNormalTxtIndex != -1)
 		{
-			
-			tinygltf::Image* meshNormalTxt = &gltfLoader.tmodel.images[meshNormalTxtIndex];
+			int sourceIndex = gltfLoader.tmodel.textures[meshNormalTxtIndex].source;
+			tinygltf::Image* meshNormalTxt = &gltfLoader.tmodel.images[sourceIndex];
 
 			// retarget image index
 			mat.normalTexture = textures.size() + meshTxt.size();
 			meshTxt.emplace_back(meshNormalTxt);
 
+		}
+		if(meshTransmissionTxtIndex != -1 )
+		{
+			int sourceIndex = gltfLoader.tmodel.textures[meshTransmissionTxtIndex].source;
+			tinygltf::Image* meshTransmissionTxt = &gltfLoader.tmodel.images[sourceIndex];
+
+			// retarget image index
+			mat.transmissionTexture = textures.size() + meshTxt.size();
+			meshTxt.emplace_back(meshTransmissionTxt);
 		}
 				// per face material
 		for(int i = 0; i < m.vertexCount / 3; i++)
@@ -382,6 +393,7 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 
 		objModel.emplace_back(std::move(model));
 		objDesc.emplace_back(std::move(desc));
+		materials.emplace_back(mat);
 	}
 
 	int maxCount = 2;

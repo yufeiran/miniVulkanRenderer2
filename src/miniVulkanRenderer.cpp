@@ -19,7 +19,7 @@ using namespace std::chrono;
 
 void MiniVulkanRenderer::load()
 {
-	int testCase = 4;
+	int testCase = 1;
 	switch(testCase)
 	{
 	case 0:
@@ -46,17 +46,45 @@ void MiniVulkanRenderer::loadFeatures()
 {
 	glm::mat4 objMat = glm::mat4(1.0f);
 	objMat = glm::mat4(1.0f);
-	objMat = glm::rotate(objMat,glm::radians(90.0f),glm::vec3(0.0,1.0,0.0));
+	//objMat = glm::translate(objMat, glm::vec3(0.0,10.0,0.0));
+	//objMat = glm::rotate(objMat,glm::radians(90.0f),glm::vec3(0.0,1.0,0.0));
+	//objMat = glm::scale(objMat,{0.01,0.01,0.01});
 	//resourceManager->loadScene("D://yufeiran/model/AMD/GI/GI.gltf",objMat);
-	
-	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/AlphaBlendModeTest/glTF/AlphaBlendModeTest.gltf",objMat);
+	//resourceManager->loadScene("D://yufeiran/model/bug/greenballs.gltf",objMat);
+	//resourceManager->loadScene("D://yufeiran/model/bug/allwithoutcloth.gltf",objMat);
 
-	resourceManager->loadScene("../../assets/lightScene.gltf");
+	//resourceManager->loadScene("D://yufeiran/model/bug/clothbackdrop.gltf",objMat);
+	resourceManager->loadScene("D://yufeiran/model/bug/clothpart1.gltf",objMat);
+
+	// MetalRoughSpheres Test
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf",objMat);
+
+	// TransmissionTest
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/TransmissionTest/glTF/TransmissionTest.gltf",objMat);
+	//BoomBoxWithAxes
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoomBoxWithAxes/glTF/BoomBoxWithAxes.gltf",objMat);
+
+		// Alpha Test
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/AlphaBlendModeTest/glTF/AlphaBlendModeTest.gltf",objMat);
+
+
+	objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat, glm::vec3(0.0,3.0,0.0));
+	objMat = glm::rotate(objMat,glm::radians(90.0f),glm::vec3(0.0,1.0,0.0));
+	
+
+		// TransmissionTest
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/TransmissionTest/glTF/TransmissionTest.gltf",objMat);
+
+
+
+
+	//resourceManager->loadScene("../../assets/lightScene.gltf");
 
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat,{0,-1,0});
 	objMat = glm::scale(objMat,{3,1,3});
-	resourceManager->loadScene( "../../assets/plane/plane1.gltf",objMat);
+	//resourceManager->loadScene( "../../assets/plane/plane1.gltf",objMat);
 
 }
 
@@ -73,12 +101,19 @@ void MiniVulkanRenderer::loadBugBox()
 
 void MiniVulkanRenderer::loadTestGltf()
 {
+	glm::mat4 objMat = glm::mat4(1.0f);
+	objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{0, 5, -3});
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/cube/glTF/cube.gltf", objMat);
+
+	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoxVertexColors/glTF/BoxVertexColors.gltf", objMat);
+
 	
 	resourceManager->loadScene("D://yufeiran/model/AMD/Robot/Robot.gltf");
 
 	
 
-	glm::mat4 objMat = glm::mat4(1.0f);
+
 	objMat = glm::translate(objMat,{2,0,0});
 	objMat = glm::scale(objMat,{5,5,5});
 	//resourceManager->loadObjModel("bunny", "../../assets/bunny/bunny.obj",objMat);
@@ -115,11 +150,7 @@ void MiniVulkanRenderer::loadTestGltf()
 
 
 
-	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat,{0, 5, -3});
-	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/cube/glTF/cube.gltf", objMat);
 
-	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoxVertexColors/glTF/BoxVertexColors.gltf", objMat);
 
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat,{0, 8, -3});
@@ -173,12 +204,12 @@ void MiniVulkanRenderer::loadShowCase()
 {
 	glm::mat4 objMat = glm::mat4(1.0f);
 	objMat = glm::mat4(1.0f);
-	objMat = glm::scale(objMat, {0.3, 0.3, 0.3});
+	objMat = glm::scale(objMat, {0.01, 0.01, 0.01});
 
-	objMat = glm::translate(objMat,{0,-3,0});
+	//objMat = glm::translate(objMat,{0,-3,0});
 	//resourceManager->loadScene("D://yufeiran/model/AMD/GI/GI.gltf",objMat);
-	
-	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/AntiqueCamera/glTF/AntiqueCamera.gltf",objMat);
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/GearboxAssy/glTF/GearboxAssy.gltf",objMat);
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/AntiqueCamera/glTF/AntiqueCamera.gltf",objMat);
 
 	objMat = glm::mat4(1.0f);
 	objMat = glm::scale(objMat, {2, 2, 2});
@@ -493,10 +524,20 @@ void MiniVulkanRenderer::createTopLevelAS()
 	{
 		VkAccelerationStructureInstanceKHR rayInst{};
 		uint32_t modelId = instance.objIndex;
+
+		GltfShadeMaterial& mat = resourceManager->materials[modelId];
+		
 		rayInst.transform                           = toTransformMatrixKHR(instance.transform);
 		rayInst.instanceCustomIndex                 = modelId;
 		rayInst.accelerationStructureReference      = rayTracingBuilder->getBlasDeviceAddress(modelId);
-		rayInst.flags                               = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;
+
+		VkGeometryInstanceFlagsKHR flags{};
+		if(mat.doubleSided == 1)
+		{
+			flags |= VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;
+		}
+
+		rayInst.flags                               = flags;
 		rayInst.mask                                = 0xFF; // Only be hit if rayMask & instance.mask != 0
 		rayInst.instanceShaderBindingTableRecordOffset=0;
 		tlas.emplace_back(rayInst);

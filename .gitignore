@@ -34,3 +34,4 @@
 imgui.ini
 
 *.spv
+spv/raytrace.rgen.spv

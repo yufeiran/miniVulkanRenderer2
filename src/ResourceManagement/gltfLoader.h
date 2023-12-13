@@ -4,6 +4,13 @@
 
 #define KHR_LIGHTS_PUNCTUAL_EXTENSION_NAME "KHR_lights_punctual"
 
+#define KHR_MATERIALS_TRANSMISSION_EXTENSION_NAME "KHR_materials_transmission"
+struct KHR_materials_transmission
+{
+  float factor{0.f};
+  int   texture{-1};
+};
+
 struct GltfMaterial
 {
 	int shadingModel{0}; // 0: metallic-roughness, 1: specular-glossiness
@@ -31,7 +38,8 @@ struct GltfMaterial
 	int        thicknessTexture;
 	float      attenuationDistance;
 
-
+	int        transmissionTexture{-1};
+	float      transmissionFactor{0};
 
 	// Tiny Reference
 	const tinygltf::Material* tmaterial{nullptr};
@@ -399,3 +407,70 @@ static bool getAttribute(const tinygltf::Model& tmodel, const tinygltf::Primitiv
 	const auto& accessor = tmodel.accessors[it->second];
 	return getAccessorData(tmodel, accessor, attribVec);
 }
+
+static inline void getFloat(const tinygltf::Value& value, const std::string& name, float& val)
+{
+	if(value.Has(name))
+	{
+		val = static_cast<float>(value.Get(name).Get<double>());
+	}
+}
+
+static inline void getInt(const tinygltf::Value& value, const std::string& name, int& val)
+{
+	if(value.Has(name))
+	{
+		val = value.Get(name).Get<int>();
+	}
+}
+
+// Return a vector of data for a tinygltf::Value
+template <typename T>
+static inline std::vector<T> getVector(const tinygltf::Value& value)
+{
+	std::vector<T> result{0};
+	if(!value.IsArray())
+		return result;
+	result.resize(value.ArrayLen());
+	for(int i=0; i < value.ArrayLen(); i++)
+	{
+		result[i] = static_cast<T>(value.Get(i).IsNumber() ? value.Get(i).Get<double>() : value.Get(i).Get<int>());
+	}
+	return result;
+}
+
+static inline void getVec2(const tinygltf::Value& value, const std::string& name, glm::vec2& val)
+{
+	if(value.Has(name))
+	{
+		auto s = getVector<float>(value.Get(name));
+		val = glm::vec2{s[0], s[1]};
+	}
+}
+
+static inline void getVec3(const tinygltf::Value& value, const std::string& name, glm::vec3& val)
+{
+	if(value.Has(name))
+	{
+		auto s = getVector<float>(value.Get(name));
+		val = glm::vec3{s[0], s[1], s[2]};
+	}
+}
+
+static inline void getVec4(const tinygltf::Value& value, const std::string& name, glm::vec4& val)
+{
+	if(value.Has(name))
+	{
+		auto s = getVector<float>(value.Get(name));
+		val = glm::vec4{s[0], s[1], s[2], s[3]};
+	}
+}
+
+static inline void getTexId(const tinygltf::Value& value, const std::string& name, int& val)
+{
+	if(value.Has(name))
+	{
+		val = value.Get(name).Get("index").Get<int>();
+	}
+}
+

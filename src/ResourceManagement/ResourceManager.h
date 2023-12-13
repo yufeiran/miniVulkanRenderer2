@@ -58,6 +58,7 @@ public:
 	std::vector<std::unique_ptr<ObjModel>>    objModel;
 	std::vector<ObjDesc>                      objDesc;
 	std::vector<ObjInstance>                  instances;
+	std::vector<GltfShadeMaterial>            materials;
 
 	std::vector<Texture>                      textures;
 	std::vector<std::unique_ptr<Image>>       images;
