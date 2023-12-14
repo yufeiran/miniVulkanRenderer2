@@ -6,6 +6,7 @@
  ## Screenshot
 * Demo
 ![demo](assets/screenshot/sceneDemo.png)
+![sponaz](assets/screenshot/sponza.png)
 * Normal Map 
 ![Noraml Map](assets/screenshot/normalMap.png)
 * Emission 

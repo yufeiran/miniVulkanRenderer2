@@ -12,7 +12,7 @@ vec3 computeDiffuse(GltfShadeMaterial mat, vec3 lightDir, vec3 normal)
 
 vec3 computeSpecular(GltfShadeMaterial mat, vec3 viewDir, vec3 lightDir, vec3 normal)
 {
-    if(mat.illum < 2)
-        return vec3(0);
+    //if(mat.illum < 2)
+    return vec3(0);
         
 }

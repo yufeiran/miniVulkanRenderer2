@@ -19,7 +19,7 @@ using namespace std::chrono;
 
 void MiniVulkanRenderer::load()
 {
-	int testCase = 1;
+	int testCase = 2;
 	switch(testCase)
 	{
 	case 0:
@@ -54,13 +54,13 @@ void MiniVulkanRenderer::loadFeatures()
 	//resourceManager->loadScene("D://yufeiran/model/bug/allwithoutcloth.gltf",objMat);
 
 	//resourceManager->loadScene("D://yufeiran/model/bug/clothbackdrop.gltf",objMat);
-	resourceManager->loadScene("D://yufeiran/model/bug/clothpart1.gltf",objMat);
+	//resourceManager->loadScene("D://yufeiran/model/bug/clothpart1.gltf",objMat);
 
 	// MetalRoughSpheres Test
 	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf",objMat);
 
 	// TransmissionTest
-	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/TransmissionTest/glTF/TransmissionTest.gltf",objMat);
+	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/TransmissionTest/glTF/TransmissionTest.gltf",objMat);
 	//BoomBoxWithAxes
 	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoomBoxWithAxes/glTF/BoomBoxWithAxes.gltf",objMat);
 
@@ -92,7 +92,7 @@ void MiniVulkanRenderer::loadBugBox()
 {
 	glm::mat4 objMat = glm::mat4(1.0f);
 	objMat = glm::mat4(1.0f);
-	//resourceManager->loadScene("D://yufeiran/model/AMD/GI/GI.gltf",objMat);
+	//resourceManager->loadScene("D://yufeiran/model/AMD/Deferred/Deferred.gltf",objMat);
 	
 	resourceManager->loadScene("D://yufeiran/model/bugbox/bugbox.gltf",objMat);
 
@@ -190,10 +190,10 @@ void MiniVulkanRenderer::loadSponza()
 {
 	glm::mat4 objMat = glm::mat4(1.0f);
 	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat,{-10,-1,0});
-	//resourceManager->loadScene("D://yufeiran/model/AMD/GI/GI.gltf",objMat);
+	//objMat = glm::translate(objMat,{-10,-1,0});
+	resourceManager->loadScene("D://yufeiran/model/AMD/Deferred/Deferred.gltf",objMat);
 	
-	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",objMat);
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",objMat);
 
 	resourceManager->loadScene("../../assets/lightScene.gltf");
 }

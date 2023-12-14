@@ -80,9 +80,9 @@ void main() {
         outColor = vec4(lightIntensity * (diffuse + specular), 1);
     }
     // PBR
-    else if(mat.type == 1)
+    if(mat.type == 1)
     {
-        // Diffuse 
+        // // Diffuse 
         vec3 diffuse = computeDiffuse(mat, L, N);
         if(mat.pbrBaseColorTexture >= 0)
         {
@@ -100,11 +100,15 @@ void main() {
         // Specular 
         vec3 specular = computeSpecular(mat, inViewDir, L, N);
 
+        // vec3 specular = vec3(0.0, 0.0, 0.0);;
+        // vec3 diffuse = vec3(1.0, 1.0, 1.0);
+
         outColor = vec4(lightIntensity * (diffuse + specular), 1);
 
         //outColor = vec4(inTexCoord,0.0,1);
        
     }
-
+    // outColor = vec4(1.0, 1.0, 1.0, 1.0);
+    // outColor = vec4(inTexCoord,0.0,1);
 
 }

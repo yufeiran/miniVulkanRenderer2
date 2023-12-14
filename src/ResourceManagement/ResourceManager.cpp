@@ -357,8 +357,10 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 			mat.transmissionTexture = textures.size() + meshTxt.size();
 			meshTxt.emplace_back(meshTransmissionTxt);
 		}
-				// per face material
-		for(int i = 0; i < m.vertexCount / 3; i++)
+
+		// per face material
+		// face sum no equal to vertexcount / 3 !!!
+		for(int i = 0; i < m.indexCount; i++)
 		{
 			matColor.emplace_back(mat);
 			matIndex.emplace_back(0);
