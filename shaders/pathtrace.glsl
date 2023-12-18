@@ -21,7 +21,7 @@ void ClosestHit(Ray r)
     prd.hitT       = INFINITY;
 
     // set min to avoid self intersections
-    float tMin     = 0.01;
+    float tMin     = 0.00;
 
     traceRayEXT(topLevelAS, // acceleration structure
                 rayFlags,       // rayFlags 
@@ -85,7 +85,7 @@ vec3 PathTrace(Ray r)
                 factor =  0.8;
             }
             else {
-                factor = 0.01; // Tiny contribution from environment;
+                factor = 0.5; // Tiny contribution from environment;
             }
 
             return radiance + cubeMapColor * throughput;
@@ -106,7 +106,8 @@ vec3 PathTrace(Ray r)
         state.specularBounce = false;
         state.isSubsurface   = false;
         state.ffnormal       = dot(state.normal, r.direction) <= 0.0 ? state.normal : -state.normal;
-
+        createCoordinateSystem(state.ffnormal, state.tangent, state.bitangent);
+    
 
         
         // fill the material 

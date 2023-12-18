@@ -69,14 +69,14 @@ vec3 samplineHemisphere(inout uint seed, in vec3 x, in vec3 y, in vec3 z)
 // Return the tangent and binormal from the incoming normal
 void createCoordinateSystem(in vec3 N, out vec3 Nt, out vec3 Nb)
 {
-    // if(abs(N.x) > abs(N.y))
-    //     Nt = vec3(N.z, 0, -N.x) / sqrt(N.x * N.x + N.z * N.z);
-    // else 
-    //     Nt = vec3(0, -N.z, N.y) / sqrt(N.y * N.y + N.z * N.z);
-    // Nb = cross(N, Nt);
-    Nt = normalize(((abs(N.z) > 0.99999f) ? vec3(-N.x * N.y, 1.0f - N.y * N.y, -N.y * N.z) :
-                                        vec3(-N.x * N.z, -N.y * N.z, 1.0f - N.z * N.z)));
-    Nb = cross(Nt, N);
+    if(abs(N.x) > abs(N.y))
+        Nt = vec3(N.z, 0, -N.x) / sqrt(N.x * N.x + N.z * N.z);
+    else 
+        Nt = vec3(0, -N.z, N.y) / sqrt(N.y * N.y + N.z * N.z);
+    Nb = cross(N, Nt);
+    // Nt = normalize(((abs(N.z) > 0.99999f) ? vec3(-N.x * N.y, 1.0f - N.y * N.y, -N.y * N.z) :
+    //                                     vec3(-N.x * N.z, -N.y * N.z, 1.0f - N.z * N.z)));
+    // Nb = cross(Nt, N);
 }
 
 // Avoiding self intersections (see Ray Tracing Gems, Ch.6)

@@ -82,15 +82,19 @@ void GetMaterialsAndTextures(inout State state,in hitPayload prd, in Ray r)
     //state.texCoord = (vec4(state.texCoord.xy, 1, 1) * material.uvTransform).xy;
     mat3  TBN      = mat3(state.tangent, state.bitangent, state.normal);
 
-    // apply normal map if this material have a nomal map
+    //apply normal map if this material have a nomal map
     if(material.normalTexture > -1)
     {
-        vec3 normalVector = textureLod(textureSamplers[nonuniformEXT(material.normalTexture)], state.texCoord, 0).xyz;
-        normalVector      = normalize(normalVector * 2.0 - 1.0);
-        normalVector  *= vec3(material.normalTextureScale, material.normalTextureScale, 1.0);
-        state.normal   = normalize(TBN * normalVector);
-        state.ffnormal = dot(state.normal, r.direction) <= 0.0 ? state.normal : -state.normal;
-        createCoordinateSystem(state.ffnormal, state.tangent, state.bitangent);
+        // vec3 normalVector = textureLod(textureSamplers[nonuniformEXT(material.normalTexture)], state.texCoord, 0).xyz;
+        // normalVector      = normalize(normalVector * 2.0 - 1.0);
+        // normalVector  *= vec3(material.normalTextureScale, material.normalTextureScale, 1.0);
+        // state.normal   = normalize(TBN * normalVector);
+        // state.ffnormal = dot(state.normal, r.direction) <= 0.0 ? state.normal : -state.normal;
+        // createCoordinateSystem(state.ffnormal, state.tangent, state.bitangent);
+        vec3 normalVector = texture(textureSamplers[nonuniformEXT(material.normalTexture)], state.texCoord).xyz;
+        normalVector = normalize(normalVector * 2.0 - 1.0);
+        normalVector *= vec3(material.normalTextureScale, material.normalTextureScale, 1.0);
+        state.normal = normalize(TBN * normalVector);
     }
 
     // Emissive term
