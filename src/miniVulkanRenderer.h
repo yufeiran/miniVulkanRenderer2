@@ -162,6 +162,8 @@ public:
 		0,   // frame
 		1,   // nbSample
 		5,   // maxDepth
+		0,   // pbrMode
+		0,   // debugMode
 	};
 
 private:

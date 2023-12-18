@@ -191,9 +191,9 @@ void MiniVulkanRenderer::loadSponza()
 	glm::mat4 objMat = glm::mat4(1.0f);
 	objMat = glm::mat4(1.0f);
 	//objMat = glm::translate(objMat,{-10,-1,0});
-	resourceManager->loadScene("D://yufeiran/model/AMD/Deferred/Deferred.gltf",objMat);
+	//resourceManager->loadScene("D://yufeiran/model/AMD/Deferred/Deferred.gltf",objMat);
 	
-	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",objMat);
+	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",objMat);
 
 	resourceManager->loadScene("../../assets/lightScene.gltf");
 }
@@ -793,6 +793,7 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>&  clearValues)
 	static ImGuiTreeNodeFlags_ isLightHeaderOpen = ImGuiTreeNodeFlags_DefaultOpen;
 	static ImGuiTreeNodeFlags_ isRenderingHeaderOpen = ImGuiTreeNodeFlags_DefaultOpen;
 
+	static int debugModeIndex = 0;
 
 	bool changed = false;
 
@@ -817,6 +818,24 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>&  clearValues)
 		changed |= ImGui::SliderInt("Sample Number", &pcRay.nbSample, 1, 10);
 		changed |= ImGui::SliderInt("Max Depth", &pcRay.maxDepth, 1, 20);
 		ImGui::Text("Now Frame %d ", pcRay.frame);
+	}
+	if(ImGui::CollapsingHeader("Debug",ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		const int DEBUG_MODE_SUM = 9;
+		const char* DEBUG_MODE_STR[DEBUG_MODE_SUM] ={
+			"no debug",
+			"base color",
+			"normal",
+			"metallic",
+			"emissive",
+			"alpha",
+			"roughness",
+			"texcoord",
+			"tangent"
+		};
+		changed |= ImGui::Combo("mode",&debugModeIndex,DEBUG_MODE_STR,DEBUG_MODE_SUM);
+		pcRay.debugMode = debugModeIndex;
+
 	}
 	if(ImGui::CollapsingHeader("Camera",ImGuiTreeNodeFlags_DefaultOpen))
 	{

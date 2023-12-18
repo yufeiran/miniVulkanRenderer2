@@ -12,26 +12,37 @@ using uint = unsigned int;
 #endif
 
 #ifdef __cplusplus
-	#define START_BINDING(a) enum a{ 
-	#define END_BINDING() }
+	#define START_ENUM(a) enum a{ 
+	#define END_ENUM() }
 #else 
-	#define START_BINDING(a) const uint
-	#define END_BINDING() 
+	#define START_ENUM(a) const uint
+	#define END_ENUM() 
 #endif
 
-START_BINDING(SceneBindings)
+START_ENUM(SceneBindings)
 	eGlobals  = 0,
 	eObjDescs = 1,
 	eTextures = 2,
 	eCubeMap  = 3
-END_BINDING();
+END_ENUM();
 
-START_BINDING(RtBindings)
+START_ENUM(RtBindings)
 	eTlas     = 0,  // Top-level acceleration structure
 	eOutImage = 1
-END_BINDING();
+END_ENUM();
 
+START_ENUM(DebugMode)
+	eNoDebug   = 0,  //
+	eBaseColor = 1,  //
+	eNormal    = 2,  //
+	eMetallic  = 3,  //
+	eEmissive  = 4,  //
+	eAlpha     = 5,  //
+	eRoughness = 6,  //
+	eTexCoord  = 7,  //
+	eTangent   = 8
 
+END_ENUM();
 
 struct ObjDesc
 {
@@ -78,7 +89,8 @@ struct PushConstantRay
 	int   frame;
 	int   nbSample;
 	int   maxDepth;
-	int   pbrMode;                // 0-Disney, 1-Gltf
+	int   pbrMode;        // 0-Disney, 1-Gltf
+	int   debugMode;      // 0:no degbug 1:normal 
 };
 
 #define MATERIAL_METALLICROUGHNESS 0

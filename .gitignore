@@ -35,3 +35,8 @@ imgui.ini
 
 *.spv
 spv/raytrace.rgen.spv
+*.spv
+spv/fragmentShader.frag.spv
+spv/raytrace.rchit.spv
+spv/raytrace.rgen.spv
+spv/vertexShader.vert.spv

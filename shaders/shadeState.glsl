@@ -77,6 +77,13 @@ ShadeState GetShadeState(in hitPayload hstate)
     sstate.color         = color.rgb;
     sstate.matIndex      = matIdx;
 
+
+    // move normal to same side as geometric normal
+    if(dot(sstate.normal, sstate.geomNormal) <= 0)
+    {
+        sstate.normal *= -1.0f;
+    }
+
     return sstate;
 }
 

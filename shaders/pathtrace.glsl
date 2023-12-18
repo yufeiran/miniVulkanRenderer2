@@ -38,6 +38,31 @@ void ClosestHit(Ray r)
 
 }
 
+vec3 DebugInfo(in State state)
+{
+    switch(pcRay.debugMode)
+    {
+        case eNormal:
+           return (state.normal + vec3(1)) * .5;
+        case eMetallic:
+           return vec3(state.mat.metallic);
+        case eBaseColor:
+           return state.mat.albedo;
+        case eEmissive:
+           return state.mat.emission;
+        case eAlpha:
+           return vec3(state.mat.alpha);
+        case eRoughness:
+           return vec3(state.mat.roughness);
+        case eTexCoord:
+           return vec3(state.texCoord, 0);
+        case eTangent:
+           return vec3(state.tangent.xyz + vec3(1)) * .5;
+
+    }
+    return vec3(1000, 0 , 0);
+}
+
 vec3 PathTrace(Ray r)
 {
 
@@ -82,12 +107,19 @@ vec3 PathTrace(Ray r)
         state.isSubsurface   = false;
         state.ffnormal       = dot(state.normal, r.direction) <= 0.0 ? state.normal : -state.normal;
 
+
         
         // fill the material 
         GetMaterialsAndTextures(state, prd, r);
 
         // Color at vertices 
         state.mat.albedo *= sstate.color;
+
+        if(pcRay.debugMode !=  eNoDebug)
+        {
+            return DebugInfo(state);
+        }
+
 
 
         // KHR_materials_unlit :use this can shading without light!
@@ -132,8 +164,8 @@ vec3 PathTrace(Ray r)
         }
 
         r.direction = bsdfSampleRec.L;
-        r.origin    = sstate.position;
-        //r.origin    = OffsetRay(sstate.position, dot(bsdfSampleRec.L, state.ffnormal) > 0 ? state.ffnormal : -state.ffnormal );
+        //r.origin    = sstate.position;
+        r.origin    = OffsetRay(sstate.position, dot(bsdfSampleRec.L, state.ffnormal) > 0 ? state.ffnormal : -state.ffnormal );
         //r.origin = OffsetRay(sstate.position, dot(bsdfSampleRec.L, state.ffnormal) > 0 ? state.ffnormal : -state.ffnormal);
 
 
