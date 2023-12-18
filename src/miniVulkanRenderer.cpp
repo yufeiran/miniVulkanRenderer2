@@ -811,6 +811,8 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>&  clearValues)
 
 		changed |= ImGui::SliderFloat3("Position", &pc.lightPosition.x, -20.f, 20.f);
 		changed |= ImGui::SliderFloat("Intensity", &pc.lightIntensity, 0.f , 150.f);
+		ImGui::Text("Skylight");
+		changed |= ImGui::SliderFloat("SkylightIntensity", &pcRay.skyLightIntensity, 0.f , 300.f);
 	}
 	if(ImGui::CollapsingHeader("Rendering",ImGuiTreeNodeFlags_DefaultOpen))
 	{
@@ -841,6 +843,10 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>&  clearValues)
 	{
 		ImGui::Text("Camera pos:%.1f %.1f %.1f , yaw %.1f pitch %.1f ", camera.getPos()[0], camera.getPos()[1], camera.getPos()[2],
 			camera.getYaw(), camera.getPitch());
+	}
+	if(ImGui::CollapsingHeader("Post",ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		ImGui::SliderFloat("exposure",&pcPost.exposure,0, 10);
 	}
 
 	
@@ -924,6 +930,11 @@ void MiniVulkanRenderer::loop()
 			cmd.bindPipeline(*postPipeline);
 
 			cmd.bindDescriptorSet({postDescriptorSet});
+			//cmd.pushConstant(pcPost,static_cast<VkShaderStageFlagBits>( ));
+		
+			//void CommandBuffer::pushConstant(PushConstantPost& pushConstant,VkShaderStageFlagBits stage)
+
+			vkCmdPushConstants(cmd.getHandle(), postPipelineLayout->getHandle(), VK_SHADER_STAGE_VERTEX_BIT|VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstantPost), &pcPost);
 			cmd.bindVertexBuffer(postQuad->getVertexBuffer());
 
 			cmd.setViewPortAndScissor(frameBuffer.getExtent());
@@ -1396,6 +1407,12 @@ void MiniVulkanRenderer::initPostRender()
 	}
 
 	std::vector<VkPushConstantRange> pushConstants;
+
+	VkPushConstantRange pushConstant={};
+	pushConstant.offset = 0;
+	pushConstant.size = sizeof(PushConstantPost);
+	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+	pushConstants.push_back(pushConstant);
 
 	postDescSetBind.addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
 

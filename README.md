@@ -6,7 +6,7 @@
  ## Screenshot
 * Demo
 ![demo](assets/screenshot/sceneDemo.png)
-![sponaz](assets/screenshot/sponza.png)
+
 * Normal Map 
 ![Noraml Map](assets/screenshot/normalMap.png)
 * Emission 
@@ -14,6 +14,9 @@
 ![Emission1](assets/screenshot/emssion1.png)
 * Alpha Test
 ![Alpha Test](assets/screenshot/alphaTest.png)
+* hdr
+![sponaz](assets/screenshot/sponza.png)
+![hdrOn](assets/screenshot/hdr.png)
 ## ThirdParty
 * imgui
 * tinygltf

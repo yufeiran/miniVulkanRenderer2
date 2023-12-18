@@ -91,6 +91,12 @@ struct PushConstantRay
 	int   maxDepth;
 	int   pbrMode;        // 0-Disney, 1-Gltf
 	int   debugMode;      // 0:no degbug 1:normal 
+	float skyLightIntensity; 
+};
+
+struct PushConstantPost
+{
+	float exposure;
 };
 
 #define MATERIAL_METALLICROUGHNESS 0

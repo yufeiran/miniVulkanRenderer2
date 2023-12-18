@@ -164,6 +164,11 @@ public:
 		5,   // maxDepth
 		0,   // pbrMode
 		0,   // debugMode
+		1,
+	};
+
+	PushConstantPost pcPost{
+		1,   // exposure
 	};
 
 private:

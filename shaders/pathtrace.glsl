@@ -82,13 +82,13 @@ vec3 PathTrace(Ray r)
             float factor;
             if(depth == 0)
             {
-                factor =  0.8;
+                factor =  0.8 ;
             }
             else {
-                factor = 0.5; // Tiny contribution from environment;
+                factor = 0.1  * pcRay.skyLightIntensity; // Tiny contribution from environment;
             }
 
-            return radiance + cubeMapColor * throughput;
+            return radiance + cubeMapColor * factor * throughput;
         }
 
         BsdfSampleRec bsdfSampleRec;
