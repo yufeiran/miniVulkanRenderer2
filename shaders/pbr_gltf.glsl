@@ -153,10 +153,43 @@ vec3 PbrSample(in State state, vec3 V, vec3 N, inout vec3 L, inout float pdf, in
     float r2 = rnd(seed);
 
     // TODO: ADD Transmission
-    transWeight = 0;
-    
-    // Normal Scattering
+    // https://viclw17.github.io/2018/08/05/raytracing-dielectric-materials
+    if(rnd(seed) < transWeight)
     {
+        float eta = state.eta;
+
+        float n1          = 1.0;
+        float n2          = state.mat.ior;
+        float R0          = (n1 - n2) / (n1 + n2);
+        vec3  H           = GgxSampling(state.mat.roughness, r1, r2);
+        H                 = state.tangent * H.x + state.bitangent * H.y + N * H.z;
+        float VdotH       = dot(V,H);
+        float F           = F_Schlick(R0 * R0, 1.0, VdotH);   // Reflection
+        float discriminat = 1.0 - eta * eta * (1.0 - VdotH * VdotH); // (Total internal reflection)
+
+        // Reflection/Total internal reflection
+        if(discriminat < 0.0 || rnd(seed) < F)
+        {
+            L = normalize(reflect(-V, H));
+        }
+        else 
+        {
+            // Find the pure refeactive ray
+            L = normalize(refract(-V, H, eta));
+
+            // Cought rays perpendicular to surface, and simply continue
+            if(isnan(L.x) || isnan(L.y) || isnan(L.z))
+            {
+                L = -V;
+            }
+        }
+        
+        // Transmission
+        pdf = abs(dot(N, L));
+        brdf = state.mat.albedo;
+    }
+    // Normal Scattering
+    else{
         vec3  specularCol = state.mat.f0;
         float reflectance = max(max(specularCol.r, specularCol.g),specularCol.b);
         vec3  f0          = specularCol.rgb;

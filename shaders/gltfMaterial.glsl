@@ -29,8 +29,8 @@ void GetMetallicRoughness(inout State state, in GltfShadeMaterial material, int 
     baseColor = material.pbrBaseColorFactor;
     if(material.pbrBaseColorTexture > -1)
     {
-        //baseColor *= SRGBtoLINEAR(textureLod(textureSamplers[nonuniformEXT(material.pbrBaseColorTexture)], state.texCoord, 0));
-        baseColor *= textureLod(textureSamplers[nonuniformEXT(material.pbrBaseColorTexture)], state.texCoord, 0);
+        baseColor *= SRGBtoLINEAR(textureLod(textureSamplers[nonuniformEXT(material.pbrBaseColorTexture)], state.texCoord, 0));
+        //baseColor *= textureLod(textureSamplers[nonuniformEXT(material.pbrBaseColorTexture)], state.texCoord, 0);
     }
 
 

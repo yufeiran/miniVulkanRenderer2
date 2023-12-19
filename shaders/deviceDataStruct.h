@@ -92,6 +92,7 @@ struct PushConstantRay
 	int   pbrMode;        // 0-Disney, 1-Gltf
 	int   debugMode;      // 0:no degbug 1:normal 
 	float skyLightIntensity; 
+	int   totalFrameCount;
 };
 
 struct PushConstantPost

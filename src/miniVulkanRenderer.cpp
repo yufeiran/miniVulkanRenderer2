@@ -19,7 +19,7 @@ using namespace std::chrono;
 
 void MiniVulkanRenderer::load()
 {
-	int testCase = 2;
+	int testCase = 4;
 	switch(testCase)
 	{
 	case 0:
@@ -1487,6 +1487,7 @@ void MiniVulkanRenderer::updateFrame()
 		refFov    = fov;
 	}
 	pcRay.frame++;
+	pcRay.totalFrameCount = frameCount;
 }
 
 void MiniVulkanRenderer::createDescriptorSetLayout()

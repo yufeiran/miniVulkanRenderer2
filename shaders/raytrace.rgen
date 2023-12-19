@@ -31,7 +31,7 @@ void main()
     ivec2 imageRes    = ivec2(gl_LaunchSizeEXT.xy);
     ivec2 imageCoords = ivec2(gl_LaunchIDEXT.xy);
     
-    prd.seed = initRandom(gl_LaunchSizeEXT.xy, gl_LaunchIDEXT.xy, pcRay.frame);
+    prd.seed = initRandom(gl_LaunchSizeEXT.xy, gl_LaunchIDEXT.xy, pcRay.totalFrameCount);
 
     vec3 totalHitValues = vec3(0);
     

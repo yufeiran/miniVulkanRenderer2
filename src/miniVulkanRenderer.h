@@ -164,7 +164,8 @@ public:
 		5,   // maxDepth
 		0,   // pbrMode
 		0,   // debugMode
-		1,
+		1,   // skyLightIntensity
+		0,   // totalFrameCount
 	};
 
 	PushConstantPost pcPost{
@@ -173,7 +174,7 @@ public:
 
 private:
 	bool canRaytracing = false;
-	bool useRaytracing = false;
+	bool useRaytracing = true;
 	int width, height;
 	VkExtent2D surfaceExtent{};
 
