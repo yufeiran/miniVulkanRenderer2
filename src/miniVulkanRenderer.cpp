@@ -60,12 +60,15 @@ void MiniVulkanRenderer::loadFeatures()
 	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf",objMat);
 
 	// TransmissionTest
-	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/TransmissionTest/glTF/TransmissionTest.gltf",objMat);
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/TransmissionTest/glTF/TransmissionTest.gltf",objMat);
 	//BoomBoxWithAxes
 	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoomBoxWithAxes/glTF/BoomBoxWithAxes.gltf",objMat);
 
 		// Alpha Test
 	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/AlphaBlendModeTest/glTF/AlphaBlendModeTest.gltf",objMat);
+
+	//NormalTangentTest 
+	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/NormalTangentTest/glTF/NormalTangentTest.gltf",objMat);
 
 
 	objMat = glm::mat4(1.0f);
@@ -79,7 +82,7 @@ void MiniVulkanRenderer::loadFeatures()
 
 
 
-	//resourceManager->loadScene("../../assets/lightScene.gltf");
+	resourceManager->loadScene("../../assets/lightScene.gltf");
 
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat,{0,-1,0});
@@ -171,7 +174,17 @@ void MiniVulkanRenderer::loadTestGltf()
 
 	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/2CylinderEngine/glTF/2CylinderEngine.gltf", objMat);
 
+	objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{-15, 0, 0});
+	objMat = glm::scale(objMat, {0.1, 0.1, 0.1});
 
+	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/GearboxAssy/glTF/GearboxAssy.gltf", objMat);
+
+
+	objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{5, 5, 1});
+	objMat = glm::scale(objMat, {0.01, 0.01, 0.01});
+	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/Buggy/glTF/Buggy.gltf",objMat);
 
 
 
@@ -179,6 +192,7 @@ void MiniVulkanRenderer::loadTestGltf()
 	camera.setPos(glm::vec3(-0.0, 0, 15.0));
 	camera.setViewDir(-90, 0);
 	pcRaster.lightPosition = glm::vec3(0, 4.5f, 0.f);
+
 
 	
 	//resourceManagement->loadModel("Medieval_building", "../../assets/nv_raytracing_tutorial_scene/Medieval_building.obj",true);

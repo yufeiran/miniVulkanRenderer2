@@ -95,6 +95,8 @@ void GetMaterialsAndTextures(inout State state,in hitPayload prd, in Ray r)
         normalVector = normalize(normalVector * 2.0 - 1.0);
         normalVector *= vec3(material.normalTextureScale, material.normalTextureScale, 1.0);
         state.normal = normalize(TBN * normalVector);
+        state.ffnormal = dot(state.normal, r.direction) <= 0.0 ? state.normal : -state.normal;
+        createCoordinateSystem(state.ffnormal, state.tangent, state.bitangent);
     }
 
     // Emissive term
