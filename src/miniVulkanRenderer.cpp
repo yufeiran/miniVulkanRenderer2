@@ -19,7 +19,7 @@ using namespace std::chrono;
 
 void MiniVulkanRenderer::load()
 {
-	int testCase = 4;
+	int testCase = 0;
 	switch(testCase)
 	{
 	case 0:
@@ -67,22 +67,32 @@ void MiniVulkanRenderer::loadFeatures()
 		// Alpha Test
 	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/AlphaBlendModeTest/glTF/AlphaBlendModeTest.gltf",objMat);
 
-	//NormalTangentTest 
-	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/NormalTangentTest/glTF/NormalTangentTest.gltf",objMat);
+	// NegativeScaleTest
+	// resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/NegativeScaleTest/glTF/NegativeScaleTest.gltf",objMat);
 
+	//NormalTangentMirrorTest
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/NormalTangentMirrorTest/glTF/NormalTangentMirrorTest.gltf",objMat);
+
+	//resourceManager->loadScene("D://yufeiran/model/bug/bugTangentRect.gltf",objMat);
+
+
+	//NormalTangentTest 
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/NormalTangentTest/glTF/NormalTangentTest.gltf",objMat);
+
+
+			// TransmissionTest
+	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/TransmissionTest/glTF/TransmissionTest.gltf",objMat);
 
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat, glm::vec3(0.0,3.0,0.0));
 	objMat = glm::rotate(objMat,glm::radians(90.0f),glm::vec3(0.0,1.0,0.0));
 	
 
-		// TransmissionTest
-	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/TransmissionTest/glTF/TransmissionTest.gltf",objMat);
 
 
 
 
-	resourceManager->loadScene("../../assets/lightScene.gltf");
+	//resourceManager->loadScene("../../assets/lightScene.gltf");
 
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat,{0,-1,0});

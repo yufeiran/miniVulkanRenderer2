@@ -3,7 +3,9 @@
 #ifndef PBR_GLTF_GLSL
 #define PBR_GLTF_GLSL 1 
 
+#include "globals.glsl"
 #include "random.glsl"
+
 
 float clampedDot(vec3 x, vec3 y)
 {

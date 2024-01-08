@@ -133,7 +133,7 @@ Image::Image(Device& device, const std::string& filename, bool flipTexture):devi
 	imageInfo.mipLevels = 1;
 	imageInfo.arrayLayers = 1;
 
-	imageInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
+	imageInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
 	format = imageInfo.format;
 	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 

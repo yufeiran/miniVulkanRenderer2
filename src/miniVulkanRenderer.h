@@ -150,7 +150,7 @@ public:
 		glm::identity<mat4>(),                 // 
 		{10.f, 15.f, 8.f},   // light position
 		0,                   // instance id
-		100.f,               // light intensity
+		0.5f,               // light intensity
 		0                    // light type
 	};
 
@@ -174,7 +174,7 @@ public:
 
 private:
 	bool canRaytracing = false;
-	bool useRaytracing = true;
+	bool useRaytracing = false;
 	int width, height;
 	VkExtent2D surfaceExtent{};
 

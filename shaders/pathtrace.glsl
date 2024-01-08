@@ -95,6 +95,8 @@ vec3 PathTrace(Ray r)
 
         ShadeState sstate = GetShadeState(prd);
 
+        //return vec3(sstate.tangentU[0].xyz + vec3(1)) * .5;
+
         State state;
         state.position       = sstate.position;
         state.normal         = sstate.normal;
@@ -105,21 +107,24 @@ vec3 PathTrace(Ray r)
         state.isEmitter      = false;
         state.specularBounce = false;
         state.isSubsurface   = false;
-        state.ffnormal       = dot(state.normal, r.direction) <= 0.0 ? state.normal : -state.normal;
-        createCoordinateSystem(state.ffnormal, state.tangent, state.bitangent);
+
     
+
 
         
         // fill the material 
         GetMaterialsAndTextures(state, prd, r);
 
-        // Color at vertices 
-        state.mat.albedo *= sstate.color;
+        state.ffnormal       = dot(state.normal, r.direction) <= 0.0 ? state.normal : -state.normal;
+        createCoordinateSystem(state.ffnormal, state.tangent, state.bitangent);
 
         if(pcRay.debugMode !=  eNoDebug)
         {
             return DebugInfo(state);
         }
+
+        // Color at vertices 
+        state.mat.albedo *= sstate.color;
 
 
 
