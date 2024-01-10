@@ -837,6 +837,7 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>&  clearValues)
 		changed |= ImGui::SliderFloat("Intensity", &pc.lightIntensity, 0.f , 150.f);
 		ImGui::Text("Skylight");
 		changed |= ImGui::SliderFloat("SkylightIntensity", &pcRay.skyLightIntensity, 0.f , 300.f);
+		pcRaster.skyLightIntensity = pcRay.skyLightIntensity;
 	}
 	if(ImGui::CollapsingHeader("Rendering",ImGuiTreeNodeFlags_DefaultOpen))
 	{

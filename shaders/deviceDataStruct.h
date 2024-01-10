@@ -78,6 +78,7 @@ struct PushConstantRaster
 	uint  objIndex;
 	float lightIntensity;
 	int   lightType;
+	float skyLightIntensity;
 };
 
 struct PushConstantRay

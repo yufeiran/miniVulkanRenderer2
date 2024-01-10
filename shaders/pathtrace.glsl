@@ -169,6 +169,9 @@ vec3 PathTrace(Ray r)
             break;
         }
 
+        // Direction Light
+
+
         r.direction = bsdfSampleRec.L;
         //r.origin    = sstate.position;
         r.origin    = OffsetRay(sstate.position, dot(bsdfSampleRec.L, state.ffnormal) > 0 ? state.ffnormal : -state.ffnormal );

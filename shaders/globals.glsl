@@ -15,7 +15,7 @@ const float M_PI_4      = 0.785398163397448309616;  // pi/4
 const float M_1_OVER_PI = 0.318309886183790671538;  // 1/pi
 const float M_2_OVER_PI = 0.636619772367581343076;  // 2/pi
 
-const float LIGHT_CONSTANT = 1.0f;
+const float LIGHT_CONSTANT  = 0.0f;
 const float LIGHT_LINEAR    = 0.7f;
 const float LIGHT_QUADRATIC = 1.8f;
 

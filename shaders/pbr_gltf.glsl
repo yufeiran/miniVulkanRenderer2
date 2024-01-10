@@ -139,7 +139,65 @@ vec3 EvalSpecularGltf(State state, vec3 f0, vec3 f90, vec3 V, vec3 N, vec3 L, ve
 
 }
 
+vec3 EvalDielectricRefraction(State state, vec3 V, vec3 N, vec3 L, vec3 H, inout float pdf)
+{
+    pdf = abs(dot(N, L));
+    return state.mat.albedo;
 
+}
+
+vec3 PbrEval(in State state, vec3 V, vec3 N, vec3 L, inout float pdf)
+{
+    vec3 H;
+
+    if(dot(N, L) < 0.0)
+        H = normalize(L * (1.0 / state.eta) + V);
+    else
+        H = normalize(L + V);
+    
+    if(dot(N, H) < 0.0)
+        H = -H;
+    
+    float diffuseRatio      = 0.5 * (1.0 - state.mat.metallic);
+    float transWeight       = (1.0 - state.mat.metallic) * state.mat.transmission;
+
+    vec3 brdf     = vec3(0.0);
+    vec3 bsdf     = vec3(0.0);
+    float brdfPdf = 0.0;
+    float bsdfPdf = 0.0;
+
+    // BSDF 
+    if(transWeight > 0.0)
+    {
+        bsdf = EvalDielectricRefraction(state, V, H, L, H, pdf);
+    }
+
+    // BRDF 
+    if(transWeight < 1.0 && dot(N, L) > 0)
+    {
+        float pdf;
+
+        float diffuseRatio  = 0.5 * (1.0 - state.mat.metallic);
+        float specularRatio = 1.0 - diffuseRatio;
+
+        vec3 specularCol = state.mat.f0;
+        float reflectance = max(max(specularCol.r, specularCol.g), specularCol.b);
+        vec3 f0          = specularCol.rgb;
+        vec3 f90         = vec3(clamp(reflectance * 50.0, 0.0, 1.0));
+
+        // Diffuse 
+        brdf += EvalDiffuseGltf(state, f0, f90, V, N, L, H, pdf);
+        brdfPdf += pdf * diffuseRatio;
+
+        // Specular 
+        brdf += EvalSpecularGltf(state, f0, f90, V, N, L, H, pdf);
+        brdfPdf += pdf * specularRatio;
+
+    }
+    pdf = mix(brdfPdf, bsdfPdf, transWeight);
+
+    return mix(brdf, bsdf, transWeight);
+}
 
 vec3 PbrSample(in State state, vec3 V, vec3 N, inout vec3 L, inout float pdf, inout uint seed)
 {
@@ -185,10 +243,11 @@ vec3 PbrSample(in State state, vec3 V, vec3 N, inout vec3 L, inout float pdf, in
                 L = -V;
             }
         }
-        
         // Transmission
-        pdf = abs(dot(N, L));
-        brdf = state.mat.albedo;
+        brdf = EvalDielectricRefraction(state, V, H, L, H, pdf);
+        
+        
+
     }
     // Normal Scattering
     else{
