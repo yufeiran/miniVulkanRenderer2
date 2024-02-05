@@ -44,6 +44,7 @@
 #include "Vulkan/rayTracingPipeline.h"
 #include "Vulkan/descriptorSetBindings.h"
 #include "Vulkan/image.h"
+#include "Vulkan/graphicsPipelineBuilder.h"
 
 
 
@@ -65,13 +66,13 @@ public:
 	// init-----------------
 
 	void load();
-	
+
 	void loadBugBox();
 
 	void loadTestGltf();
 
 	void loadShowCase();
-	
+
 	void loadSponza();
 
 	void loadFeatures();
@@ -84,14 +85,6 @@ public:
 
 	void initRayTracingRender();
 
-	// init graphics pipeline -----
-
-	void createDescriptorSetLayout();
-	void createRasterPipeline();
-	void createUniformBuffer();
-	void createObjDescriptionBuffer();
-	void updateDescriptorSet();
-	void updateUniformBuffer(CommandBuffer& cmd);
 
 	// init raytracing-------
 	void buildRayTracing();
@@ -105,7 +98,7 @@ public:
 	void raytrace(CommandBuffer& cmd, const glm::vec4& clearColor);
 
 	// ui---------------------
-	void renderUI(std::vector<VkClearValue>& clearValues );
+	void renderUI(std::vector<VkClearValue>& clearValues);
 
 	//post -----------------
 	void initPostRender();
@@ -179,19 +172,19 @@ private:
 	int width, height;
 	VkExtent2D surfaceExtent{};
 
-	unsigned long long frameCount=0;
-	
-	int maxFrames{10000};
-	const int MAX_FRAMES_LIMIT = {10000};
-	
+	unsigned long long frameCount = 0;
 
-	VkFormat defaultSurfaceColorFormat=VK_FORMAT_R8G8B8A8_SRGB;
-	VkFormat defaultSurfaceDepthFormat=VK_FORMAT_X8_D24_UNORM_PACK32;
+	int maxFrames{ 10000 };
+	const int MAX_FRAMES_LIMIT = { 10000 };
 
-	VkFormat offscreenColorFormat{VK_FORMAT_R32G32B32A32_SFLOAT};
-	VkFormat offscreenDepthFormat{VK_FORMAT_X8_D24_UNORM_PACK32};
 
-	
+	VkFormat defaultSurfaceColorFormat = VK_FORMAT_R8G8B8A8_SRGB;
+	VkFormat defaultSurfaceDepthFormat = VK_FORMAT_X8_D24_UNORM_PACK32;
+
+	VkFormat offscreenColorFormat{ VK_FORMAT_R32G32B32A32_SFLOAT };
+	VkFormat offscreenDepthFormat{ VK_FORMAT_X8_D24_UNORM_PACK32 };
+
+
 	std::unique_ptr<Instance>        instance;
 	std::unique_ptr<GUIWindow>       window;
 	std::shared_ptr<PhysicalDevice>  physicalDevice;
@@ -210,29 +203,19 @@ private:
 	// offscreen render data
 	std::unique_ptr<RenderTarget> offscreenRenderTarget;
 	std::unique_ptr<FrameBuffer> offscreenFramebuffer;
-	
 
 
-	// raster pipeline data
-	std::vector<std::unique_ptr<ShaderModule>> rasterShaderModules;
 
-	DescriptorSetBindings                 descSetBindings;
-	std::shared_ptr<DescriptorSetLayout>  descSetLayout;
-	std::unique_ptr<DescriptorPool>       descPool;
-	VkDescriptorSet                       descSet;
-	std::unique_ptr<Buffer>               globalsBuffer;
-	std::unique_ptr<Buffer>               objDescBuffer;
+	std::unique_ptr<GraphicsPipelineBuilder> graphicsPipelineBuilder;
 
-	std::unique_ptr<PipelineLayout>       rasterPipelineLayout;
-	std::unique_ptr<RenderPass>           rasterRenderPass;
-	std::unique_ptr<GraphicPipeline>      rasterPipeline;
+
 
 
 
 
 
 	// Raytracing pipeline data
-	VkPhysicalDeviceRayTracingPipelinePropertiesKHR    rtProperties{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR};
+	VkPhysicalDeviceRayTracingPipelinePropertiesKHR    rtProperties{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR };
 	std::unique_ptr<RayTracingBuilder>                 rayTracingBuilder;
 	DescriptorSetBindings                              rtDescSetBindings;
 	std::vector<std::unique_ptr<ShaderModule>>         rtShaderModules;

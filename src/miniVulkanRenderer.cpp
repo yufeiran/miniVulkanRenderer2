@@ -361,17 +361,14 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	LogSpace();
 
-	createDescriptorSetLayout();
-	createRasterPipeline();
 
+	graphicsPipelineBuilder = std::make_unique<GraphicsPipelineBuilder>(*device,*resourceManager, *renderContext,offscreenColorFormat);
 
-	createUniformBuffer();
-
-	createObjDescriptionBuffer();
-
-	updateDescriptorSet();
 
 	createOffScreenFrameBuffer();
+
+
+
 
 	initPostRender();
 
@@ -387,9 +384,9 @@ void MiniVulkanRenderer::init(int width, int height)
 	postDescriptorSetLayouts.push_back(std::make_unique<DescriptorSetLayout>(*device,postLayoutBindings));
 
 
-	std::vector<std::shared_ptr<DescriptorSetLayout>> layouts{descSetLayout};
+	std::vector<std::shared_ptr<DescriptorSetLayout>> layouts{graphicsPipelineBuilder->getDescriptorSetLayout()};
 	renderContext->prepare(*postRenderPass,*resourceManager,layouts,
-		rasterPipeline->getShaderModules().front()->getShaderInfo());
+		graphicsPipelineBuilder->getRasterPipeline().getShaderModules().front()->getShaderInfo());
 
 
 	initImGUI();
@@ -699,7 +696,7 @@ void MiniVulkanRenderer::createRtPipeline()
 	pipelineLayoutCreateInfo.pPushConstantRanges    = &pushConstant;
 
 	// Descriptor sets: set 0 for raytracing , set 1 for global scene
-	std::vector<VkDescriptorSetLayout> rtDescSetLayouts = {rtDescSetLayout->getHandle(),descSetLayout->getHandle()};
+	std::vector<VkDescriptorSetLayout> rtDescSetLayouts = {rtDescSetLayout->getHandle(),graphicsPipelineBuilder->getDescriptorSetLayout()->getHandle()};
 	pipelineLayoutCreateInfo.setLayoutCount             = static_cast<uint32_t> (rtDescSetLayouts.size());
 	pipelineLayoutCreateInfo.pSetLayouts                = rtDescSetLayouts.data();
 
@@ -801,7 +798,7 @@ void MiniVulkanRenderer::raytrace(CommandBuffer& cmd, const glm::vec4& clearColo
 	pcRay.lightIntensity = pcRaster.lightIntensity;
 	pcRay.lightType      = pcRaster.lightType;
 
-	std::vector<VkDescriptorSet> descSets{rtDescSet, descSet};
+	std::vector<VkDescriptorSet> descSets{rtDescSet,graphicsPipelineBuilder->getDescriptorSet()};
 	vkCmdBindPipeline(cmd.getHandle(),VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR,rtPipeline->getHandle());
 	vkCmdBindDescriptorSets(cmd.getHandle(),VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, rtPipelineLayout->getHandle(), 0,
 							(uint32_t)descSets.size(), descSets.data(), 0, nullptr);
@@ -926,7 +923,9 @@ void MiniVulkanRenderer::loop()
 		cmd.reset();
 		cmd.begin();
 
-		updateUniformBuffer(cmd);
+		surfaceExtent = renderContext->getSwapchain().getExtent();
+
+		graphicsPipelineBuilder->updateUniformBuffer(cmd,camera,surfaceExtent);
 
 		// Raster render pass
 		{
@@ -942,7 +941,8 @@ void MiniVulkanRenderer::loop()
 			}
 			else 
 			{
-				cmd.beginRenderPass(*rasterRenderPass, *offscreenFramebuffer,clearValues);
+				auto& rasterRenderPass = graphicsPipelineBuilder->getRasterRenderPass();
+				cmd.beginRenderPass(rasterRenderPass, *offscreenFramebuffer,clearValues);
 				rasterize(cmd);
 				cmd.endRenderPass();
 			}
@@ -1010,7 +1010,11 @@ void MiniVulkanRenderer::rasterize(CommandBuffer& cmd)
 
 	cmd.setViewPortAndScissor(surfaceExtent);
 
-	cmd.bindPipeline(*rasterPipeline);
+	auto& rasterPipeline = graphicsPipelineBuilder->getRasterPipeline();
+
+	cmd.bindPipeline(rasterPipeline);
+
+	const auto& descSet = graphicsPipelineBuilder->getDescriptorSet();
 	
 	cmd.bindDescriptorSet(descSet);
 
@@ -1340,9 +1344,11 @@ void MiniVulkanRenderer::cleanScene()
 	updatePostDescriptorSet();
 
 
+	auto& descSetLayout = graphicsPipelineBuilder->getDescriptorSetLayout();
+	auto& rasterPipeline = graphicsPipelineBuilder->getRasterPipeline();
 	std::vector<std::shared_ptr<DescriptorSetLayout>> layouts{descSetLayout};
 	renderContext->prepare(*postRenderPass,*resourceManager,layouts
-	, rasterPipeline->getShaderModules().front()->getShaderInfo());
+	, rasterPipeline.getShaderModules().front()->getShaderInfo());
 }
 
 
@@ -1378,9 +1384,11 @@ void MiniVulkanRenderer::handleSizeChange()
  //   rasterPipeline = std::make_unique<GraphicPipeline>(rasterShaderModules,*rasterPipelineLayout,*device,surfaceExtent);
 	//rasterPipeline->build(*rasterRenderPass);
 
+	auto& descSetLayout = graphicsPipelineBuilder->getDescriptorSetLayout();
+	auto& rasterPipeline = graphicsPipelineBuilder->getRasterPipeline();
 	std::vector<std::shared_ptr<DescriptorSetLayout>> layouts{descSetLayout};
 	renderContext->prepare(*postRenderPass,*resourceManager,layouts
-	, rasterPipeline->getShaderModules().front()->getShaderInfo());
+	, rasterPipeline.getShaderModules().front()->getShaderInfo());
 
 	
 
@@ -1393,9 +1401,11 @@ Camera& MiniVulkanRenderer::getCamera()
 
 void MiniVulkanRenderer::createOffScreenFrameBuffer()
 {
+	surfaceExtent = window->getExtent();
 	auto imageColor = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT);
 	offscreenRenderTarget=RenderTarget::DEFAULT_CREATE_FUNC(std::move(imageColor));
-	offscreenFramebuffer=std::make_unique<FrameBuffer>(*device,*offscreenRenderTarget,*rasterRenderPass);
+	auto& rasterRenderPass = graphicsPipelineBuilder->getRasterRenderPass();
+	offscreenFramebuffer=std::make_unique<FrameBuffer>(*device,*offscreenRenderTarget,rasterRenderPass);
 
 }
 
@@ -1515,160 +1525,6 @@ void MiniVulkanRenderer::updateFrame()
 	pcRay.totalFrameCount = frameCount;
 }
 
-void MiniVulkanRenderer::createDescriptorSetLayout()
-{
-	auto nbTxt = static_cast<uint32_t>(resourceManager->textures.size());
-
-	// Camera matrices 
-	descSetBindings.addBinding(SceneBindings::eGlobals,  VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
-											VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_RAYGEN_BIT_KHR |  VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
-	descSetBindings.addBinding(SceneBindings::eObjDescs, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1,
-		                                    VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
-											| VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
-	descSetBindings.addBinding(SceneBindings::eTextures, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nbTxt,
-											VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
-											| VK_SHADER_STAGE_RAYGEN_BIT_KHR |  VK_SHADER_STAGE_ANY_HIT_BIT_KHR );
-	descSetBindings.addBinding(SceneBindings::eCubeMap,VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,1,
-											VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
-											| VK_SHADER_STAGE_MISS_BIT_KHR | VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
-
-	descSetLayout = descSetBindings.createLayout(*device);
-	descPool      = descSetBindings.createPool(*device,1);
-	descSet       = descPool->allocateDescriptorSet(*descSetLayout);
-
-}
-
-
-
-void MiniVulkanRenderer::createRasterPipeline()
-{
-
-	// create raster pipeline !
-
-	rasterShaderModules.push_back(std::make_unique<ShaderModule>("../../spv/vertexShader.vert.spv", *device, VK_SHADER_STAGE_VERTEX_BIT));
-	rasterShaderModules.push_back(std::make_unique<ShaderModule>("../../spv/fragmentShader.frag.spv", *device, VK_SHADER_STAGE_FRAGMENT_BIT));
-	
-	std::vector<VkPushConstantRange> pushConstants;
-	VkPushConstantRange pushConstant={};
-	pushConstant.offset = 0;
-	pushConstant.size = sizeof(PushConstantRaster);
-	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-	pushConstants.push_back(pushConstant);
-
-	//VkDescriptorSetLayoutBinding uboLayoutBinding{};
-	//uboLayoutBinding.binding = 0;
-	//uboLayoutBinding.descriptorCount = 1;
-	//uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	//uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-	//uboLayoutBinding.pImmutableSamplers = nullptr;
-
-	//VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-	//samplerLayoutBinding.binding = 1;
-	//samplerLayoutBinding.descriptorCount=1;
-	//samplerLayoutBinding.descriptorType=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	//samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	//samplerLayoutBinding.pImmutableSamplers = nullptr;
-
-	//std::vector<VkDescriptorSetLayoutBinding>layoutBindings{uboLayoutBinding,samplerLayoutBinding};
-
-
-
-	//rasterDescriptorSetLayouts.push_back(std::make_unique<DescriptorSetLayout>(*device,layoutBindings));
-
-    std::vector<std::shared_ptr<DescriptorSetLayout>>  descSetLayouts{descSetLayout};
-
-	rasterPipelineLayout = std::make_unique<PipelineLayout>(*device,descSetLayouts,pushConstants);
-
-	rasterRenderPass     = std::make_unique<RenderPass>(*device,offscreenColorFormat,  VK_IMAGE_LAYOUT_GENERAL);
-
-
-	surfaceExtent=renderContext->getSurfaceExtent();
-	rasterPipeline = std::make_unique<GraphicPipeline>(rasterShaderModules,*rasterPipelineLayout,*device,surfaceExtent);
-
-	rasterPipeline->build(*rasterRenderPass);
-
-}
-
-void MiniVulkanRenderer::createUniformBuffer()
-{
-	globalsBuffer = std::make_unique<Buffer>(*device,static_cast<VkDeviceSize>(sizeof(GlobalUniforms)),
-		static_cast<VkBufferUsageFlags>( VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT));
-
-}
-
-void MiniVulkanRenderer::createObjDescriptionBuffer()
-{
-	objDescBuffer = std::make_unique<Buffer>(*device, resourceManager->objDesc, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
-}
-
-void MiniVulkanRenderer::updateDescriptorSet()
-{
-	std::vector<VkWriteDescriptorSet> writes;
-
-	// Camera matrices and scene description 
-	VkDescriptorBufferInfo dbiUnif{globalsBuffer->getHandle(), 0, VK_WHOLE_SIZE};
-	writes.emplace_back(descSetBindings.makeWrite(descSet,SceneBindings::eGlobals,&dbiUnif));
-
-	VkDescriptorBufferInfo dbiSceneDesc{objDescBuffer->getHandle(), 0, VK_WHOLE_SIZE};
-	writes.emplace_back(descSetBindings.makeWrite(descSet,SceneBindings::eObjDescs,&dbiSceneDesc));
-
-	// All texture samplers 
-	std::vector<VkDescriptorImageInfo> diit;
-	for(auto& texture : resourceManager->textures)
-	{
-		diit.emplace_back(texture.descriptor);
-	}
-	writes.emplace_back(descSetBindings.makeWriteArray(descSet,SceneBindings::eTextures,diit.data()));
-
-	VkDescriptorImageInfo cubeMapInfo{resourceManager->cubeMapTexture.descriptor};
-	writes.emplace_back(descSetBindings.makeWrite(descSet,SceneBindings::eCubeMap,&cubeMapInfo));
-
-
-
-	vkUpdateDescriptorSets(device->getHandle(),static_cast<uint32_t>(writes.size()),writes.data(),0,nullptr);
-}
-
-// update camera matrix
-void MiniVulkanRenderer::updateUniformBuffer(CommandBuffer& cmd)
-{
-	// Prepare new UBO contents on host.
-	const float aspectRatio = surfaceExtent.width / static_cast<float>(surfaceExtent.height);
-	GlobalUniforms hostUBO = {};
-	const auto& view = camera.getViewMat();
-	auto& proj = glm::perspective(glm::radians(45.0f), (float)surfaceExtent.width / (float)surfaceExtent.height, 0.1f, 1000.0f);
-	proj[1][1] *= -1;
-
-	hostUBO.viewProj    = proj * view;
-	hostUBO.viewInverse = glm::inverse(view);
-	hostUBO.projInverse = glm::inverse(proj);
-
-	// UBO on the device, and what stages access it.
-	VkBuffer deviceUBO      = globalsBuffer->getHandle();
-	auto     uboUsageStages = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR;
-
-	// set lock to ensure the modified UBO is not visible to previous frames.
-	VkBufferMemoryBarrier beforeBarrier{VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER};
-	beforeBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
-	beforeBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	beforeBarrier.buffer        = deviceUBO;
-	beforeBarrier.size          = sizeof(hostUBO);
-	vkCmdPipelineBarrier(cmd.getHandle(), uboUsageStages, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_DEPENDENCY_DEVICE_GROUP_BIT, 0,
-						nullptr, 1, &beforeBarrier, 0, nullptr);
-
-	vkCmdUpdateBuffer(cmd.getHandle(), globalsBuffer->getHandle(), 0, sizeof(GlobalUniforms),&hostUBO);
-
-	// Making sure the updated UBO will be visible
-	VkBufferMemoryBarrier afterBarrier{VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER};
-	afterBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	afterBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-	afterBarrier.buffer        = deviceUBO;
-	afterBarrier.offset        = 0;
-	afterBarrier.size          = sizeof(hostUBO);
-	vkCmdPipelineBarrier(cmd.getHandle(), VK_PIPELINE_STAGE_TRANSFER_BIT, uboUsageStages, VK_DEPENDENCY_DEVICE_GROUP_BIT, 0,
-					    nullptr, 1, &afterBarrier, 0, nullptr);
-}
-
-
 
 
 MiniVulkanRenderer::~MiniVulkanRenderer()
@@ -1676,6 +1532,8 @@ MiniVulkanRenderer::~MiniVulkanRenderer()
 	Log("Renderer shutting down");
 
 	rayTracingBuilder.reset();
+	graphicsPipelineBuilder.reset();
+	
 
 	if(ImGui::GetCurrentContext()!=nullptr)
 	{
@@ -1685,6 +1543,8 @@ MiniVulkanRenderer::~MiniVulkanRenderer()
 	ImGui::DestroyContext();
 	resourceManager.reset();
 	offscreenRenderTarget.reset();
+
+
 }
 
 

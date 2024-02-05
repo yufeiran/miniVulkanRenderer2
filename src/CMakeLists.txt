@@ -64,6 +64,8 @@ set(VULKAN_FRAMEWORK_FILES
     ./Vulkan/descriptorSetBindings.cpp 
     ./Vulkan/texture.h 
     ./Vulkan/texture.cpp
+    ./Vulkan/graphicsPipelineBuilder.h
+    ./Vulkan/graphicsPipelineBuilder.cpp
 
 
 )
