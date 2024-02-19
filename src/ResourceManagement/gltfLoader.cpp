@@ -424,12 +424,12 @@ void GltfLoader::processMesh(const tinygltf::Model& tmodel, const tinygltf::Prim
 
 			if(!tangentCreated && hasFlag(forceRequested, GltfAttributes::Tangent))
 			{
-				Log("No tangent found, creating them");
+				//Log("No tangent found, creating them");
 				createTangents(resultMesh);
 			}
 			else
 			{
-				Log("Tangent found, using them");
+				//Log("Tangent found, using them");
 				std::vector<glm::vec3> tangent;
 				std::vector<glm::vec3> bitangent;
 
@@ -691,7 +691,7 @@ void GltfLoader::createTangents(GltfPrimMesh& resultMesh)
 		float a = duvE1.x * duvE2.y - duvE2.x * duvE1.y;
 		if(fabs(a) > 0) // catch degenerated UV
 		{
-			Log("Degenerated UV");
+			//Log("Degenerated UV");
 			r = 1.0f / a;
 		}
 
@@ -719,7 +719,7 @@ void GltfLoader::createTangents(GltfPrimMesh& resultMesh)
 		// In case the tangent is invalid
 		if(otangent == glm::vec3(0, 0, 0))
 		{
-			Log("Invalid tangent, creating a new one");
+			//Log("Invalid tangent, creating a new one");
 			if(fabsf(n.x) > fabsf(n.y))
 				otangent = glm::vec3(n.z, 0, -n.x) / sqrtf(n.x * n.x + n.z * n.z);
 			else 

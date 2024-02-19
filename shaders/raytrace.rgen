@@ -39,8 +39,8 @@ void main()
     for(int smpl = 0; smpl < pcRay.nbSample; smpl++)
     {
 
-        
-        totalHitValues += samplePixel(imageCoords, imageRes);
+        vec3 newSample = samplePixel(imageCoords, imageRes);
+        totalHitValues += clamp(newSample,0.0,1.0);
     
     }
 
