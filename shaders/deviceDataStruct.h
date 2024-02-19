@@ -40,7 +40,8 @@ START_ENUM(DebugMode)
 	eAlpha     = 5,  //
 	eRoughness = 6,  //
 	eTexCoord  = 7,  //
-	eTangent   = 8
+	eTangent   = 8,  //
+	eBitangent = 9   //
 
 END_ENUM();
 
@@ -65,7 +66,8 @@ struct Vertex
 	vec3 pos;
 	vec3 normal;
 	vec4 color;
-	vec4 tangent;
+	vec3 tangent;
+	vec3 bitangent;
 	vec2 texCoord;
 };
 

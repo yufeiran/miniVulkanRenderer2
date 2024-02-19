@@ -281,6 +281,7 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 			v.normal   = gltfLoader.normals[i];
 			v.color    = gltfLoader.colors0[i];
 			v.tangent  = gltfLoader.tangents[i];
+			v.bitangent = gltfLoader.bitangents[i];
 			v.texCoord = gltfLoader.texcoords0[i];
 			
 			vertices.push_back(v);

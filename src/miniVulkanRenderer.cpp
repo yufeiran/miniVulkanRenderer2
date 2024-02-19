@@ -19,7 +19,7 @@ using namespace std::chrono;
 
 void MiniVulkanRenderer::load()
 {
-	int testCase = 0;
+	int testCase = 2;
 	switch(testCase)
 	{
 	case 0:
@@ -845,7 +845,7 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>&  clearValues)
 	}
 	if(ImGui::CollapsingHeader("Debug",ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		const int DEBUG_MODE_SUM = 9;
+		const int DEBUG_MODE_SUM = 10;
 		const char* DEBUG_MODE_STR[DEBUG_MODE_SUM] ={
 			"no debug",
 			"base color",
@@ -855,7 +855,8 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>&  clearValues)
 			"alpha",
 			"roughness",
 			"texcoord",
-			"tangent"
+			"tangent",
+			"bitangent"
 		};
 		changed |= ImGui::Combo("mode",&debugModeIndex,DEBUG_MODE_STR,DEBUG_MODE_SUM);
 		pcRay.debugMode = debugModeIndex;

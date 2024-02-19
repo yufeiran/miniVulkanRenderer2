@@ -58,6 +58,8 @@ vec3 DebugInfo(in State state)
            return vec3(state.texCoord, 0);
         case eTangent:
            return vec3(state.tangent.xyz + vec3(1)) * .5;
+        case eBitangent:
+           return vec3(state.bitangent.xyz + vec3(1)) * .5;
 
     }
     return vec3(1000, 0 , 0);
@@ -115,8 +117,7 @@ vec3 PathTrace(Ray r)
         // fill the material 
         GetMaterialsAndTextures(state, prd, r);
 
-        state.ffnormal       = dot(state.normal, r.direction) <= 0.0 ? state.normal : -state.normal;
-        createCoordinateSystem(state.ffnormal, state.tangent, state.bitangent);
+
 
         if(pcRay.debugMode !=  eNoDebug)
         {

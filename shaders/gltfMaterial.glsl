@@ -79,8 +79,8 @@ void GetMaterialsAndTextures(inout State state,in hitPayload prd, in Ray r)
 
 
     // Uv Transform
-    //state.texCoord = (vec4(state.texCoord.xy, 1, 1) * material.uvTransform).xy;
-    mat3  TBN      = mat3(state.tangent, state.bitangent, state.normal);
+    // state.texCoord = (vec4(state.texCoord.xy, 1, 1) * material.uvTransform).xy;
+    mat3 TBN = mat3(state.tangent, state.bitangent, state.normal);
 
     //apply normal map if this material have a nomal map
     if(material.normalTexture > -1)
@@ -88,17 +88,12 @@ void GetMaterialsAndTextures(inout State state,in hitPayload prd, in Ray r)
         vec3 normalVector = textureLod(textureSamplers[nonuniformEXT(material.normalTexture)], state.texCoord, 0).xyz;
         normalVector      = normalize(normalVector * 2.0 - 1.0);
         normalVector  *= vec3(material.normalTextureScale, material.normalTextureScale, 1.0);
+        //state.normal   = normalVector;
         state.normal   = normalize(TBN * normalVector);
         state.ffnormal = dot(state.normal, r.direction) <= 0.0 ? state.normal : -state.normal;
-        //createCoordinateSystem(state.ffnormal, state.tangent, state.bitangent);
-        // vec3 normalVector = SRGBtoLINEAR(texture(textureSamplers[nonuniformEXT(material.normalTexture)], state.texCoord)).xyz;
 
-        // normalVector = normalize(normalVector * 2.0 - 1.0);
-
-        // normalVector *= vec3(material.normalTextureScale, material.normalTextureScale, 1.0);
-        // state.normal = normalize(TBN * normalVector);
-        // state.ffnormal = dot(state.normal, r.direction) <= 0.0 ? state.normal : -state.normal;
-        // createCoordinateSystem(state.ffnormal, state.tangent, state.bitangent);
+        
+        createCoordinateSystem(state.ffnormal, state.tangent, state.bitangent);
     }
 
     // Emissive term

@@ -27,7 +27,8 @@ struct VertexObj
 	glm::vec3 pos;
 	glm::vec3 normal;
 	glm::vec4 color;
-	glm::vec4 tangent;
+	glm::vec3 tangent;
+	glm::vec3 bitangent;
 	glm::vec2 texCoord;
 };
 

@@ -176,7 +176,9 @@ void GltfLoader::importDrawableNodes(const tinygltf::Model& tmodel, glm::mat4 tr
 	for(size_t i = 0; i < tangents.size(); i++)
 	{
 		auto& t =tangents[i];
-		if(sqrtNorm(t) < 0.01f || std::abs(t.w) < 0.5f)
+		if(sqrtNorm(t) < 0.01f 
+			//|| std::abs(t.w) < 0.5f
+			)
 		{
 			const auto& n     = normals[i];
 			const float sgn   = n.z > 0.0f ? 1.0f : -1.0f;
@@ -417,10 +419,34 @@ void GltfLoader::processMesh(const tinygltf::Model& tmodel, const tinygltf::Prim
 		// TANGENT
 		if(hasFlag(requestedAttributes, GltfAttributes::Tangent))
 		{
-			bool tangentCreated = getAttribute<glm::vec4>(tmodel, tmesh, tangents, "TANGENT");
+			std::vector<glm::vec4> gltfTangents;
+			bool tangentCreated = getAttribute<glm::vec4>(tmodel, tmesh, gltfTangents, "TANGENT");
 
 			if(!tangentCreated && hasFlag(forceRequested, GltfAttributes::Tangent))
+			{
 				createTangents(resultMesh);
+			}
+			else
+			{
+				std::vector<glm::vec3> tangent;
+				std::vector<glm::vec3> bitangent;
+
+				for(uint32_t a = 0; a < resultMesh.vertexCount; a++)
+				{
+					const auto& gt = gltfTangents[a];
+					const auto& n = normals[resultMesh.vertexOffset + a];
+
+					glm::vec3 t = gt;
+					glm::vec3 b = glm::cross(n, t) * gt.w;
+
+					tangents.push_back(t);
+					bitangent.push_back(b);
+
+
+				}
+
+			}
+				
 		}
 
 
@@ -689,7 +715,13 @@ void GltfLoader::createTangents(GltfPrimMesh& resultMesh)
 
 		// Calculate handedness
 		float handedness = (glm::dot(glm::cross(n, t), b) < 0.0f) ? 1.0f : -1.0f;
-		tangents.emplace_back(otangent.x, otangent.y, otangent.z, handedness);
+
+		
+		tangents.emplace_back(otangent.x, otangent.y, otangent.z);
+
+		glm::vec3 obitangent = glm::cross(n, otangent) * handedness;
+		bitangents.emplace_back(obitangent.x, obitangent.y, obitangent.z);
+
 	}
 }
 

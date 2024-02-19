@@ -33,7 +33,8 @@ layout(location = 1) in vec3 inWorldPos;
 layout(location = 2) in vec3 inWorldNormal;
 layout(location = 3) in vec3 inViewDir;
 layout(location = 4) in vec2 inTexCoord;
-layout(location = 5) in vec4 inTangent;
+layout(location = 5) in vec3 inTangent;
+layout(location = 6) in vec3 inBitangent;
 
 layout(location = 0) out vec4 outColor;
 
@@ -133,8 +134,8 @@ void main() {
     if(mat.type == 1)
     {
         // get normal 
-        vec3 tangent   = (pcRaster.modelMatrix * inTangent).xyz;
-        vec3 bitangent = cross(inWorldNormal, tangent) * inTangent.w;
+        vec3 tangent   = (pcRaster.modelMatrix * vec4(inTangent,1.0)).xyz;
+        vec3 bitangent = (pcRaster.modelMatrix * vec4(inBitangent,1.0)).xyz;
         vec3 normal    = inWorldNormal;
         
         mat3  TBN      = mat3(tangent, bitangent, inWorldNormal);

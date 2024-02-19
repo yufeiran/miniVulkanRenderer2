@@ -77,7 +77,7 @@ public:
 
 	void loadFeatures();
 
-	void init(int width = 1920, int height = 1080);
+	void init(int width = 1080, int height = 768);
 
 	void initImGUI();
 
@@ -168,7 +168,7 @@ public:
 
 private:
 	bool canRaytracing = false;
-	bool useRaytracing = false;
+	bool useRaytracing = true;
 	int width, height;
 	VkExtent2D surfaceExtent{};
 

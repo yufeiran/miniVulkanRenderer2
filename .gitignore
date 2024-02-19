@@ -43,3 +43,5 @@ spv/raytrace.rchit.spv
 spv/raytrace.rgen.spv
 spv/vertexShader.vert.spv
 *.spv
+*.spv
+*.spv
