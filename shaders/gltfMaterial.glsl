@@ -87,14 +87,16 @@ void GetMaterialsAndTextures(inout State state,in hitPayload prd, in Ray r)
     {
         vec3 normalVector = textureLod(textureSamplers[nonuniformEXT(material.normalTexture)], state.texCoord, 0).xyz;
         normalVector      = normalize(normalVector * 2.0 - 1.0);
-        normalVector  *= vec3(material.normalTextureScale, material.normalTextureScale, 1.0);
-        //state.normal   = normalVector;
-        state.normal   = normalize(TBN * normalVector);
-        state.ffnormal = dot(state.normal, r.direction) <= 0.0 ? state.normal : -state.normal;
+        normalVector     *= vec3(material.normalTextureScale, material.normalTextureScale, 1.0);
+        state.normal      = normalize(TBN * normalVector);
 
-        
-        createCoordinateSystem(state.ffnormal, state.tangent, state.bitangent);
     }
+
+    bool isInside = dot(state.normal, r.direction) > 0.0;
+
+    state.ffnormal = isInside ? -state.normal : state.normal;
+        
+    //createCoordinateSystem(state.ffnormal, state.tangent, state.bitangent);
 
     // Emissive term
     state.mat.emission = material.emissiveFactor;

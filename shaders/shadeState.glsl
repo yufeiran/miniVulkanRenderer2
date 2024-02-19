@@ -57,14 +57,14 @@ ShadeState GetShadeState(in hitPayload hstate)
     vec3 wgeoNormal  = normalize(vec3(geomNormal * hstate.worldToObject)); // ?? why
 
     vec3 tangent       = normalize(v0.tangent.xyz * barycentrics.x + v1.tangent.xyz * barycentrics.y + v2.tangent.xyz * barycentrics.z);
-    //vec3 worldTangent  = normalize(vec3(mat4(hstate.objectToWorld) *  vec4(tangent.xyz, 0))); // Transforming the tangent to world space
-    vec3 worldTangent  = normalize(vec3(tangent * hstate.worldToObject)); // Transforming the tangent to world space (faster than above line, but not sure if it's correct or not
+    vec3 worldTangent  = normalize(vec3(mat4(hstate.objectToWorld) *  vec4(tangent.xyz, 0))); // Transforming the tangent to world space
+    //vec3 worldTangent  = normalize(vec3(tangent * hstate.worldToObject)); // Transforming the tangent to world space (faster than above line, but not sure if it's correct or not
     
     worldTangent       = normalize(worldTangent - dot(worldTangent , worldNormal) * worldNormal);
     // vec3 worldBinormal = cross(worldNormal, worldTangent) * v0.tangent.w;
     vec3 bitangent     = normalize(v0.bitangent.xyz * barycentrics.x + v1.bitangent.xyz * barycentrics.y + v2.bitangent.xyz * barycentrics.z);
-    //vec3 worldBinormal = normalize(vec3(mat4(hstate.objectToWorld) *  vec4(bitangent.xyz, 0))); // Transforming the bitangent to world space
-    vec3 worldBinormal = normalize(vec3(bitangent * hstate.worldToObject)); // Transforming the bitangent to world space
+    vec3 worldBinormal = normalize(vec3(mat4(hstate.objectToWorld) *  vec4(bitangent.xyz, 0))); // Transforming the bitangent to world space
+    //vec3 worldBinormal = normalize(vec3(bitangent * hstate.worldToObject)); // Transforming the bitangent to world space
 
     vec4 color      = v0.color * barycentrics.x + v1.color * barycentrics.y + v2.color * barycentrics.z;
 

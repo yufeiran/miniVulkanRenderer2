@@ -158,7 +158,7 @@ public:
 		5,   // maxDepth
 		0,   // pbrMode
 		0,   // debugMode
-		1,   // skyLightIntensity
+		100,   // skyLightIntensity
 		0,   // totalFrameCount
 	};
 

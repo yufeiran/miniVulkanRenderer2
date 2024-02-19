@@ -458,7 +458,7 @@ void ResourceManager::createTextureImages(const std::vector<tinygltf::Image*>& l
 		for(const auto& gltfImage : loadImages)
 		{
 			VkExtent2D                 imageSize{gltfImage->width , gltfImage->height};
-			std::unique_ptr<Image>     image     = std::make_unique<Image>(device, imageSize, gltfImage->image.size(),(void*)(&gltfImage->image[0]));
+			std::unique_ptr<Image>     image     = std::make_unique<Image>(device, imageSize, gltfImage->image.size(),(void*)(&gltfImage->image[0]),VK_FORMAT_R8G8B8A8_UNORM);
 			std::unique_ptr<ImageView> imageView = std::make_unique<ImageView>(*image);
 		
 			Texture texture;

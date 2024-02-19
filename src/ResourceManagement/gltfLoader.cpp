@@ -424,10 +424,12 @@ void GltfLoader::processMesh(const tinygltf::Model& tmodel, const tinygltf::Prim
 
 			if(!tangentCreated && hasFlag(forceRequested, GltfAttributes::Tangent))
 			{
+				Log("No tangent found, creating them");
 				createTangents(resultMesh);
 			}
 			else
 			{
+				Log("Tangent found, using them");
 				std::vector<glm::vec3> tangent;
 				std::vector<glm::vec3> bitangent;
 
@@ -437,10 +439,19 @@ void GltfLoader::processMesh(const tinygltf::Model& tmodel, const tinygltf::Prim
 					const auto& n = normals[resultMesh.vertexOffset + a];
 
 					glm::vec3 t = gt;
-					glm::vec3 b = glm::cross(n, t) * gt.w;
+					glm::vec3 b = glm::cross(n, t);
 
+					if(gt.w == -1.0)
+					{
+						t = -t;
+						b = -b;
+						
+					}
+
+					
 					tangents.push_back(t);
-					bitangent.push_back(b);
+					bitangents.push_back(b);
+
 
 
 				}
@@ -680,6 +691,7 @@ void GltfLoader::createTangents(GltfPrimMesh& resultMesh)
 		float a = duvE1.x * duvE2.y - duvE2.x * duvE1.y;
 		if(fabs(a) > 0) // catch degenerated UV
 		{
+			Log("Degenerated UV");
 			r = 1.0f / a;
 		}
 
@@ -707,6 +719,7 @@ void GltfLoader::createTangents(GltfPrimMesh& resultMesh)
 		// In case the tangent is invalid
 		if(otangent == glm::vec3(0, 0, 0))
 		{
+			Log("Invalid tangent, creating a new one");
 			if(fabsf(n.x) > fabsf(n.y))
 				otangent = glm::vec3(n.z, 0, -n.x) / sqrtf(n.x * n.x + n.z * n.z);
 			else 
@@ -717,9 +730,17 @@ void GltfLoader::createTangents(GltfPrimMesh& resultMesh)
 		float handedness = (glm::dot(glm::cross(n, t), b) < 0.0f) ? 1.0f : -1.0f;
 
 		
-		tangents.emplace_back(otangent.x, otangent.y, otangent.z);
+		
 
-		glm::vec3 obitangent = glm::cross(n, otangent) * handedness;
+		glm::vec3 obitangent = glm::normalize(glm::cross(n, otangent) * handedness);
+
+		//if(handedness == -1.0f)
+		//{
+		//	otangent   = -otangent;
+		//	obitangent = -obitangent;
+		//}
+
+		tangents.emplace_back(otangent.x, otangent.y, otangent.z);
 		bitangents.emplace_back(obitangent.x, obitangent.y, obitangent.z);
 
 	}

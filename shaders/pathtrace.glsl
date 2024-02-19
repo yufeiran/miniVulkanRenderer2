@@ -199,11 +199,12 @@ vec3 samplePixel(ivec2 imageCoords, ivec2 sizeImage)
     const vec2 inUV = pixelCenter/vec2(sizeImage);
     vec2 d = inUV * 2.0 - 1.0;
 
-    vec4 origin    = uni.viewInverse * vec4(0, 0, 0, 1);
-    vec4 target    = uni.projInverse * vec4(d.x, d.y, 1, 1);
-    vec4 direction = uni.viewInverse * vec4(normalize(target.xyz), 0);
+    vec4 originView     = vec4(0, 0, 0, 1);
+    vec4 originWorld    = uni.viewInverse * originView;
+    vec4 targetView     = uni.projInverse * vec4(d.x, d.y, 1, 1);
+    vec4 direction      = uni.viewInverse * vec4(normalize(targetView.xyz - originView.xyz), 0);
 
-    Ray ray = Ray(origin.xyz, direction.xyz);
+    Ray ray = Ray(originWorld.xyz, direction.xyz);
 
     vec3 radiance = PathTrace(ray);
 

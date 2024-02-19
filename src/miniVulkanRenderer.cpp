@@ -19,7 +19,7 @@ using namespace std::chrono;
 
 void MiniVulkanRenderer::load()
 {
-	int testCase = 2;
+	int testCase = 4;
 	switch(testCase)
 	{
 	case 0:
@@ -77,11 +77,11 @@ void MiniVulkanRenderer::loadFeatures()
 
 
 	//NormalTangentTest 
-	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/NormalTangentTest/glTF/NormalTangentTest.gltf",objMat);
+	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/NormalTangentTest/glTF/NormalTangentTest.gltf",objMat);
 
 
 			// TransmissionTest
-	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/TransmissionTest/glTF/TransmissionTest.gltf",objMat);
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/TransmissionTest/glTF/TransmissionTest.gltf",objMat);
 
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat, glm::vec3(0.0,3.0,0.0));
@@ -239,25 +239,25 @@ void MiniVulkanRenderer::loadShowCase()
 	objMat = glm::scale(objMat, {2, 2, 2});
 
 	objMat = glm::translate(objMat,{0,1,1});
-	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BarramundiFish/glTF/BarramundiFish.gltf",objMat);
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BarramundiFish/glTF/BarramundiFish.gltf",objMat);
 
-	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat,{0,0,3});
-	objMat = glm::scale(objMat, {20, 20, 20});
+	//objMat = glm::mat4(1.0f);
+	//objMat = glm::translate(objMat,{0,0,3});
+	//objMat = glm::scale(objMat, {20, 20, 20});
 
 
-	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoomBox/glTF/BoomBox.gltf",objMat);
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoomBox/glTF/BoomBox.gltf",objMat);
 
-	resourceManager->loadScene("../../assets/lightScene.gltf");
+	//resourceManager->loadScene("../../assets/lightScene.gltf");
 
-	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat,{0,-1,0});
-	objMat = glm::scale(objMat,{3,1,3});
-	resourceManager->loadScene( "../../assets/plane/plane1.gltf",objMat);
+	//objMat = glm::mat4(1.0f);
+	//objMat = glm::translate(objMat,{0,-1,0});
+	//objMat = glm::scale(objMat,{3,1,3});
+	//resourceManager->loadScene( "../../assets/plane/plane1.gltf",objMat);
 
-		objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat,{0, 0, -5});
-	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/cube/glTF/cube.gltf", objMat);
+	//	objMat = glm::mat4(1.0f);
+	//objMat = glm::translate(objMat,{0, 0, -5});
+	////resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/cube/glTF/cube.gltf", objMat);
 
 	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf", objMat);
 }
