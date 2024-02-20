@@ -12,7 +12,7 @@ public:
 		const std::vector< VkDescriptorSetLayoutBinding>& vkDescriptorSetLayoutBindings,VkDescriptorSetLayoutCreateFlags flags=0);
 	~DescriptorSetLayout();
 
-	VkDescriptorSetLayout getHandle();
+	VkDescriptorSetLayout getHandle() const;
 private:
 	VkDescriptorSetLayout handle{ VK_NULL_HANDLE };
 

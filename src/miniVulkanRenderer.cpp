@@ -362,7 +362,7 @@ void MiniVulkanRenderer::init(int width, int height)
 	LogSpace();
 
 
-	graphicsPipelineBuilder = std::make_unique<GraphicsPipelineBuilder>(*device,*resourceManager, *renderContext,offscreenColorFormat);
+	graphicsPipelineBuilder = std::make_unique<GraphicsPipelineBuilder>(*device,*resourceManager, *renderContext,offscreenColorFormat,pcRaster);
 
 
 	createOffScreenFrameBuffer();
@@ -386,7 +386,7 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	std::vector<std::shared_ptr<DescriptorSetLayout>> layouts{graphicsPipelineBuilder->getDescriptorSetLayout()};
 	renderContext->prepare(*postRenderPass,*resourceManager,layouts,
-		graphicsPipelineBuilder->getRasterPipeline().getShaderModules().front()->getShaderInfo());
+		graphicsPipelineBuilder->getForwardRenderPass().getGraphicsPipeline().getShaderModules().front()->getShaderInfo());
 
 
 	initImGUI();
@@ -926,7 +926,9 @@ void MiniVulkanRenderer::loop()
 
 		surfaceExtent = renderContext->getSwapchain().getExtent();
 
-		graphicsPipelineBuilder->updateUniformBuffer(cmd,camera,surfaceExtent);
+
+		
+		graphicsPipelineBuilder->update(cmd,camera,surfaceExtent);
 
 		// Raster render pass
 		{
@@ -1007,30 +1009,33 @@ void MiniVulkanRenderer::updateInstances()
 
 void MiniVulkanRenderer::rasterize(CommandBuffer& cmd)
 {
-	VkDeviceSize offset{0};
 
-	cmd.setViewPortAndScissor(surfaceExtent);
+	graphicsPipelineBuilder->draw(cmd);
 
-	auto& rasterPipeline = graphicsPipelineBuilder->getRasterPipeline();
+	//VkDeviceSize offset{0};
 
-	cmd.bindPipeline(rasterPipeline);
+	//cmd.setViewPortAndScissor(surfaceExtent);
 
-	const auto& descSet = graphicsPipelineBuilder->getDescriptorSet();
-	
-	cmd.bindDescriptorSet(descSet);
+	//auto& rasterPipeline = graphicsPipelineBuilder->getRasterPipeline();
 
-	for(const ObjInstance& inst:resourceManager->instances)
-	{
-		auto& model          = resourceManager->objModel[inst.objIndex];
-		pcRaster.objIndex    = inst.objIndex;
-		pcRaster.modelMatrix = inst.transform;
-		cmd.pushConstant(pcRaster,static_cast<VkShaderStageFlagBits>( VK_SHADER_STAGE_VERTEX_BIT|VK_SHADER_STAGE_FRAGMENT_BIT));
-		
-		cmd.bindVertexBuffer(*model->vertexBuffer);
-		cmd.bindIndexBuffer(*model->indexBuffer);
-		vkCmdDrawIndexed(cmd.getHandle(),model->nbIndices,1,0,0,0);
+	//cmd.bindPipeline(rasterPipeline);
 
-	}
+	//const auto& descSet = graphicsPipelineBuilder->getDescriptorSet();
+	//
+	//cmd.bindDescriptorSet(descSet);
+
+	//for(const ObjInstance& inst:resourceManager->instances)
+	//{
+	//	auto& model          = resourceManager->objModel[inst.objIndex];
+	//	pcRaster.objIndex    = inst.objIndex;
+	//	pcRaster.modelMatrix = inst.transform;
+	//	cmd.pushConstant(pcRaster,static_cast<VkShaderStageFlagBits>( VK_SHADER_STAGE_VERTEX_BIT|VK_SHADER_STAGE_FRAGMENT_BIT));
+	//	
+	//	cmd.bindVertexBuffer(*model->vertexBuffer);
+	//	cmd.bindIndexBuffer(*model->indexBuffer);
+	//	vkCmdDrawIndexed(cmd.getHandle(),model->nbIndices,1,0,0,0);
+
+	//}
 
 
 		
@@ -1346,7 +1351,7 @@ void MiniVulkanRenderer::cleanScene()
 
 
 	auto& descSetLayout = graphicsPipelineBuilder->getDescriptorSetLayout();
-	auto& rasterPipeline = graphicsPipelineBuilder->getRasterPipeline();
+	auto& rasterPipeline = graphicsPipelineBuilder->getForwardRenderPass().getGraphicsPipeline();
 	std::vector<std::shared_ptr<DescriptorSetLayout>> layouts{descSetLayout};
 	renderContext->prepare(*postRenderPass,*resourceManager,layouts
 	, rasterPipeline.getShaderModules().front()->getShaderInfo());
@@ -1386,7 +1391,7 @@ void MiniVulkanRenderer::handleSizeChange()
 	//rasterPipeline->build(*rasterRenderPass);
 
 	auto& descSetLayout = graphicsPipelineBuilder->getDescriptorSetLayout();
-	auto& rasterPipeline = graphicsPipelineBuilder->getRasterPipeline();
+	auto& rasterPipeline = graphicsPipelineBuilder->getForwardRenderPass().getGraphicsPipeline();
 	std::vector<std::shared_ptr<DescriptorSetLayout>> layouts{descSetLayout};
 	renderContext->prepare(*postRenderPass,*resourceManager,layouts
 	, rasterPipeline.getShaderModules().front()->getShaderInfo());
@@ -1461,7 +1466,7 @@ void MiniVulkanRenderer::initPostRender()
 	
 	surfaceExtent=renderContext->getSurfaceExtent();
 	auto swapChainFormat = renderContext->getFormat();
-	postPipeline = std::make_unique<GraphicPipeline>(postShaderModules,*postPipelineLayout,*device,surfaceExtent);
+	postPipeline = std::make_unique<GraphicsPipeline>(postShaderModules,*postPipelineLayout,*device,surfaceExtent);
 
 	postPipeline->build(*postRenderPass);
 

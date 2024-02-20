@@ -112,6 +112,7 @@ void main() {
     {
         L = normalize(pcRaster.lightPosition);
     }
+    //vec3 LDirView = pcRaster.viewMatrix * vec4(L, 0.0);
 
     if(mat.type == 0)
     {
@@ -227,6 +228,8 @@ void main() {
         
         vec3 specular = numerator;
 
+        outColor = vec4(albedo,1.0);
+        return;
 
 
         // outColor = vec4(specular, 1.0);

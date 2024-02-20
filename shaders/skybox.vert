@@ -32,5 +32,5 @@ layout(binding= eGlobals) uniform _GlobalUniforms{
 void main()
 {
     TexCoords = aPos;
-    gl_Position = uni.proj * uni.view * uni.model * vec4(aPos, 1.0);
+    gl_Position = uni.viewProj * pcRaster.modelMatrix * vec4(aPos, 1.0);
 }

@@ -28,8 +28,8 @@ set(VULKAN_FRAMEWORK_FILES
     ./Vulkan/image.cpp
     ./Vulkan/shaderModule.h 
     ./Vulkan/shaderModule.cpp 
-    ./Vulkan/graphicPipeline.h 
-    ./Vulkan/graphicPipeline.cpp 
+    ./Vulkan/graphicsPipeline.h 
+    ./Vulkan/graphicsPipeline.cpp 
     ./Vulkan/framebuffer.h 
     ./Vulkan/framebuffer.cpp
     ./Vulkan/semaphore.h 
@@ -101,6 +101,8 @@ set(RENDERING_FILES
     ./Rendering/renderFrame.cpp 
     ./Rendering/postQuad.h 
     ./Rendering/postQuad.cpp
+    ./Rendering/graphicsRenderPass.h 
+    ./Rendering/graphicsRenderPass.cpp
 
 )
 

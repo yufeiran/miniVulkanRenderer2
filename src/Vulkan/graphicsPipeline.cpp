@@ -1,4 +1,4 @@
-#include "GraphicPipeline.h"
+#include "GraphicsPipeline.h"
 #include "shaderModule.h"
 #include "device.h"
 #include "Vulkan/renderPass.h"
@@ -11,7 +11,7 @@
 namespace mini
 {
 
-GraphicPipeline::GraphicPipeline(std::vector<std::unique_ptr<ShaderModule>>& shaderModules,
+GraphicsPipeline::GraphicsPipeline(std::vector<std::unique_ptr<ShaderModule>>& shaderModules,
 	PipelineLayout& pipelineLayout,
 	Device& device,VkExtent2D extent)
 	:shaderModules(shaderModules), pipelineLayout(pipelineLayout), device(device), swapChainImageFormat(swapChainImageFormat)
@@ -128,7 +128,7 @@ GraphicPipeline::GraphicPipeline(std::vector<std::unique_ptr<ShaderModule>>& sha
 
 }
 
-GraphicPipeline::~GraphicPipeline()
+GraphicsPipeline::~GraphicsPipeline()
 {
 	if (handle != VK_NULL_HANDLE) {
 		vkDestroyPipeline(device.getHandle(), handle, nullptr);
@@ -136,7 +136,7 @@ GraphicPipeline::~GraphicPipeline()
 
 }
 
-void GraphicPipeline::build(RenderPass& renderPass)
+void GraphicsPipeline::build(const RenderPass& renderPass)
 {
 	VkGraphicsPipelineCreateInfo pipelineInfo{};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -165,21 +165,21 @@ void GraphicPipeline::build(RenderPass& renderPass)
 
 }
 
-VkPipelineLayout GraphicPipeline::getPipelineLayout() const
+VkPipelineLayout GraphicsPipeline::getPipelineLayout() const
 {
 	return pipelineLayout.getHandle();
 }
 
 
 
-VkPipeline GraphicPipeline::getHandle() const
+VkPipeline GraphicsPipeline::getHandle() const
 {
 	return handle;
 }
 
 
 
-std::vector<std::unique_ptr<ShaderModule>>& GraphicPipeline::getShaderModules() const
+std::vector<std::unique_ptr<ShaderModule>>& GraphicsPipeline::getShaderModules() const
 {
 	return shaderModules;
 }

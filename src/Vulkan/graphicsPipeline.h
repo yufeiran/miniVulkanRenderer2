@@ -12,15 +12,15 @@ class DescriptorSetLayout;
 class PipelineLayout;
 
 
-class GraphicPipeline
+class GraphicsPipeline
 {
 public:
-	GraphicPipeline(std::vector<std::unique_ptr<ShaderModule>>& shaderModules, 
+	GraphicsPipeline(std::vector<std::unique_ptr<ShaderModule>>& shaderModules, 
 		PipelineLayout &pipelineLayout, 
 		Device& device, VkExtent2D extent);
-	~GraphicPipeline();
+	~GraphicsPipeline();
 
-	void build(RenderPass& renderPass);
+	void build(const RenderPass& renderPass);
 
 
 	VkPipelineLayout getPipelineLayout() const;

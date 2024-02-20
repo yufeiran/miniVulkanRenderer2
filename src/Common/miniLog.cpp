@@ -119,8 +119,8 @@ void LogProgressBar(const std::string& title, double percent)
 	}
 	printf("\r");
 	outputTag();
-	printf("%s [%s",title.c_str(),progressBarData);
-	for(int i=0;i<progressLen-nowProgressCount;i++)
+	printf("%s \t[%s",title.c_str(),progressBarData);
+	for(int i=0;i<progressLen-nowProgressCount - 1;i++)
 	{
 		printf(" ");
 	}
@@ -130,6 +130,29 @@ void LogProgressBar(const std::string& title, double percent)
 		printf("\n");
 	}
 
+}
+
+std::string waitMessage;
+void LogWait(const std::string& message)
+{
+
+	waitMessage = message;
+	static int nowCount = 0;
+	const char waitChar[4] = {'|','/','-','\\'};
+	printf("\r");
+	outputTag();
+
+	printf("%s %c",message.c_str(),waitChar[nowCount % 4]);
+	nowCount++;
+}
+
+void LogWaitEnd()
+{
+	
+	printf("\r");
+	outputTag();
+	printf("%s\n",waitMessage.c_str());
+	waitMessage.clear();
 }
 
 std::chrono::time_point last = std::chrono::system_clock::now();

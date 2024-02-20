@@ -28,7 +28,7 @@
 #include "Vulkan/image.h"
 #include "Vulkan/swapchain.h"
 #include "Vulkan/shaderModule.h"
-#include "Vulkan/GraphicPipeline.h"
+#include "Vulkan/GraphicsPipeline.h"
 #include "Vulkan/commandPool.h"
 #include "Vulkan/commandBuffer.h"
 #include "Vulkan/framebuffer.h"
@@ -97,6 +97,8 @@ public:
 
 	void raytrace(CommandBuffer& cmd, const glm::vec4& clearColor);
 
+	void rasterize(CommandBuffer& cmd);
+
 	// ui---------------------
 	void renderUI(std::vector<VkClearValue>& clearValues);
 
@@ -111,7 +113,7 @@ public:
 
 	void updateInstances();
 
-	void rasterize(CommandBuffer& cmd);
+	
 
 	void processIO();
 
@@ -244,7 +246,7 @@ private:
 	VkDescriptorSet                                    postDescriptorSet;
 	std::unique_ptr<PipelineLayout>                    postPipelineLayout;
 	std::unique_ptr<RenderPass>                        postRenderPass;
-	std::unique_ptr<GraphicPipeline>                   postPipeline;
+	std::unique_ptr<GraphicsPipeline>                   postPipeline;
 	std::unique_ptr<PostQuad>                          postQuad;
 	std::unique_ptr<Sampler>                           postRenderImageSampler;
 

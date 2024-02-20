@@ -245,7 +245,7 @@ void ResourceManager::loadObjModel(std::string name, std::string path, glm::mat4
 
 void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform, bool flipTexture)
 {
-	LogI("load gltf scene: " + filename + " start");
+	LogI("Load gltf scene: " + filename + " start");
 	LogTimerStart("loadGltfScene");
 	gltfLoader.loadScene(filename);
 
@@ -255,6 +255,7 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 	int primMeshesIndex = 0;
 	for(auto& m : gltfLoader.primMeshes)
 	{
+		LogProgressBar("Loading " ,(double) (primMeshesIndex+1) /(double) gltfLoader.primMeshes.size() );
 		std::unique_ptr<ObjModel> model = std::make_unique<ObjModel>();
 
 		model->nbIndices  = m.indexCount;

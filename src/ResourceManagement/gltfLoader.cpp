@@ -1,4 +1,5 @@
-
+#include <thread>
+#include <chrono>
 #include "gltfLoader.h"
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -6,6 +7,7 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include "ResourceManagement/boundingBox.h"
 #include <glm/gtc/type_ptr.hpp>
+
 
 
 template <class T, class Y>
@@ -27,12 +29,39 @@ void GltfLoader::loadScene(const std::string& filename, glm::mat4 transform)
 	tinygltf::TinyGLTF tcontext;
 	std::string        warn, error;
 	Log("Loading file:" + filename);
-	if(!tcontext.LoadASCIIFromFile(&tmodel, &error, &warn, filename))
+
+	bool fileLoadOK = false;
+
+	auto func = [&](){
+			if(!tcontext.LoadASCIIFromFile(&tmodel, &error, &warn, filename))
+			{
+				assert(!"Error while loading scene");
+			}
+			fileLoadOK = true;
+	};
+
+	std::thread loadFileT(func);
+	loadFileT.detach();
+
+	using namespace std::chrono_literals;
+
+	while(fileLoadOK == false)
 	{
-		assert(!"Error while loading scene");
+		LogWait("tinyGltf Load");
+
+		std::this_thread::sleep_for(50ms);
 	}
-	Log(warn);
-	Log(error);
+	LogWaitEnd();
+
+	
+
+
+	if(warn.empty() == false)
+		Log(warn);
+	if(error.empty() == false)
+		Log(error);
+
+
 	
 	importMaterials(tmodel);
 
@@ -133,8 +162,11 @@ void GltfLoader::importDrawableNodes(const tinygltf::Model& tmodel, glm::mat4 tr
 
 	uint32_t nbIndex{0};
 	uint32_t primCnt{0};
+
+	int nowIndex = 0;
 	for(const auto& m: usedMeshes)
 	{
+		LogProgressBar("mesh index",(double) ++nowIndex / (double)usedMeshes.size());
 		auto&                 tmesh = tmodel.meshes[m];
 		std::vector<uint32_t> vprim;
 		for(const auto& primitive : tmesh.primitives)
@@ -161,8 +193,10 @@ void GltfLoader::importDrawableNodes(const tinygltf::Model& tmodel, glm::mat4 tr
 	indices.reserve(nbIndex);
 
 	// Convert all mesh/primitives+ to a single primitive per mesh
+	nowIndex = 0;
 	for(const auto& m : usedMeshes)
 	{
+		LogProgressBar("Importing mesh",(double) ++nowIndex / (double)usedMeshes.size());
 		auto& tmesh  = tmodel.meshes[m];
 		for(const auto& tprimitive : tmesh.primitives)
 		{
@@ -717,6 +751,10 @@ void GltfLoader::createTangents(GltfPrimMesh& resultMesh)
 		glm::vec3 otangent = glm::normalize(t - (glm::dot(n, t) * n));
 
 		// In case the tangent is invalid
+		if(isnan(otangent.x) || isnan(otangent.y) || isnan(otangent.z)){
+			otangent = glm::vec3(0, 0, 0);
+		}
+
 		if(otangent == glm::vec3(0, 0, 0))
 		{
 			//Log("Invalid tangent, creating a new one");

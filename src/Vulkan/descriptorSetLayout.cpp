@@ -29,7 +29,7 @@ DescriptorSetLayout::~DescriptorSetLayout()
 	}
 }
 
-VkDescriptorSetLayout DescriptorSetLayout::getHandle()
+VkDescriptorSetLayout DescriptorSetLayout::getHandle() const
 {
 	return handle;
 }

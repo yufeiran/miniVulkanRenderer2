@@ -25,6 +25,9 @@ namespace mini
 	void LogSpace();
 	void LogLogo();
 	void LogProgressBar(const std::string& title,double percent);
+	void LogWait(const std::string& message);
+	void LogWaitEnd();
+
 	void LogTimerStart(const std::string& jobName);
 	void LogTimerEnd(const std::string& jobName);
 

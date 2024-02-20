@@ -3,7 +3,7 @@
 #include"commandPool.h"
 #include"device.h"
 #include"Vulkan/renderPass.h"
-#include"GraphicPipeline.h"
+#include"GraphicsPipeline.h"
 #include"buffer.h"
 
 #include"Vulkan/descriptorPool.h"
@@ -56,7 +56,7 @@ void CommandBuffer::beginRenderPass(RenderPass& renderPass, FrameBuffer& frameBu
 
 }
 
-void CommandBuffer::bindPipeline(GraphicPipeline& pipeline)
+void CommandBuffer::bindPipeline(const GraphicsPipeline& pipeline)
 {
     vkCmdBindPipeline(handle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getHandle());
     this->pipeline = pipeline.getHandle();

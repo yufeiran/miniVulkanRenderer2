@@ -10,7 +10,7 @@ class CommandPool;
 class Device;
 class RenderPass;
 class FrameBuffer;
-class GraphicPipeline;
+class GraphicsPipeline;
 class RenderFrame;
 class Buffer;
 class Model;
@@ -30,7 +30,7 @@ public:
 	void beginRenderPass(RenderPass& renderPass, FrameBuffer& frameBuffer, 
 		const std::vector<VkClearValue>& clearColor);
 
-	void bindPipeline(GraphicPipeline& pipeline);
+	void bindPipeline(const GraphicsPipeline& pipeline);
 
 	void setViewPortAndScissor(VkExtent2D extent);
 

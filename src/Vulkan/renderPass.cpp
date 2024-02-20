@@ -3,7 +3,7 @@
 
 namespace mini
 {
-RenderPass::RenderPass(Device& device, VkFormat swapchainFormat,VkImageLayout colorAttachmentFinalLayout)
+RenderPass::RenderPass(Device& device, VkFormat swapchainFormat,VkImageLayout colorAttachmentFinalLayout,const SubpassInfo& subpasses)
 	:device(device)
 {
 	VkAttachmentDescription colorAttachment{};

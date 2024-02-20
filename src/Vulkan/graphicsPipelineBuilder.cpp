@@ -7,11 +7,21 @@
 
 using namespace mini;
 
-GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device, ResourceManager& resourceManager,RenderContext& renderContext,VkFormat offscreenColorFormat)
-	: device(device), resourceManager(resourceManager),renderContext(renderContext),offscreenColorFormat(offscreenColorFormat)
+GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device, 
+	ResourceManager& resourceManager,
+	RenderContext& renderContext,
+	VkFormat offscreenColorFormat,
+	PushConstantRaster& pcRaster)
+	: device(device), resourceManager(resourceManager),renderContext(renderContext),offscreenColorFormat(offscreenColorFormat),pcRaster(pcRaster)
 {
 	createDescriptorSetLayout();
-	createRasterPipeline();
+	rasterRenderPass     = std::make_unique<RenderPass>(device,offscreenColorFormat,  VK_IMAGE_LAYOUT_GENERAL);
+
+
+	surfaceExtent=renderContext.getSurfaceExtent();
+
+	forwardRenderPass = std::make_unique<ForwardRenderPass>(device,resourceManager,*rasterRenderPass,surfaceExtent,descSetLayout,pcRaster);
+	//createRasterPipeline();
 	createUniformBuffer();
 	createObjDescriptionBuffer();
 	updateDescriptorSet();
@@ -22,6 +32,16 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device, ResourceManager
 GraphicsPipelineBuilder::~GraphicsPipelineBuilder()
 {
 
+}
+
+void GraphicsPipelineBuilder::draw(CommandBuffer& cmd)
+{
+	forwardRenderPass->draw(cmd,descSet);
+}
+
+void GraphicsPipelineBuilder::update(CommandBuffer& cmd,Camera& camera, VkExtent2D surfaceExtent)
+{
+	updateUniformBuffer(cmd,camera,surfaceExtent);
 }
 
 
@@ -48,55 +68,53 @@ void GraphicsPipelineBuilder::createDescriptorSetLayout()
 
 }
 
-
-void GraphicsPipelineBuilder::createRasterPipeline()
-{
-
-	// create raster pipeline !
-
-	rasterShaderModules.push_back(std::make_unique<ShaderModule>("../../spv/vertexShader.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
-	rasterShaderModules.push_back(std::make_unique<ShaderModule>("../../spv/fragmentShader.frag.spv", device, VK_SHADER_STAGE_FRAGMENT_BIT));
-	
-	std::vector<VkPushConstantRange> pushConstants;
-	VkPushConstantRange pushConstant={};
-	pushConstant.offset = 0;
-	pushConstant.size = sizeof(PushConstantRaster);
-	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-	pushConstants.push_back(pushConstant);
-
-	//VkDescriptorSetLayoutBinding uboLayoutBinding{};
-	//uboLayoutBinding.binding = 0;
-	//uboLayoutBinding.descriptorCount = 1;
-	//uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	//uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-	//uboLayoutBinding.pImmutableSamplers = nullptr;
-
-	//VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-	//samplerLayoutBinding.binding = 1;
-	//samplerLayoutBinding.descriptorCount=1;
-	//samplerLayoutBinding.descriptorType=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	//samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	//samplerLayoutBinding.pImmutableSamplers = nullptr;
-
-	//std::vector<VkDescriptorSetLayoutBinding>layoutBindings{uboLayoutBinding,samplerLayoutBinding};
-
-
-
-	//rasterDescriptorSetLayouts.push_back(std::make_unique<DescriptorSetLayout>(*device,layoutBindings));
-
-    std::vector<std::shared_ptr<DescriptorSetLayout>>  descSetLayouts{descSetLayout};
-
-	rasterPipelineLayout = std::make_unique<PipelineLayout>(device,descSetLayouts,pushConstants);
-
-	rasterRenderPass     = std::make_unique<RenderPass>(device,offscreenColorFormat,  VK_IMAGE_LAYOUT_GENERAL);
-
-
-	surfaceExtent=renderContext.getSurfaceExtent();
-	rasterPipeline = std::make_unique<GraphicPipeline>(rasterShaderModules,*rasterPipelineLayout,device,surfaceExtent);
-
-	rasterPipeline->build(*rasterRenderPass);
-
-}
+//
+//void GraphicsPipelineBuilder::createRasterPipeline()
+//{
+//
+//	// create raster pipeline !
+//
+//	rasterShaderModules.push_back(std::make_unique<ShaderModule>("../../spv/vertexShader.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
+//	rasterShaderModules.push_back(std::make_unique<ShaderModule>("../../spv/fragmentShader.frag.spv", device, VK_SHADER_STAGE_FRAGMENT_BIT));
+//	
+//	std::vector<VkPushConstantRange> pushConstants;
+//	VkPushConstantRange pushConstant={};
+//	pushConstant.offset = 0;
+//	pushConstant.size = sizeof(PushConstantRaster);
+//	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+//	pushConstants.push_back(pushConstant);
+//
+//	//VkDescriptorSetLayoutBinding uboLayoutBinding{};
+//	//uboLayoutBinding.binding = 0;
+//	//uboLayoutBinding.descriptorCount = 1;
+//	//uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+//	//uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+//	//uboLayoutBinding.pImmutableSamplers = nullptr;
+//
+//	//VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+//	//samplerLayoutBinding.binding = 1;
+//	//samplerLayoutBinding.descriptorCount=1;
+//	//samplerLayoutBinding.descriptorType=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+//	//samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+//	//samplerLayoutBinding.pImmutableSamplers = nullptr;
+//
+//	//std::vector<VkDescriptorSetLayoutBinding>layoutBindings{uboLayoutBinding,samplerLayoutBinding};
+//
+//
+//
+//	//rasterDescriptorSetLayouts.push_back(std::make_unique<DescriptorSetLayout>(*device,layoutBindings));
+//
+//    std::vector<std::shared_ptr<DescriptorSetLayout>>  descSetLayouts{descSetLayout};
+//
+//	rasterPipelineLayout = std::make_unique<PipelineLayout>(device,descSetLayouts,pushConstants);
+//
+//
+//	surfaceExtent=renderContext.getSurfaceExtent();
+//	rasterPipeline = std::make_unique<GraphicsPipeline>(rasterShaderModules,*rasterPipelineLayout,device,surfaceExtent);
+//
+//	rasterPipeline->build(*rasterRenderPass);
+//
+//}
 
 void GraphicsPipelineBuilder::createUniformBuffer()
 {
