@@ -860,6 +860,7 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>&  clearValues)
 		};
 		changed |= ImGui::Combo("mode",&debugModeIndex,DEBUG_MODE_STR,DEBUG_MODE_SUM);
 		pcRay.debugMode = debugModeIndex;
+		pcRaster.debugMode = debugModeIndex;
 
 	}
 	if(ImGui::CollapsingHeader("Camera",ImGuiTreeNodeFlags_DefaultOpen))

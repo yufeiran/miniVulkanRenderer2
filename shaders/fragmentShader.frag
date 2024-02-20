@@ -173,6 +173,7 @@ void main() {
             roughness     = mrSample.g * roughness;
             metallic      = mrSample.b * metallic;
             aoTemp        = mrSample.r;
+            aoTemp        = 1;
 
         }
         if(mat.pbrOcclusionTexture > -1)
@@ -214,28 +215,19 @@ void main() {
 
         
         // Cook-Torrance BRDF
-        float NDF = D_GGX(NdotH, roughness);
-        float G   = V_GGX(NdotL, NdotV, roughness);
-        vec3  F   = F_Schlick(F0, F90, VdotH);
-        // float NDF = DistributionGGX(N, H, roughness);   
-        // float G   = GeometrySmith(N, V, L, roughness);      
-        // vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);
+        // float NDF = D_GGX(NdotH, roughness);
+        // float G   = V_GGX(NdotL, NdotV, roughness);
+        // vec3  F   = F_Schlick(F0, F90, VdotH);
+
+        float NDF = DistributionGGX(N, H, roughness);       
+        float G   = GeometrySmith(N, V, L, roughness);       
+        vec3  F   = fresnelSchlick(max(dot(H, V), 0.0), F0);
+    
 
         vec3 numerator = NDF * G * F;
         float denominator =  4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001; // prevent divide by zero.
-        
 
-        
-        vec3 specular = numerator;
-
-        outColor = vec4(albedo,1.0);
-        return;
-
-
-        // outColor = vec4(specular, 1.0);
-        // outColor = vec4(lightIntensity,lightIntensity,lightIntensity,0);
-        // return;
-
+        vec3 specular = numerator / denominator;
 
         // kS is equal to Fresnel
         vec3 kS = F;
@@ -248,41 +240,47 @@ void main() {
 
         L0 += (kD * albedo / PI + specular) * lightIntensity * NdotL;
 
-        vec3 ambient = vec3(0.002) * pcRaster.skyLightIntensity * albedo * ao;
+        vec3 ambient = vec3(0.0002) * pcRaster.skyLightIntensity * albedo * ao;
 
         vec3 color = ambient + L0 + emission;
+
+        // color = color / (color + vec3(1.0));
+        // color = pow(color, vec3(1.0/2.2));
 
         outColor = vec4(color, 1.0);
 
 
-        // // // Diffuse 
-        // vec3 diffuse = computeDiffuse(mat, L, N);
-        // if(mat.pbrBaseColorTexture >= 0)
-        // {
-        //     //uint txtId    = mat.pbrBaseColorTexture + objDesc.i[pcRaster.objIndex].txtOffset;
-        //     uint txtId    = mat.pbrBaseColorTexture;
-        //     vec3 diffuseTxt = texture(textureSamplers[nonuniformEXT(txtId)], inTexCoord).xyz;
-        //     diffuse *=diffuseTxt;
+        switch(pcRaster.debugMode)
+        {
+            case eNormal:
+            outColor = vec4((N + vec3(1)) * .5,1.0);
+            return;
+            case eMetallic:
+            outColor = vec4(metallic,metallic,metallic, 1.0);
+            return;
+            case eBaseColor:
+            outColor = vec4(albedo, 1.0);
+            return;
+            case eEmissive:
+                outColor = vec4(emission, 1.0);
+                return;
+            case eAlpha:
+                outColor = vec4(mat.pbrBaseColorFactor.a,mat.pbrBaseColorFactor.a,mat.pbrBaseColorFactor.a, 1.0);
+                return;
+            case eRoughness:
+                outColor = vec4(roughness,roughness,roughness, 1.0);
+                return;
+            case eTexCoord:
+                outColor = vec4(inTexCoord, 0.0, 1.0);
+                return;
+            case eTangent:
+                outColor = vec4(inTangent.xyz + vec3(1), 1.0);
+                return;
+            case eBitangent:
+                outColor = vec4(inBitangent.xyz + vec3(1), 1.0);
+                return;
 
-        // }
-        // else 
-        // {
-        //     diffuse *= mat.pbrBaseColorFactor.xyz;
-        // }
-
-        // // Specular 
-        // vec3 specular = computeSpecular(mat, inViewDir, L, N);
-
-        // // vec3 specular = vec3(0.0, 0.0, 0.0);;
-        // // vec3 diffuse = vec3(1.0, 1.0, 1.0);
-
-        // outColor = vec4(lightIntensity * (diffuse + specular), 1);
-
-        //outColor = vec4(inTexCoord,0.0,1);
-        //outColor = vec4(vec3(inTangent.xyz + vec3(1)) * .5,0);
-       
+        }
     }
-    // outColor = vec4(1.0, 1.0, 1.0, 1.0);
-    // outColor = vec4(inTexCoord,0.0,1);
 
 }

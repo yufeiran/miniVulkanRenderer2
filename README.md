@@ -4,13 +4,17 @@
  * PBR
  * PathTrace
  ## 2. Screenshot
-
+![Emission1](assets/screenshot/emssion1.png)
  ### 2.1 RayTracing
 * Demo
 ![demo](assets/screenshot/sceneDemo.png)
 
 * Normal Map 
 ![Noraml Map](assets/screenshot/normalMap.png)
+ <details> 
+<summary>more RayTracing sample </summary>
+
+
 * Emission 
 ![Emission](assets/screenshot/emssion.png)
 ![Emission1](assets/screenshot/emssion1.png)
@@ -25,8 +29,15 @@
 ![sponaz](assets/screenshot/sponza.png)
 ![hdrOn](assets/screenshot/hdr.png)
 
-### 2.2 Raster
+ </details> 
 
+### 2.2 rasterization
+ <details> 
+<summary>rasterization features is still on building</summary>
+
+![sponaz](assets/screenshot/raster.png)
+ </details> 
+ 
 ## 3. ThirdParty
 * imgui
 * tinygltf

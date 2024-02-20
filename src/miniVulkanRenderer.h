@@ -145,9 +145,10 @@ public:
 		glm::identity<mat4>(),                 // 
 		{10.f, 15.f, 8.f},   // light position
 		0,                   // instance id
-		0.5f,               // light intensity
-		0,                  // light type
+		0.5f,                // light intensity
+		0,                   // light type
 		0,                   // skyLightIntensity
+		0,                   // debugMode
 	};
 
 	PushConstantRay pcRay{
@@ -160,7 +161,7 @@ public:
 		5,   // maxDepth
 		0,   // pbrMode
 		0,   // debugMode
-		100,   // skyLightIntensity
+		10,   // skyLightIntensity
 		0,   // totalFrameCount
 	};
 
