@@ -1,6 +1,7 @@
 #include "graphicsRenderPass.h"
 #include "ResourceManagement/ResourceManager.h"
 #include "Vulkan/commandBuffer.h"
+#include "Vulkan/graphicsPipeline.h"
 
 using namespace mini;
 GraphicsRenderPass::GraphicsRenderPass
@@ -14,12 +15,13 @@ GraphicsRenderPass::~GraphicsRenderPass()
 {
 }
 
-ForwardRenderPass::ForwardRenderPass(Device& device, 
-	ResourceManager& resourceManager,
-	const RenderPass& renderPass, 
-	VkExtent2D extent,
-	std::shared_ptr<DescriptorSetLayout> descSetLayout,
-	PushConstantRaster& pcRaster
+ForwardRenderPass::ForwardRenderPass(Device&                               device, 
+									 ResourceManager&                      resourceManager,
+									 const RenderPass&                     renderPass, 
+									 VkExtent2D                            extent,
+									 std::shared_ptr<DescriptorSetLayout>  descSetLayout,
+									 PushConstantRaster&                   pcRaster,
+									 int                                   subpassIndex
 	)
 	:GraphicsRenderPass(device,resourceManager,extent),renderPass(renderPass),pcRaster(pcRaster)
 {
@@ -60,6 +62,8 @@ ForwardRenderPass::ForwardRenderPass(Device& device,
 
 
 	graphicsPipeline = std::make_unique<GraphicsPipeline>(rasterShaderModules,*rasterPipelineLayout,device,extent);
+
+	graphicsPipeline->setSubpassIndex(subpassIndex);
 
 	graphicsPipeline->build(renderPass);
 }
@@ -102,14 +106,21 @@ void ForwardRenderPass::draw(CommandBuffer& cmd, VkDescriptorSet descSet)
 
 }
 
-void ForwardRenderPass::rebuild(VkExtent2D surfaceExtent)
+void ForwardRenderPass::rebuild(VkExtent2D surfaceExtent,int subpassIndex)
 {
 	graphicsPipeline = std::make_unique<GraphicsPipeline>(rasterShaderModules,*rasterPipelineLayout,device,surfaceExtent);
+	graphicsPipeline->setSubpassIndex(subpassIndex);
 	extent = surfaceExtent;
 	graphicsPipeline->build(renderPass);
 }
 
-SkyLightRenderPass::SkyLightRenderPass(Device& device, ResourceManager& resourceManager, const RenderPass& renderPass, VkExtent2D extent, std::shared_ptr<DescriptorSetLayout> descSetLayout, PushConstantRaster& pcRaster)
+SkyLightRenderPass::SkyLightRenderPass(Device&                               device,
+										ResourceManager&                     resourceManager, 
+										const RenderPass&                    renderPass, 
+										VkExtent2D                           extent, 
+										std::shared_ptr<DescriptorSetLayout> descSetLayout, 
+										PushConstantRaster&                  pcRaster,
+										int                                  subpassIndex)
 	:GraphicsRenderPass(device,resourceManager,extent),renderPass(renderPass),pcRaster(pcRaster),skyLightCube(device)
 {
 	skyLightShaderModules.push_back(std::make_unique<ShaderModule>("../../spv/skybox.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
@@ -131,6 +142,11 @@ SkyLightRenderPass::SkyLightRenderPass(Device& device, ResourceManager& resource
 
 
 	graphicsPipeline = std::make_unique<GraphicsPipeline>(skyLightShaderModules,*skyLightPipelineLayout,device,extent);
+	graphicsPipeline->setSubpassIndex(subpassIndex);
+	graphicsPipeline->depthStencil.depthTestEnable = VK_FALSE;
+	graphicsPipeline->depthStencil.depthWriteEnable = VK_FALSE;
+	graphicsPipeline->rasterizer.cullMode = VK_CULL_MODE_NONE;
+
 
 	graphicsPipeline->build(renderPass);
 }
@@ -168,9 +184,13 @@ void SkyLightRenderPass::draw(CommandBuffer& cmd, VkDescriptorSet descSet)
 
 }
 
-void SkyLightRenderPass::rebuild(VkExtent2D surfaceExtent)
+void SkyLightRenderPass::rebuild(VkExtent2D surfaceExtent,int subpassIndex)
 {
 	graphicsPipeline = std::make_unique<GraphicsPipeline>(skyLightShaderModules,*skyLightPipelineLayout,device,surfaceExtent);
+	graphicsPipeline->setSubpassIndex(subpassIndex);
+	graphicsPipeline->depthStencil.depthTestEnable = VK_FALSE;
+	graphicsPipeline->depthStencil.depthWriteEnable = VK_FALSE;
+	graphicsPipeline->rasterizer.cullMode = VK_CULL_MODE_NONE;
 	extent = surfaceExtent;
 	graphicsPipeline->build(renderPass);
 }

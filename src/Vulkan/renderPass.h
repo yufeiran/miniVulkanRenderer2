@@ -18,7 +18,7 @@ public:
 	RenderPass(Device &device, 
 		VkFormat swapchainFormat,
 		VkImageLayout colorAttachmentFinalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-		const SubpassInfo &subpasses = {});
+		const std::vector<SubpassInfo> &subpasses = {});
 
 	~RenderPass();
 

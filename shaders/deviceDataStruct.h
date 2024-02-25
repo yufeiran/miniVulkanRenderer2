@@ -57,8 +57,12 @@ struct ObjDesc
 struct GlobalUniforms
 {
 	mat4 viewProj;
+	mat4 view;
+	mat4 viewNoTranslate;
+	mat4 proj;
 	mat4 viewInverse;
 	mat4 projInverse;
+
 };
 
 struct Vertex

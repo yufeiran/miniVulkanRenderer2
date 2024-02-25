@@ -39,32 +39,6 @@ namespace mini
 
 	};
 
-	class ForwardRenderPass :public GraphicsRenderPass
-	{
-	public:
-		ForwardRenderPass(Device& device, 
-						  ResourceManager& resourceManager,
-						  const RenderPass& renderPass,
-						  VkExtent2D extent,
-			              std::shared_ptr<DescriptorSetLayout> descSetLayout,
-						  PushConstantRaster& pcRaster
-		);
-		~ForwardRenderPass();
-
-		void update();
-		void draw(CommandBuffer& cmd,VkDescriptorSet descSet);
-
-		void rebuild(VkExtent2D surfaceExtent);
-	private:
-		const RenderPass& renderPass;
-
-		PushConstantRaster& pcRaster;
-
-		std::vector<std::unique_ptr<ShaderModule>>rasterShaderModules;
-		std::unique_ptr<PipelineLayout>       rasterPipelineLayout;
-
-	};
-
 	class SkyLightRenderPass :public GraphicsRenderPass
 	{
 	public:
@@ -73,14 +47,15 @@ namespace mini
 			const RenderPass& renderPass,
 			VkExtent2D extent,
 			std::shared_ptr<DescriptorSetLayout> descSetLayout,
-			PushConstantRaster& pcRaster
+			PushConstantRaster& pcRaster,
+			int subpassIndex = 0
 		);
 		~SkyLightRenderPass();
 
 		void update();
 		void draw(CommandBuffer& cmd, VkDescriptorSet descSet);
 
-		void rebuild(VkExtent2D surfaceExtent);
+		void rebuild(VkExtent2D surfaceExtent,int subpassIndex = 0);
 
 	private:
 		const RenderPass& renderPass;
@@ -94,4 +69,33 @@ namespace mini
 
 
 	};
+
+	class ForwardRenderPass :public GraphicsRenderPass
+	{
+	public:
+		ForwardRenderPass(Device& device, 
+						  ResourceManager& resourceManager,
+						  const RenderPass& renderPass,
+						  VkExtent2D extent,
+			              std::shared_ptr<DescriptorSetLayout> descSetLayout,
+						  PushConstantRaster& pcRaster,
+						  int subpassIndex = 1
+		);
+		~ForwardRenderPass();
+
+		void update();
+		void draw(CommandBuffer& cmd,VkDescriptorSet descSet);
+
+		void rebuild(VkExtent2D surfaceExtent, int subpassIndex = 1);
+	private:
+		const RenderPass& renderPass;
+
+		PushConstantRaster& pcRaster;
+
+		std::vector<std::unique_ptr<ShaderModule>>rasterShaderModules;
+		std::unique_ptr<PipelineLayout>       rasterPipelineLayout;
+
+	};
+
+
 }

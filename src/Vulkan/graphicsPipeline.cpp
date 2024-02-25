@@ -154,7 +154,7 @@ void GraphicsPipeline::build(const RenderPass& renderPass)
 	pipelineInfo.layout = pipelineLayout.getHandle();
 
 	pipelineInfo.renderPass = renderPass.getHandle();
-	pipelineInfo.subpass = 0;
+	pipelineInfo.subpass = subpassIndex;
 	
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 	pipelineInfo.basePipelineIndex = -1;

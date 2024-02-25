@@ -3,7 +3,7 @@
 
 namespace mini
 {
-RenderPass::RenderPass(Device& device, VkFormat swapchainFormat,VkImageLayout colorAttachmentFinalLayout,const SubpassInfo& subpasses)
+RenderPass::RenderPass(Device& device, VkFormat swapchainFormat,VkImageLayout colorAttachmentFinalLayout,const std::vector<SubpassInfo>& subpasses)
 	:device(device)
 {
 	VkAttachmentDescription colorAttachment{};
@@ -37,20 +37,55 @@ RenderPass::RenderPass(Device& device, VkFormat swapchainFormat,VkImageLayout co
 	depthAttachmentRef.attachment = 1;
 	depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
+	std::vector<VkSubpassDescription> subpassDescriptions;
 
-	VkSubpassDescription subpass{};
-	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-	subpass.colorAttachmentCount = 1;
-	subpass.pColorAttachments = &colorAttachmentRef;
-	subpass.pDepthStencilAttachment = &depthAttachmentRef;
+	for(int i=0; i <subpasses.size();i++)
+	{
+			VkSubpassDescription subpass{};
+			subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+			subpass.colorAttachmentCount = 1;
+			subpass.pColorAttachments = &colorAttachmentRef;
+			subpass.pDepthStencilAttachment = &depthAttachmentRef;
+			subpassDescriptions.push_back(subpass);
+	}
 
-	VkSubpassDependency dependency{};
-	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-	dependency.dstSubpass = 0;
-	dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT|VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-	dependency.srcAccessMask = 0;
-	dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT| VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-	dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT|VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+	if(subpasses.size() == 0)
+	{
+		VkSubpassDescription subpass{};
+		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		subpass.colorAttachmentCount = 1;
+		subpass.pColorAttachments = &colorAttachmentRef;
+		subpass.pDepthStencilAttachment = &depthAttachmentRef;
+		subpassDescriptions.push_back(subpass);
+
+	}
+
+	//VkSubpassDescription subpass{};
+	//subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	//subpass.colorAttachmentCount = 1;
+	//subpass.pColorAttachments = &colorAttachmentRef;
+	//subpass.pDepthStencilAttachment = &depthAttachmentRef;
+
+	//VkSubpassDependency dependency{};
+	//dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+	//dependency.dstSubpass = 0;
+	//dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT|VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+	//dependency.srcAccessMask = 0;
+	//dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT| VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+	//dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT|VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+	std::vector<VkSubpassDependency> dependencies;
+
+	for(const auto& subpass:subpasses)
+	{
+		for(int i = 0; i < subpass.dependencies.size(); i++)
+		{
+			dependencies.push_back(subpass.dependencies[i]);
+		}
+	
+	}
+
 
 	std::vector<VkAttachmentDescription> attachments = { colorAttachment ,depthAttachment };
 
@@ -60,10 +95,10 @@ RenderPass::RenderPass(Device& device, VkFormat swapchainFormat,VkImageLayout co
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 	renderPassInfo.attachmentCount = attachments.size();
 	renderPassInfo.pAttachments = attachments.data();
-	renderPassInfo.subpassCount = 1;
-	renderPassInfo.pSubpasses = &subpass;
-	renderPassInfo.dependencyCount = 1;
-	renderPassInfo.pDependencies = &dependency;
+	renderPassInfo.subpassCount = subpassDescriptions.size();
+	renderPassInfo.pSubpasses = subpassDescriptions.data();
+	renderPassInfo.dependencyCount = dependencies.size();
+	renderPassInfo.pDependencies = dependencies.data();
 
 	if (vkCreateRenderPass(device.getHandle(), &renderPassInfo, nullptr, &handle) != VK_SUCCESS) {
 		throw Error("Failed to create render pass");

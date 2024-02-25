@@ -14,11 +14,61 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 	PushConstantRaster& pcRaster)
 	: device(device), resourceManager(resourceManager),renderContext(renderContext),offscreenColorFormat(offscreenColorFormat),pcRaster(pcRaster)
 {
+
+
+	std::vector<SubpassInfo> subpassInfos;
+
+
+	{
+	
+		SubpassInfo subpassInfo = {};
+		subpassInfo.input.push_back(0);
+		subpassInfo.input.push_back(1);
+
+		VkSubpassDependency skyLightToForwardDependency = {};
+		skyLightToForwardDependency.srcSubpass = 0;
+		skyLightToForwardDependency.dstSubpass = 1;
+		skyLightToForwardDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT|VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		skyLightToForwardDependency.srcAccessMask = 0;
+		skyLightToForwardDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT| VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		skyLightToForwardDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT|VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+		subpassInfo.dependencies.push_back(skyLightToForwardDependency);
+
+		subpassInfos.push_back(subpassInfo);
+
+	}
+
+	{
+
+		SubpassInfo subpassInfo = {};
+		subpassInfo.input.push_back(0);
+		subpassInfo.input.push_back(1);
+
+		VkSubpassDependency forwardDependency = {};
+
+		forwardDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+		forwardDependency.dstSubpass = 1;
+		forwardDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT|VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		forwardDependency.srcAccessMask = 0;
+		forwardDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT| VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		forwardDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT|VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+
+		subpassInfo.dependencies.push_back(forwardDependency);
+
+		subpassInfos.push_back(subpassInfo);
+
+	}
+
+
+
+	 
 	createDescriptorSetLayout();
-	rasterRenderPass     = std::make_unique<RenderPass>(device,offscreenColorFormat,  VK_IMAGE_LAYOUT_GENERAL);
+	rasterRenderPass     = std::make_unique<RenderPass>(device,offscreenColorFormat,  VK_IMAGE_LAYOUT_GENERAL,subpassInfos);
 
 
-	surfaceExtent=renderContext.getSurfaceExtent();
+	surfaceExtent = renderContext.getSurfaceExtent();
 
 	forwardRenderPass = std::make_unique<ForwardRenderPass>(device,resourceManager,*rasterRenderPass,surfaceExtent,descSetLayout,pcRaster);
 
@@ -26,7 +76,7 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 
 	//createRasterPipeline();
 	createUniformBuffer();
-	createObjDescriptionBuffer();
+	createObjDescriptionBuffer();	
 	updateDescriptorSet();
 
 
@@ -47,7 +97,9 @@ void GraphicsPipelineBuilder::rebuild(VkExtent2D surfaceExtent)
 void GraphicsPipelineBuilder::draw(CommandBuffer& cmd)
 {
 
+	skyLightRenderPass->draw(cmd,descSet);
 
+	cmd.nextSubpass();
 
 	forwardRenderPass->draw(cmd,descSet);
 }
@@ -179,9 +231,12 @@ void GraphicsPipelineBuilder::updateUniformBuffer( CommandBuffer& cmd , Camera& 
 	auto& proj = glm::perspective(glm::radians(45.0f), (float)surfaceExtent.width / (float)surfaceExtent.height, 0.1f, 1000.0f);
 	proj[1][1] *= -1;
 
-	hostUBO.viewProj    = proj * view;
-	hostUBO.viewInverse = glm::inverse(view);
-	hostUBO.projInverse = glm::inverse(proj);
+	hostUBO.viewProj        = proj * view;
+	hostUBO.view            = view;
+	hostUBO.viewNoTranslate = glm::mat4(glm::mat3(view));
+	hostUBO.proj            = proj;
+	hostUBO.viewInverse     = glm::inverse(view);
+	hostUBO.projInverse     = glm::inverse(proj);
 
 	// UBO on the device, and what stages access it.
 	VkBuffer deviceUBO      = globalsBuffer->getHandle();

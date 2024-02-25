@@ -22,6 +22,8 @@ public:
 
 	void build(const RenderPass& renderPass);
 
+	void setSubpassIndex(int index){subpassIndex = index;}
+
 
 	VkPipelineLayout getPipelineLayout() const;
 
@@ -29,6 +31,7 @@ public:
 
 
 	std::vector<std::unique_ptr<ShaderModule>>& getShaderModules()const;
+
 
 
 	std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
@@ -63,6 +66,8 @@ private:
 
 	std::vector<std::unique_ptr<Buffer>>uniformBuffers;
 	std::vector<void*>uniformBuffersMapped;
+
+	int subpassIndex = 0;
 
 public:
 	std::vector<VkDynamicState> dynamicStates; 

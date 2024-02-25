@@ -120,7 +120,10 @@ void CommandBuffer::pushConstant(PushConstantRaster& pushConstant,VkShaderStageF
     vkCmdPushConstants(handle, pipelineLayout, stage, 0, sizeof(PushConstantRaster), &pushConstant);
 }
 
-
+void CommandBuffer::nextSubpass()
+{
+    vkCmdNextSubpass(handle, VK_SUBPASS_CONTENTS_INLINE);
+}
 
 
 void CommandBuffer::draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance)
