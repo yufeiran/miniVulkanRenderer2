@@ -101,3 +101,76 @@ void ForwardRenderPass::draw(CommandBuffer& cmd, VkDescriptorSet descSet)
 
 
 }
+
+void ForwardRenderPass::rebuild(VkExtent2D surfaceExtent)
+{
+	graphicsPipeline = std::make_unique<GraphicsPipeline>(rasterShaderModules,*rasterPipelineLayout,device,surfaceExtent);
+	extent = surfaceExtent;
+	graphicsPipeline->build(renderPass);
+}
+
+SkyLightRenderPass::SkyLightRenderPass(Device& device, ResourceManager& resourceManager, const RenderPass& renderPass, VkExtent2D extent, std::shared_ptr<DescriptorSetLayout> descSetLayout, PushConstantRaster& pcRaster)
+	:GraphicsRenderPass(device,resourceManager,extent),renderPass(renderPass),pcRaster(pcRaster),skyLightCube(device)
+{
+	skyLightShaderModules.push_back(std::make_unique<ShaderModule>("../../spv/skybox.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
+	skyLightShaderModules.push_back(std::make_unique<ShaderModule>("../../spv/skybox.frag.spv", device, VK_SHADER_STAGE_FRAGMENT_BIT));
+	
+	std::vector<VkPushConstantRange> pushConstants;
+	VkPushConstantRange pushConstant={};
+	pushConstant.offset = 0;
+	pushConstant.size = sizeof(PushConstantRaster);
+	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+	pushConstants.push_back(pushConstant);
+
+
+
+    std::vector<std::shared_ptr<DescriptorSetLayout>>  descSetLayouts;
+	descSetLayouts.push_back(descSetLayout);
+
+	skyLightPipelineLayout = std::make_unique<PipelineLayout>(device,descSetLayouts,pushConstants);
+
+
+	graphicsPipeline = std::make_unique<GraphicsPipeline>(skyLightShaderModules,*skyLightPipelineLayout,device,extent);
+
+	graphicsPipeline->build(renderPass);
+}
+
+SkyLightRenderPass::~SkyLightRenderPass()
+{
+}
+
+void SkyLightRenderPass::update()
+{
+
+}
+
+void SkyLightRenderPass::draw(CommandBuffer& cmd, VkDescriptorSet descSet)
+{
+	VkDeviceSize offset{0};
+
+	cmd.setViewPortAndScissor(extent);
+
+	auto& rasterPipeline = graphicsPipeline;
+
+	cmd.bindPipeline(*rasterPipeline);
+
+	
+	cmd.bindDescriptorSet(descSet);
+
+	cmd.pushConstant(pcRaster,static_cast<VkShaderStageFlagBits>( VK_SHADER_STAGE_VERTEX_BIT|VK_SHADER_STAGE_FRAGMENT_BIT));
+		
+		
+	cmd.bindVertexBuffer(skyLightCube.getVertexBuffer());
+	//cmd.bindIndexBuffer(*model->indexBuffer);
+
+	cmd.draw(skyLightCube.getVertexCount(),1,0,0);
+
+
+}
+
+void SkyLightRenderPass::rebuild(VkExtent2D surfaceExtent)
+{
+	graphicsPipeline = std::make_unique<GraphicsPipeline>(skyLightShaderModules,*skyLightPipelineLayout,device,surfaceExtent);
+	extent = surfaceExtent;
+	graphicsPipeline->build(renderPass);
+}

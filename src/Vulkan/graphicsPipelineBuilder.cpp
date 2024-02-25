@@ -21,6 +21,9 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 	surfaceExtent=renderContext.getSurfaceExtent();
 
 	forwardRenderPass = std::make_unique<ForwardRenderPass>(device,resourceManager,*rasterRenderPass,surfaceExtent,descSetLayout,pcRaster);
+
+	skyLightRenderPass = std::make_unique<SkyLightRenderPass>(device,resourceManager,*rasterRenderPass,surfaceExtent,descSetLayout,pcRaster);
+
 	//createRasterPipeline();
 	createUniformBuffer();
 	createObjDescriptionBuffer();
@@ -34,8 +37,18 @@ GraphicsPipelineBuilder::~GraphicsPipelineBuilder()
 
 }
 
+void GraphicsPipelineBuilder::rebuild(VkExtent2D surfaceExtent)
+{
+	this->surfaceExtent = surfaceExtent;
+	forwardRenderPass->rebuild(surfaceExtent);
+	skyLightRenderPass->rebuild(surfaceExtent);
+}
+
 void GraphicsPipelineBuilder::draw(CommandBuffer& cmd)
 {
+
+
+
 	forwardRenderPass->draw(cmd,descSet);
 }
 

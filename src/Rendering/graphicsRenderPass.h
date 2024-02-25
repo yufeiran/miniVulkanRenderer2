@@ -7,6 +7,7 @@
 #include "Vulkan/renderPass.h"
 #include "Vulkan/graphicsPipeline.h"
 #include "ResourceManagement/ResourceManager.h"
+#include "Rendering/skyLightCube.h"
 
 namespace mini
 {
@@ -52,6 +53,8 @@ namespace mini
 
 		void update();
 		void draw(CommandBuffer& cmd,VkDescriptorSet descSet);
+
+		void rebuild(VkExtent2D surfaceExtent);
 	private:
 		const RenderPass& renderPass;
 
@@ -59,6 +62,36 @@ namespace mini
 
 		std::vector<std::unique_ptr<ShaderModule>>rasterShaderModules;
 		std::unique_ptr<PipelineLayout>       rasterPipelineLayout;
+
+	};
+
+	class SkyLightRenderPass :public GraphicsRenderPass
+	{
+	public:
+		SkyLightRenderPass(Device& device,
+			ResourceManager& resourceManager,
+			const RenderPass& renderPass,
+			VkExtent2D extent,
+			std::shared_ptr<DescriptorSetLayout> descSetLayout,
+			PushConstantRaster& pcRaster
+		);
+		~SkyLightRenderPass();
+
+		void update();
+		void draw(CommandBuffer& cmd, VkDescriptorSet descSet);
+
+		void rebuild(VkExtent2D surfaceExtent);
+
+	private:
+		const RenderPass& renderPass;
+
+		PushConstantRaster& pcRaster;
+
+		SkyLightCube skyLightCube;
+
+		std::vector<std::unique_ptr<ShaderModule>>skyLightShaderModules;
+		std::unique_ptr<PipelineLayout>       skyLightPipelineLayout;
+
 
 	};
 }

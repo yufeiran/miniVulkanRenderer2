@@ -247,7 +247,7 @@ private:
 	VkDescriptorSet                                    postDescriptorSet;
 	std::unique_ptr<PipelineLayout>                    postPipelineLayout;
 	std::unique_ptr<RenderPass>                        postRenderPass;
-	std::unique_ptr<GraphicsPipeline>                   postPipeline;
+	std::unique_ptr<GraphicsPipeline>                  postPipeline;
 	std::unique_ptr<PostQuad>                          postQuad;
 	std::unique_ptr<Sampler>                           postRenderImageSampler;
 

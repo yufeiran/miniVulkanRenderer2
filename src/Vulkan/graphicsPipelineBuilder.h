@@ -19,6 +19,8 @@ namespace mini
 			PushConstantRaster& pcRaster);
 		~GraphicsPipelineBuilder();
 
+		void rebuild(VkExtent2D surfaceExtent);
+
 
 		void draw(CommandBuffer& cmd);
 		void update(CommandBuffer& cmd,Camera& camera, VkExtent2D surfaceExtent);
@@ -59,6 +61,7 @@ namespace mini
 		//std::unique_ptr<GraphicsPipeline>      rasterPipeline;
 
 		std::unique_ptr<ForwardRenderPass>    forwardRenderPass;
+		std::unique_ptr<SkyLightRenderPass>   skyLightRenderPass;
 
 
 		Device &device;

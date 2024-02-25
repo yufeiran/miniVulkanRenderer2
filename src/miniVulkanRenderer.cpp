@@ -1385,6 +1385,8 @@ void MiniVulkanRenderer::handleSizeChange()
 	updateRtDescriptorSet();
 	updatePostDescriptorSet();
 
+	graphicsPipelineBuilder->rebuild(extent);
+
 
 
 	//rasterPipeline.reset();

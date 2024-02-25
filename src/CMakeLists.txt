@@ -103,6 +103,8 @@ set(RENDERING_FILES
     ./Rendering/postQuad.cpp
     ./Rendering/graphicsRenderPass.h 
     ./Rendering/graphicsRenderPass.cpp
+    ./Rendering/skyLightCube.h 
+    ./Rendering/skyLightCube.cpp
 
 )
 
