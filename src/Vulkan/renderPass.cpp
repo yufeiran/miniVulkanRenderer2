@@ -3,39 +3,83 @@
 
 namespace mini
 {
-RenderPass::RenderPass(Device& device, VkFormat swapchainFormat,VkImageLayout colorAttachmentFinalLayout,const std::vector<SubpassInfo>& subpasses)
+
+RenderPass::RenderPass(Device& device, const std::vector<Attachment>& attachments, const std::vector<LoadStoreInfo>& loadStoreInfos, const std::vector<SubpassInfo>& subpasses)
 	:device(device)
 {
-	VkAttachmentDescription colorAttachment{};
-	colorAttachment.format = swapchainFormat;
-	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+	//VkAttachmentDescription colorAttachment{};
+	//colorAttachment.format = swapchainFormat;
+	//colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 
-	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	//colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	//colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 
-	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	//colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	//colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 
-	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	colorAttachment.finalLayout = colorAttachmentFinalLayout;
+	//colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	//colorAttachment.finalLayout = colorAttachmentFinalLayout;
 
-	VkAttachmentReference colorAttachmentRef{};
-	colorAttachmentRef.attachment = 0;
-	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	//VkAttachmentReference colorAttachmentRef{};
+	//colorAttachmentRef.attachment = 0;
+	//colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-	VkAttachmentDescription depthAttachment{};
-	depthAttachment.format = device.getPhysicalDevice().findDepthFormat();
-	depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+	//VkAttachmentDescription depthAttachment{};
+	//depthAttachment.format = device.getPhysicalDevice().findDepthFormat();
+	//depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+	//depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	//depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	//depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	//depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	//depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	//depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-	VkAttachmentReference depthAttachmentRef{};
-	depthAttachmentRef.attachment = 1;
-	depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+	//VkAttachmentReference depthAttachmentRef{};
+	//depthAttachmentRef.attachment = 1;
+	//depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+	std::vector<VkAttachmentDescription> attachmentDescs{attachments.size()};
+
+	for(size_t i =0; i< attachments.size(); i++)
+	{
+		attachmentDescs[i].format = attachments[i].format;
+		attachmentDescs[i].samples = attachments[i].samples;
+
+		attachmentDescs[i].loadOp = loadStoreInfos[i].loadOp;
+		attachmentDescs[i].storeOp = loadStoreInfos[i].storeOp;
+
+		attachmentDescs[i].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		attachmentDescs[i].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
+		attachmentDescs[i].initialLayout = attachments[i].initialLayout;
+		attachmentDescs[i].finalLayout = attachments[i].finalLayout == VK_IMAGE_LAYOUT_UNDEFINED?
+			isDepthStencilFormat(attachments[i].format)?
+			VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+		attachments[i].finalLayout;
+	}
+
+	std::vector<VkAttachmentReference> refs;
+
+
+	for(size_t i = 0; i < attachmentDescs.size(); i++)
+	{
+		VkAttachmentReference ref;
+
+		ref.attachment = i;
+
+		if(isDepthStencilFormat(attachmentDescs[i].format))
+		{
+			ref.layout = attachmentDescs[i].initialLayout == VK_IMAGE_LAYOUT_UNDEFINED ?
+								VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:attachmentDescs[i].initialLayout;
+		}
+		else
+		{
+			ref.layout = attachmentDescs[i].initialLayout == VK_IMAGE_LAYOUT_UNDEFINED ?
+								VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:attachmentDescs[i].initialLayout;
+		}
+		refs.push_back(ref);
+	}
+
 
 	std::vector<VkSubpassDescription> subpassDescriptions;
 
@@ -44,6 +88,13 @@ RenderPass::RenderPass(Device& device, VkFormat swapchainFormat,VkImageLayout co
 			VkSubpassDescription subpass{};
 			subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 			subpass.colorAttachmentCount = 1;
+
+			int colorIndex = subpasses[i].output[0];
+			VkAttachmentReference& colorAttachmentRef = refs[colorIndex];
+
+			int depthIndex = subpasses[i].output[1];
+			VkAttachmentReference& depthAttachmentRef = refs[depthIndex];
+
 			subpass.pColorAttachments = &colorAttachmentRef;
 			subpass.pDepthStencilAttachment = &depthAttachmentRef;
 			subpassDescriptions.push_back(subpass);
@@ -55,25 +106,12 @@ RenderPass::RenderPass(Device& device, VkFormat swapchainFormat,VkImageLayout co
 		VkSubpassDescription subpass{};
 		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 		subpass.colorAttachmentCount = 1;
-		subpass.pColorAttachments = &colorAttachmentRef;
-		subpass.pDepthStencilAttachment = &depthAttachmentRef;
+		subpass.pColorAttachments = &refs[0];
+		subpass.pDepthStencilAttachment = &refs[1];
 		subpassDescriptions.push_back(subpass);
 
 	}
 
-	//VkSubpassDescription subpass{};
-	//subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-	//subpass.colorAttachmentCount = 1;
-	//subpass.pColorAttachments = &colorAttachmentRef;
-	//subpass.pDepthStencilAttachment = &depthAttachmentRef;
-
-	//VkSubpassDependency dependency{};
-	//dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-	//dependency.dstSubpass = 0;
-	//dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT|VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-	//dependency.srcAccessMask = 0;
-	//dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT| VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-	//dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT|VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
 	std::vector<VkSubpassDependency> dependencies;
 
@@ -87,14 +125,12 @@ RenderPass::RenderPass(Device& device, VkFormat swapchainFormat,VkImageLayout co
 	}
 
 
-	std::vector<VkAttachmentDescription> attachments = { colorAttachment ,depthAttachment };
-
 
 
 	VkRenderPassCreateInfo renderPassInfo{};
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	renderPassInfo.attachmentCount = attachments.size();
-	renderPassInfo.pAttachments = attachments.data();
+	renderPassInfo.attachmentCount = attachmentDescs.size();
+	renderPassInfo.pAttachments = attachmentDescs.data();
 	renderPassInfo.subpassCount = subpassDescriptions.size();
 	renderPassInfo.pSubpasses = subpassDescriptions.data();
 	renderPassInfo.dependencyCount = dependencies.size();
@@ -105,6 +141,7 @@ RenderPass::RenderPass(Device& device, VkFormat swapchainFormat,VkImageLayout co
 	}
 
 }
+
 RenderPass::~RenderPass()
 {
 	if (handle != VK_NULL_HANDLE)

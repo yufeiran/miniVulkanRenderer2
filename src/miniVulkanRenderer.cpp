@@ -1416,6 +1416,15 @@ void MiniVulkanRenderer::createOffScreenFrameBuffer()
 	auto& rasterRenderPass = graphicsPipelineBuilder->getRasterRenderPass();
 	offscreenFramebuffer=std::make_unique<FrameBuffer>(*device,*offscreenRenderTarget,rasterRenderPass);
 
+	 auto depthFormat = device->getPhysicalDevice().findDepthFormat();
+    std::unique_ptr<Image> depthImage = std::make_unique<Image>(*device,
+            	surfaceExtent, depthFormat, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+
+	//shadowMapRenderTarget=RenderTarget::DEFAULT_CREATE_FUNC(std::move(*depthImage));
+	//auto& rasterRenderPass = graphicsPipelineBuilder->getRasterRenderPass();
+	//shadowMapFramebuffer=std::make_unique<FrameBuffer>(*device,*shadowMapRenderTarget,rasterRenderPass);
+
+
 }
 
 
@@ -1464,7 +1473,37 @@ void MiniVulkanRenderer::initPostRender()
 
 	postPipelineLayout = std::make_unique<PipelineLayout>(*device,postDescriptorSetLayouts,pushConstants);
 
-	postRenderPass = std::make_unique<RenderPass>(*device,defaultSurfaceColorFormat);
+	std::vector<Attachment> attachments;
+	{
+		Attachment colorAttachment{defaultSurfaceColorFormat,VK_SAMPLE_COUNT_1_BIT,VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT};
+		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		colorAttachment.finalLayout   = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+		attachments.push_back(colorAttachment);
+
+		Attachment depthAttachment{device->getPhysicalDevice().findDepthFormat(),VK_SAMPLE_COUNT_1_BIT,VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT};
+		depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		depthAttachment.finalLayout   = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+		attachments.push_back(depthAttachment);
+	}
+
+	std::vector<LoadStoreInfo> loadStoreInfos;
+	{
+		LoadStoreInfo colorLoadStoreInfo{};
+		colorLoadStoreInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		colorLoadStoreInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	
+		loadStoreInfos.push_back(colorLoadStoreInfo);
+	
+		LoadStoreInfo depthLoadStoreInfo{};
+		depthLoadStoreInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		depthLoadStoreInfo.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	
+		loadStoreInfos.push_back(depthLoadStoreInfo);
+	}
+
+	postRenderPass = std::make_unique<RenderPass>(*device,attachments,loadStoreInfos);
 
 	
 	surfaceExtent=renderContext->getSurfaceExtent();

@@ -35,6 +35,14 @@ const RenderTarget::CreateFunc RenderTarget::DEFAULT_CREATE_FUNC = [](Image&& im
     return std::make_unique<RenderTarget>(std::move(images));
 };
 
+const RenderTarget::CreateFunc RenderTarget::NO_DEPTH_CREATE_FUNC = [](Image&& image)->std::unique_ptr<RenderTarget> {
+    	std::vector<Image> images;
+
+        images.push_back(std::move(image));
+    
+    	return std::make_unique<RenderTarget>(std::move(images));
+};
+
 RenderTarget::RenderTarget(std::vector<Image>&& images):
     device(images.back().getDevice()),
     images{std::move(images)}

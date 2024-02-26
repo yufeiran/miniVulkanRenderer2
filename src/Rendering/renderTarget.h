@@ -23,6 +23,8 @@ struct Attachment
 
 	VkImageLayout initialLayout{ VK_IMAGE_LAYOUT_UNDEFINED };
 
+	VkImageLayout finalLayout{ VK_IMAGE_LAYOUT_UNDEFINED };
+
 	Attachment() = default;
 
 	Attachment(VkFormat format, VkSampleCountFlagBits samples, VkImageUsageFlags usage);
@@ -45,6 +47,8 @@ public:
 using CreateFunc = std::function <std::unique_ptr<RenderTarget>(Image&&)>;
 
 static const CreateFunc DEFAULT_CREATE_FUNC;
+
+static const CreateFunc NO_DEPTH_CREATE_FUNC;
 
 RenderTarget(std::vector<Image>&& images);
 

@@ -83,6 +83,7 @@ public:
 
 	void createOffScreenFrameBuffer();
 
+
 	void initRayTracingRender();
 
 
@@ -206,6 +207,10 @@ private:
 	// offscreen render data
 	std::unique_ptr<RenderTarget> offscreenRenderTarget;
 	std::unique_ptr<FrameBuffer> offscreenFramebuffer;
+
+	// shadowmap render data
+	std::unique_ptr<RenderTarget> shadowMapRenderTarget;
+	std::unique_ptr<FrameBuffer>  shadowMapFramebuffer;
 
 
 

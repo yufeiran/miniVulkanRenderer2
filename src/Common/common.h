@@ -71,4 +71,25 @@ constexpr integral align_up(integral x,size_t a) noexcept
 	return integral((x + (integral(a) - 1)) & ~integral(a - 1));
 }
 
+inline bool isDepthOnlyFormat(VkFormat format) {
+	switch (format) {
+		case VK_FORMAT_D16_UNORM:
+		case VK_FORMAT_D32_SFLOAT:
+			return true;
+		default:
+			return false;
+		}
+}
+
+inline bool isDepthStencilFormat(VkFormat format) {
+	switch (format) {
+			case VK_FORMAT_D16_UNORM_S8_UINT:
+			case VK_FORMAT_D24_UNORM_S8_UINT:
+			case VK_FORMAT_D32_SFLOAT_S8_UINT:
+				return true;
+			default:
+				return isDepthOnlyFormat(format);
+			}
+}
+
 } // namespace mini

@@ -22,8 +22,8 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 	{
 	
 		SubpassInfo subpassInfo = {};
-		subpassInfo.input.push_back(0);
-		subpassInfo.input.push_back(1);
+		subpassInfo.output.push_back(0);
+		subpassInfo.output.push_back(1);
 
 		VkSubpassDependency skyLightToForwardDependency = {};
 		skyLightToForwardDependency.srcSubpass = 0;
@@ -42,8 +42,8 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 	{
 
 		SubpassInfo subpassInfo = {};
-		subpassInfo.input.push_back(0);
-		subpassInfo.input.push_back(1);
+		subpassInfo.output.push_back(0);
+		subpassInfo.output.push_back(1);
 
 		VkSubpassDependency forwardDependency = {};
 
@@ -65,7 +65,71 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 
 	 
 	createDescriptorSetLayout();
-	rasterRenderPass     = std::make_unique<RenderPass>(device,offscreenColorFormat,  VK_IMAGE_LAYOUT_GENERAL,subpassInfos);
+
+	VkAttachmentDescription colorAttachment{};
+	colorAttachment.format = offscreenColorFormat;
+	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+
+	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
+	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
+
+	VkAttachmentReference colorAttachmentRef{};
+	colorAttachmentRef.attachment = 0;
+	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	VkAttachmentDescription depthAttachment{};
+	depthAttachment.format = device.getPhysicalDevice().findDepthFormat();
+	depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+	VkAttachmentReference depthAttachmentRef{};
+	depthAttachmentRef.attachment = 1;
+	depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+	std::vector<Attachment> attachments;
+	{
+		Attachment colorAttachment{offscreenColorFormat,VK_SAMPLE_COUNT_1_BIT,VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT};
+		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		colorAttachment.finalLayout   = VK_IMAGE_LAYOUT_GENERAL;
+
+		attachments.push_back(colorAttachment);
+
+		Attachment depthAttachment{device.getPhysicalDevice().findDepthFormat(),VK_SAMPLE_COUNT_1_BIT,VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT};
+		depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		depthAttachment.finalLayout   = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+		attachments.push_back(depthAttachment);
+	}
+
+	std::vector<LoadStoreInfo> loadStoreInfos;
+	{
+		LoadStoreInfo colorLoadStoreInfo{};
+		colorLoadStoreInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		colorLoadStoreInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	
+		loadStoreInfos.push_back(colorLoadStoreInfo);
+	
+		LoadStoreInfo depthLoadStoreInfo{};
+		depthLoadStoreInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		depthLoadStoreInfo.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	
+		loadStoreInfos.push_back(depthLoadStoreInfo);
+	}
+
+
+
+	rasterRenderPass     = std::make_unique<RenderPass>(device,attachments,loadStoreInfos,subpassInfos);
 
 
 	surfaceExtent = renderContext.getSurfaceExtent();
