@@ -52,6 +52,8 @@ public:
 
 	int32_t getInstanceId(const std::string name);
 
+	Sampler& getDefaultSampler() { return *defaultSampler; }
+
 	const std::vector<std::unique_ptr<ObjModel>>&  getModels() const{return objModel;}
 	std::vector<ObjInstance>&     getInstances() {return instances;}
 

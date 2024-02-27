@@ -19,6 +19,7 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 	std::vector<SubpassInfo> subpassInfos;
 
 
+	// skylight pass
 	{
 	
 		SubpassInfo subpassInfo = {};
@@ -27,7 +28,7 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 
 		VkSubpassDependency skyLightToForwardDependency = {};
 		skyLightToForwardDependency.srcSubpass = 0;
-		skyLightToForwardDependency.dstSubpass = 1;
+		skyLightToForwardDependency.dstSubpass = 2;
 		skyLightToForwardDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT|VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 		skyLightToForwardDependency.srcAccessMask = 0;
 		skyLightToForwardDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT| VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
@@ -39,6 +40,29 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 
 	}
 
+		// shadow map pass
+	{
+		SubpassInfo subpassInfo = {};
+		subpassInfo.output.push_back(-1);
+		subpassInfo.output.push_back(2);
+
+		VkSubpassDependency shadowDependency = {};
+
+		shadowDependency.srcSubpass = 1;
+		shadowDependency.dstSubpass = 2;
+		shadowDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT|VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		shadowDependency.srcAccessMask = 0;
+		shadowDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT| VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		shadowDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT|VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+
+		subpassInfo.dependencies.push_back(shadowDependency);
+
+		subpassInfos.push_back(subpassInfo);
+	}
+
+
+	// forward render pass
 	{
 
 		SubpassInfo subpassInfo = {};
@@ -48,7 +72,7 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 		VkSubpassDependency forwardDependency = {};
 
 		forwardDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-		forwardDependency.dstSubpass = 1;
+		forwardDependency.dstSubpass = 2;
 		forwardDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT|VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 		forwardDependency.srcAccessMask = 0;
 		forwardDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT| VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
@@ -60,6 +84,7 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 		subpassInfos.push_back(subpassInfo);
 
 	}
+
 
 
 
@@ -110,6 +135,13 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 		depthAttachment.finalLayout   = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
 		attachments.push_back(depthAttachment);
+
+		depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		depthAttachment.finalLayout   = VK_IMAGE_LAYOUT_GENERAL;
+
+
+		// for shadow map
+		attachments.push_back(depthAttachment);
 	}
 
 	std::vector<LoadStoreInfo> loadStoreInfos;
@@ -125,23 +157,26 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 		depthLoadStoreInfo.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	
 		loadStoreInfos.push_back(depthLoadStoreInfo);
+
+		// for shadow map
+		loadStoreInfos.push_back(depthLoadStoreInfo);
 	}
 
 
 
 	rasterRenderPass     = std::make_unique<RenderPass>(device,attachments,loadStoreInfos,subpassInfos);
 
+	surfaceExtent        = renderContext.getSurfaceExtent();
 
-	surfaceExtent = renderContext.getSurfaceExtent();
+	forwardRenderPass    = std::make_unique<ForwardRenderPass>(device,resourceManager,*rasterRenderPass,surfaceExtent,descSetLayout,pcRaster,2);
 
-	forwardRenderPass = std::make_unique<ForwardRenderPass>(device,resourceManager,*rasterRenderPass,surfaceExtent,descSetLayout,pcRaster);
+	shadowMapRenderPass  = std::make_unique<ShadowMapRenderPass>(device,resourceManager,*rasterRenderPass,surfaceExtent,descSetLayout,pcRaster,1);
 
-	skyLightRenderPass = std::make_unique<SkyLightRenderPass>(device,resourceManager,*rasterRenderPass,surfaceExtent,descSetLayout,pcRaster);
+	skyLightRenderPass   = std::make_unique<SkyLightRenderPass>(device,resourceManager,*rasterRenderPass,surfaceExtent,descSetLayout,pcRaster,0);
 
 	//createRasterPipeline();
 	createUniformBuffer();
 	createObjDescriptionBuffer();	
-	updateDescriptorSet();
 
 
 }
@@ -154,14 +189,19 @@ GraphicsPipelineBuilder::~GraphicsPipelineBuilder()
 void GraphicsPipelineBuilder::rebuild(VkExtent2D surfaceExtent)
 {
 	this->surfaceExtent = surfaceExtent;
-	forwardRenderPass->rebuild(surfaceExtent);
-	skyLightRenderPass->rebuild(surfaceExtent);
+	forwardRenderPass->rebuild(surfaceExtent,2);
+	shadowMapRenderPass->rebuild(surfaceExtent,1);
+	skyLightRenderPass->rebuild(surfaceExtent,0);
 }
 
 void GraphicsPipelineBuilder::draw(CommandBuffer& cmd)
 {
 
 	skyLightRenderPass->draw(cmd,descSet);
+
+	cmd.nextSubpass();
+
+	shadowMapRenderPass->draw(cmd,descSet);
 
 	cmd.nextSubpass();
 
@@ -190,6 +230,8 @@ void GraphicsPipelineBuilder::createDescriptorSetLayout()
 	descSetBindings.addBinding(SceneBindings::eCubeMap,VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,1,
 											VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
 											| VK_SHADER_STAGE_MISS_BIT_KHR | VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
+
+	descSetBindings.addBinding(SceneBindings::eShadowMap, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
 
 	descSetLayout = descSetBindings.createLayout(device);
 	descPool      = descSetBindings.createPool(device,1);
@@ -258,7 +300,7 @@ void GraphicsPipelineBuilder::createObjDescriptionBuffer()
 }
 
 
-void GraphicsPipelineBuilder::updateDescriptorSet()
+void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& renderTarget)
 {
 	std::vector<VkWriteDescriptorSet> writes;
 
@@ -280,6 +322,13 @@ void GraphicsPipelineBuilder::updateDescriptorSet()
 	VkDescriptorImageInfo cubeMapInfo{resourceManager.cubeMapTexture.descriptor};
 	writes.emplace_back(descSetBindings.makeWrite(descSet,SceneBindings::eCubeMap,&cubeMapInfo));
 
+
+	VkDescriptorImageInfo shadowMapInfo;
+	shadowMapInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+	shadowMapInfo.imageView   = renderTarget.getImageViewByIndex(2).getHandle();
+	shadowMapInfo.sampler     = resourceManager.getDefaultSampler().getHandle();
+
+	writes.emplace_back(descSetBindings.makeWrite(descSet,SceneBindings::eShadowMap,&shadowMapInfo));
 
 
 	vkUpdateDescriptorSets(device.getHandle(),static_cast<uint32_t>(writes.size()),writes.data(),0,nullptr);

@@ -112,6 +112,8 @@ public:
 
 	void loop();
 
+	void updateLightSpaceMatrix();
+
 	void updateInstances();
 
 	
@@ -146,9 +148,10 @@ public:
 		glm::identity<mat4>(),                 // 
 		{10.f, 15.f, 8.f},   // light position
 		0,                   // instance id
-		0.5f,                // light intensity
+		5.5f,                // light intensity
 		0,                   // light type
-		0,                   // skyLightIntensity
+		10,                   // skyLightIntensity
+		{},                  // lightSpaceMatrix
 		0,                   // debugMode
 	};
 
@@ -168,6 +171,7 @@ public:
 
 	PushConstantPost pcPost{
 		1,   // exposure
+		0,   // debugShadowMap
 	};
 
 private:
@@ -215,10 +219,6 @@ private:
 
 
 	std::unique_ptr<GraphicsPipelineBuilder> graphicsPipelineBuilder;
-
-
-
-
 
 
 

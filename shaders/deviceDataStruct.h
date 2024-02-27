@@ -23,7 +23,8 @@ START_ENUM(SceneBindings)
 	eGlobals  = 0,
 	eObjDescs = 1,
 	eTextures = 2,
-	eCubeMap  = 3
+	eCubeMap  = 3,
+	eShadowMap = 4
 END_ENUM();
 
 START_ENUM(RtBindings)
@@ -85,6 +86,7 @@ struct PushConstantRaster
 	float lightIntensity;
 	int   lightType;
 	float skyLightIntensity;
+	mat4  lightSpaceMatrix;
 	int   debugMode;      // 0:no degbug 1:normal 
 };
 
@@ -106,6 +108,7 @@ struct PushConstantRay
 struct PushConstantPost
 {
 	float exposure;
+	int   debugShadowMap;
 };
 
 #define MATERIAL_METALLICROUGHNESS 0

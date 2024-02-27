@@ -50,4 +50,7 @@ void main(){
 
     gl_Position = uni.viewProj * vec4(outWorldPos,1.0);
 
+    
+    //gl_Position = pcRaster.lightSpaceMatrix * vec4(outWorldPos,1.0);
+
 }

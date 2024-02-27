@@ -22,6 +22,8 @@ layout(location = 0) out vec4 FragColor;
 
 layout(binding = 1) uniform sampler2D offscreenColor;
 
+layout(binding = 2) uniform sampler2D shadowmap;
+
 layout( push_constant ) uniform _PushConstantPost
 {
     PushConstantPost pcPost;
@@ -33,7 +35,12 @@ void main()
 {
     const float gamma = 2.2;
 
-    vec3 color = texture(offscreenColor,TexCoords).rgb;
+    vec3 color;
+    if(pcPost.debugShadowMap == 1)
+        color = texture(shadowmap,TexCoords).rgb;
+    else {
+        color = texture(offscreenColor,TexCoords).rgb;
+    }
 
     // exposure tone mapping
     vec3 mapped = vec3(1.0) - exp(-color * pcPost.exposure);

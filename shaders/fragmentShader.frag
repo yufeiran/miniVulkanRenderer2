@@ -21,6 +21,7 @@ layout(buffer_reference, scalar) buffer MatIndices { int i[]; };
 
 layout(binding = eObjDescs, scalar) buffer ObjDesc_ { ObjDesc i[]; } objDesc;
 layout(binding = eTextures) uniform sampler2D[] textureSamplers;
+layout(binding = eShadowMap) uniform sampler2D shadowmap;
 
 layout( push_constant ) uniform _PushConstantRaster
 {

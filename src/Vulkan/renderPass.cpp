@@ -87,16 +87,33 @@ RenderPass::RenderPass(Device& device, const std::vector<Attachment>& attachment
 	{
 			VkSubpassDescription subpass{};
 			subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-			subpass.colorAttachmentCount = 1;
+			
 
 			int colorIndex = subpasses[i].output[0];
-			VkAttachmentReference& colorAttachmentRef = refs[colorIndex];
+			if(colorIndex!=-1)
+			{
+				VkAttachmentReference& colorAttachmentRef = refs[colorIndex];
+				subpass.pColorAttachments = &colorAttachmentRef;
+				subpass.colorAttachmentCount = 1;
+
+			}
+			else 
+			{
+				subpass.pColorAttachments = nullptr;
+				subpass.colorAttachmentCount = 0;
+			}
+
 
 			int depthIndex = subpasses[i].output[1];
-			VkAttachmentReference& depthAttachmentRef = refs[depthIndex];
-
-			subpass.pColorAttachments = &colorAttachmentRef;
-			subpass.pDepthStencilAttachment = &depthAttachmentRef;
+			if(depthIndex!=-1)
+			{				
+				VkAttachmentReference& depthAttachmentRef = refs[depthIndex];
+				subpass.pDepthStencilAttachment = &depthAttachmentRef;
+			}
+			else 
+			{
+				subpass.pDepthStencilAttachment = nullptr;
+			}
 			subpassDescriptions.push_back(subpass);
 	}
 

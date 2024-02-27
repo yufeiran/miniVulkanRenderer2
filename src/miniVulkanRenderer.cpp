@@ -19,7 +19,7 @@ using namespace std::chrono;
 
 void MiniVulkanRenderer::load()
 {
-	int testCase = 2;
+	int testCase = 1;
 	switch(testCase)
 	{
 	case 0:
@@ -361,27 +361,24 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	LogSpace();
 
+	
+	
 
 	graphicsPipelineBuilder = std::make_unique<GraphicsPipelineBuilder>(*device,*resourceManager, *renderContext,offscreenColorFormat,pcRaster);
 
-
 	createOffScreenFrameBuffer();
 
+	graphicsPipelineBuilder->updateDescriptorSet(*offscreenRenderTarget);
 
 
 
 	initPostRender();
 
-	VkDescriptorSetLayoutBinding postSamplerLayoutBinding{};
-	postSamplerLayoutBinding.binding = 1;
-	postSamplerLayoutBinding.descriptorCount = 1;
-	postSamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	postSamplerLayoutBinding.pImmutableSamplers = nullptr;
-	postSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-	std::vector<VkDescriptorSetLayoutBinding>postLayoutBindings{postSamplerLayoutBinding};
 
-	postDescriptorSetLayouts.push_back(std::make_unique<DescriptorSetLayout>(*device,postLayoutBindings));
+
+
+	updatePostDescriptorSet();
 
 
 	std::vector<std::shared_ptr<DescriptorSetLayout>> layouts{graphicsPipelineBuilder->getDescriptorSetLayout()};
@@ -871,6 +868,9 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>&  clearValues)
 	if(ImGui::CollapsingHeader("Post",ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		ImGui::SliderFloat("exposure",&pcPost.exposure,0, 10);
+		static bool debugShadowMap = pcPost.debugShadowMap;
+		ImGui::Checkbox("debugShadowMap",&debugShadowMap);
+		pcPost.debugShadowMap = debugShadowMap;
 	}
 
 	
@@ -884,10 +884,11 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>&  clearValues)
 
 void MiniVulkanRenderer::loop()
 {
-	std::vector<VkClearValue> clearValues(2);
+	std::vector<VkClearValue> clearValues(3);
 	VkClearColorValue defaultClearColor = {106.0f/256,131.0f/256,114.0f/256,1.0f};
 	clearValues[0].color = defaultClearColor;
 	clearValues[1].depthStencil = { 1.0f,0 };
+	clearValues[2].depthStencil = { 1.0f,0 };
 
 
 
@@ -895,7 +896,7 @@ void MiniVulkanRenderer::loop()
 		calFps();
 		processIO();
 
-
+		updateLightSpaceMatrix();
 		updateInstances();
 
 		auto result= renderContext->beginFrame();
@@ -983,6 +984,24 @@ void MiniVulkanRenderer::loop()
 
 	}
 	device->waitIdle();
+}
+
+void MiniVulkanRenderer::updateLightSpaceMatrix()
+{
+	float near_plane = 0.1f, far_plane = 30.5f;
+	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+
+	
+	glm::mat4 lightView = glm::lookAt(pcRaster.lightPosition,
+									  glm::vec3( 0.0f, 0.0f,  0.0f), 
+									  glm::vec3( 0.0f, 1.0f,  0.0f));  
+
+	//lightView = camera.getViewMat();
+
+	glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+	pcRaster.lightSpaceMatrix = lightSpaceMatrix;
+
 }
 
 auto start = std::chrono::system_clock::now();
@@ -1411,14 +1430,32 @@ Camera& MiniVulkanRenderer::getCamera()
 void MiniVulkanRenderer::createOffScreenFrameBuffer()
 {
 	surfaceExtent = window->getExtent();
+
+	std::vector<Image> images;
+
 	auto imageColor = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT);
-	offscreenRenderTarget=RenderTarget::DEFAULT_CREATE_FUNC(std::move(imageColor));
+	
+
+	auto depthFormat = imageColor.getDevice().getPhysicalDevice().findDepthFormat();
+    std::unique_ptr<Image> depthImage = std::make_unique<Image>(imageColor.getDevice(),
+        imageColor.getExtent(), depthFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+
+	std::unique_ptr<Image> shadowDepthImage = std::make_unique<Image>(imageColor.getDevice(),
+    imageColor.getExtent(), depthFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT|VK_IMAGE_USAGE_SAMPLED_BIT);
+
+    images.push_back(std::move(imageColor));
+    images.push_back(std::move(*depthImage));
+	images.push_back(std::move(*shadowDepthImage));
+
+
+	
+	offscreenRenderTarget = std::make_unique<RenderTarget>(std::move(images));
 	auto& rasterRenderPass = graphicsPipelineBuilder->getRasterRenderPass();
 	offscreenFramebuffer=std::make_unique<FrameBuffer>(*device,*offscreenRenderTarget,rasterRenderPass);
 
-	 auto depthFormat = device->getPhysicalDevice().findDepthFormat();
-    std::unique_ptr<Image> depthImage = std::make_unique<Image>(*device,
-            	surfaceExtent, depthFormat, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+	 //auto depthFormat = device->getPhysicalDevice().findDepthFormat();
+  //  std::unique_ptr<Image> depthImage = std::make_unique<Image>(*device,
+  //          	surfaceExtent, depthFormat, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
 
 	//shadowMapRenderTarget=RenderTarget::DEFAULT_CREATE_FUNC(std::move(*depthImage));
 	//auto& rasterRenderPass = graphicsPipelineBuilder->getRasterRenderPass();
@@ -1468,6 +1505,9 @@ void MiniVulkanRenderer::initPostRender()
 	pushConstants.push_back(pushConstant);
 
 	postDescSetBind.addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
+	postDescSetBind.addBinding(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
+
+
 
 	postDescriptorSetLayouts.push_back(std::move(postDescSetBind.createLayout(*device)));
 
@@ -1536,17 +1576,49 @@ void MiniVulkanRenderer::initPostRender()
 
 	postDescriptorSet =postDescriptorPool->allocate(*postDescriptorSetLayouts[0], bufferInfos, imageInfos).getHandle();
 
+	VkDescriptorSetLayoutBinding postSamplerLayoutBinding{};
+	postSamplerLayoutBinding.binding = 1;
+	postSamplerLayoutBinding.descriptorCount = 1;
+	postSamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	postSamplerLayoutBinding.pImmutableSamplers = nullptr;
+	postSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+	VkDescriptorSetLayoutBinding postSamplerShadowMapLayoutBinding{};
+	postSamplerLayoutBinding.binding = 2;
+	postSamplerLayoutBinding.descriptorCount = 1;
+	postSamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	postSamplerLayoutBinding.pImmutableSamplers = nullptr;
+	postSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+	std::vector<VkDescriptorSetLayoutBinding>postLayoutBindings{postSamplerLayoutBinding,postSamplerShadowMapLayoutBinding};
+
+	postDescriptorSetLayouts.push_back(std::make_unique<DescriptorSetLayout>(*device,postLayoutBindings));
+
 }
 
 void MiniVulkanRenderer::updatePostDescriptorSet()
 {
 	const auto &offscreenColorImageView=offscreenRenderTarget->getImageViewByIndex(0);
+
+	std::vector<VkWriteDescriptorSet> writes;
+
+
 	VkDescriptorImageInfo imageInfo{};
 	imageInfo.imageLayout =    VK_IMAGE_LAYOUT_GENERAL;
 	imageInfo.imageView=offscreenColorImageView.getHandle();
 	imageInfo.sampler = postRenderImageSampler->getHandle();
 	VkWriteDescriptorSet writeDescriptorSets = postDescSetBind.makeWrite(postDescriptorSet, 1, &imageInfo);
-	vkUpdateDescriptorSets(device->getHandle(), 1, &writeDescriptorSets, 0, nullptr);
+
+	writes.push_back(writeDescriptorSets);
+
+	VkDescriptorImageInfo shadowMapInfo;
+	shadowMapInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+	shadowMapInfo.imageView   = offscreenRenderTarget->getImageViewByIndex(2).getHandle();
+	shadowMapInfo.sampler     = resourceManager->getDefaultSampler().getHandle();
+
+	writes.push_back(postDescSetBind.makeWrite(postDescriptorSet,2,&shadowMapInfo));
+
+	vkUpdateDescriptorSets(device->getHandle(), writes.size(), writes.data(), 0, nullptr);
 
 }
 
@@ -1612,9 +1684,11 @@ void MiniVulkanRenderer::calFps()
 	last = now;
 
 	frameCount++;
-		lastFrameCount++;
+	lastFrameCount++;
 
-	std::string title = "miniVulkanRenderer2 avg fps:";
+	VkExtent2D extent = window->getExtent();
+
+	std::string title = "miniVulkanRenderer2 " + std::to_string(extent.width) + "x" + std::to_string(extent.height) +" avg fps:";
 
 
 	lastTime += frameTime;

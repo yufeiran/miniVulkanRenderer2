@@ -70,6 +70,32 @@ namespace mini
 
 	};
 
+	class ShadowMapRenderPass :public GraphicsRenderPass
+	{
+	public:
+		ShadowMapRenderPass(Device& device,
+						ResourceManager& resourceManager,
+						const RenderPass& renderPass,
+						VkExtent2D extent,
+						std::shared_ptr<DescriptorSetLayout> descSetLayout,
+						PushConstantRaster& pcRaster,
+						int subpassIndex = 1
+		);
+		~ShadowMapRenderPass();
+
+		void update();
+		void draw(CommandBuffer& cmd, VkDescriptorSet descSet);
+
+		void rebuild(VkExtent2D surfaceExtent, int subpassIndex = 1);
+	private:
+		const RenderPass& renderPass;
+
+		PushConstantRaster& pcRaster;
+
+		std::vector<std::unique_ptr<ShaderModule>> shaderModules;
+		std::unique_ptr<PipelineLayout>            pipelineLayout;
+	};
+
 	class ForwardRenderPass :public GraphicsRenderPass
 	{
 	public:
@@ -79,14 +105,14 @@ namespace mini
 						  VkExtent2D extent,
 			              std::shared_ptr<DescriptorSetLayout> descSetLayout,
 						  PushConstantRaster& pcRaster,
-						  int subpassIndex = 1
+						  int subpassIndex = 2
 		);
 		~ForwardRenderPass();
 
 		void update();
 		void draw(CommandBuffer& cmd,VkDescriptorSet descSet);
 
-		void rebuild(VkExtent2D surfaceExtent, int subpassIndex = 1);
+		void rebuild(VkExtent2D surfaceExtent, int subpassIndex = 2);
 	private:
 		const RenderPass& renderPass;
 

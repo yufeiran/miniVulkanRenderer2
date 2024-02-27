@@ -15,9 +15,10 @@ namespace mini
 	class GraphicsPipelineBuilder
 	{
 	public:
-		GraphicsPipelineBuilder(Device& device, ResourceManager& resourceManager, RenderContext& renderContext, VkFormat offscreenColorFormat,
+		GraphicsPipelineBuilder(Device& device, ResourceManager& resourceManager, RenderContext& renderContext,VkFormat offscreenColorFormat,
 			PushConstantRaster& pcRaster);
 		~GraphicsPipelineBuilder();
+
 
 		void rebuild(VkExtent2D surfaceExtent);
 
@@ -27,7 +28,7 @@ namespace mini
 		
 		void updateUniformBuffer(CommandBuffer& cmd, Camera& camera, VkExtent2D surfaceExtent);
 
-
+		void updateDescriptorSet(RenderTarget& renderTarget);
 
 		std::shared_ptr<DescriptorSetLayout> getDescriptorSetLayout() const { return descSetLayout; }
 		std::unique_ptr<DescriptorPool>&     getDescriptorPool()            { return descPool; }
@@ -38,7 +39,7 @@ namespace mini
 
 	private:
 
-		void updateDescriptorSet();
+		
 
 		void createDescriptorSetLayout();
 		//void createRasterPipeline();
@@ -62,6 +63,7 @@ namespace mini
 
 		std::unique_ptr<ForwardRenderPass>    forwardRenderPass;
 		std::unique_ptr<SkyLightRenderPass>   skyLightRenderPass;
+		std::unique_ptr<ShadowMapRenderPass>     shadowMapRenderPass;
 
 
 		Device &device;

@@ -23,7 +23,7 @@ ImageView::ImageView(Image& image ,VkFormat format, VkImageViewType viewType)
 	createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
 	createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
 
-	if (format == VK_FORMAT_D32_SFLOAT|| format == VK_FORMAT_D32_SFLOAT_S8_UINT||format==VK_FORMAT_D24_UNORM_S8_UINT) {
+	if (format == VK_FORMAT_D32_SFLOAT|| format == VK_FORMAT_D32_SFLOAT_S8_UINT||format==VK_FORMAT_D24_UNORM_S8_UINT || format == VK_FORMAT_D16_UNORM ) {
 		createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
 
 	}

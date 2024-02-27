@@ -62,6 +62,7 @@ const Image& getImageByIndex(int i) const;
 
 const ImageView& getImageViewByIndex(int i)const;
 
+
 private:
 
 Device& device;
@@ -73,6 +74,8 @@ std::vector<Image>images;
 std::vector<ImageView>views;
 
 std::vector<Attachment> attachments;
+
+std::vector<VkDescriptorImageInfo> descriptorImageInfos;
 
 
 

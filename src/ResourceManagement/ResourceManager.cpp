@@ -1,3 +1,6 @@
+
+#include <omp.h>
+
 #include "ResourceManagement/ResourceManager.h"
 #include "Vulkan/device.h"
 #include "Vulkan/physicalDevice.h"
@@ -253,9 +256,10 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 	std::map<int,int> gltfToGobalMeshMap;
 	// for every mesh 
 	int primMeshesIndex = 0;
+
 	for(auto& m : gltfLoader.primMeshes)
 	{
-		LogProgressBar("Loading " ,(double) (primMeshesIndex+1) /(double) gltfLoader.primMeshes.size() );
+		LogProgressBar("Processing mesh" ,(double) (primMeshesIndex+1) /(double) gltfLoader.primMeshes.size() );
 		std::unique_ptr<ObjModel> model = std::make_unique<ObjModel>();
 
 		model->nbIndices  = m.indexCount;

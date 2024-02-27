@@ -104,6 +104,8 @@ RenderTarget::RenderTarget(std::vector<ImageView>&& imageViews)
         attachments.emplace_back(Attachment{ image.getFormat(),image.getSampleCount(),image.getUsage() });
     }
 
+
+
 }
 
 const VkExtent2D& RenderTarget::getExtent() const
@@ -127,4 +129,5 @@ const ImageView& RenderTarget::getImageViewByIndex(int i) const
 
     return views[i];
 }
+
 }
