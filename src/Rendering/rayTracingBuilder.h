@@ -4,7 +4,7 @@
 #include "Vulkan/commandPool.h"
 #include "Vulkan/commandBuffer.h"
 #include "Vulkan/buffer.h"
-#include "queryPool.h"
+#include "Vulkan/queryPool.h"
 
 
 

@@ -1,4 +1,4 @@
-#include "Vulkan/graphicsPipelineBuilder.h"
+#include "Rendering/graphicsPipelineBuilder.h"
 #include "ResourceManagement/ResourceManager.h"
 #include "Common/camera.h"
 #include "Vulkan/commandBuffer.h"
@@ -28,7 +28,7 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 
 		VkSubpassDependency skyLightToForwardDependency = {};
 		skyLightToForwardDependency.srcSubpass = 0;
-		skyLightToForwardDependency.dstSubpass = 2;
+		skyLightToForwardDependency.dstSubpass = 1;
 		skyLightToForwardDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT|VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 		skyLightToForwardDependency.srcAccessMask = 0;
 		skyLightToForwardDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT| VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
@@ -38,27 +38,6 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 
 		subpassInfos.push_back(subpassInfo);
 
-	}
-
-		// shadow map pass
-	{
-		SubpassInfo subpassInfo = {};
-		subpassInfo.output.push_back(-1);
-		subpassInfo.output.push_back(2);
-
-		VkSubpassDependency shadowDependency = {};
-
-		shadowDependency.srcSubpass = 1;
-		shadowDependency.dstSubpass = 2;
-		shadowDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT|VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-		shadowDependency.srcAccessMask = 0;
-		shadowDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT| VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-		shadowDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT|VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-
-
-		subpassInfo.dependencies.push_back(shadowDependency);
-
-		subpassInfos.push_back(subpassInfo);
 	}
 
 
@@ -72,7 +51,7 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 		VkSubpassDependency forwardDependency = {};
 
 		forwardDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-		forwardDependency.dstSubpass = 2;
+		forwardDependency.dstSubpass = 1;
 		forwardDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT|VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 		forwardDependency.srcAccessMask = 0;
 		forwardDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT| VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
@@ -91,32 +70,6 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 	 
 	createDescriptorSetLayout();
 
-	VkAttachmentDescription colorAttachment{};
-	colorAttachment.format = offscreenColorFormat;
-	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-
-	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-
-	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-
-	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
-
-	VkAttachmentReference colorAttachmentRef{};
-	colorAttachmentRef.attachment = 0;
-	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-	VkAttachmentDescription depthAttachment{};
-	depthAttachment.format = device.getPhysicalDevice().findDepthFormat();
-	depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
 	VkAttachmentReference depthAttachmentRef{};
 	depthAttachmentRef.attachment = 1;
@@ -136,12 +89,7 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 
 		attachments.push_back(depthAttachment);
 
-		depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		depthAttachment.finalLayout   = VK_IMAGE_LAYOUT_GENERAL;
 
-
-		// for shadow map
-		attachments.push_back(depthAttachment);
 	}
 
 	std::vector<LoadStoreInfo> loadStoreInfos;
@@ -158,8 +106,6 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 	
 		loadStoreInfos.push_back(depthLoadStoreInfo);
 
-		// for shadow map
-		loadStoreInfos.push_back(depthLoadStoreInfo);
 	}
 
 
@@ -168,9 +114,7 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 
 	surfaceExtent        = renderContext.getSurfaceExtent();
 
-	forwardRenderPass    = std::make_unique<ForwardRenderPass>(device,resourceManager,*rasterRenderPass,surfaceExtent,descSetLayout,pcRaster,2);
-
-	shadowMapRenderPass  = std::make_unique<ShadowMapRenderPass>(device,resourceManager,*rasterRenderPass,surfaceExtent,descSetLayout,pcRaster,1);
+	forwardRenderPass    = std::make_unique<ForwardRenderPass>(device,resourceManager,*rasterRenderPass,surfaceExtent,descSetLayout,pcRaster,1);
 
 	skyLightRenderPass   = std::make_unique<SkyLightRenderPass>(device,resourceManager,*rasterRenderPass,surfaceExtent,descSetLayout,pcRaster,0);
 
@@ -189,8 +133,7 @@ GraphicsPipelineBuilder::~GraphicsPipelineBuilder()
 void GraphicsPipelineBuilder::rebuild(VkExtent2D surfaceExtent)
 {
 	this->surfaceExtent = surfaceExtent;
-	forwardRenderPass->rebuild(surfaceExtent,2);
-	shadowMapRenderPass->rebuild(surfaceExtent,1);
+	forwardRenderPass->rebuild(surfaceExtent,1);
 	skyLightRenderPass->rebuild(surfaceExtent,0);
 }
 
@@ -201,9 +144,6 @@ void GraphicsPipelineBuilder::draw(CommandBuffer& cmd)
 
 	cmd.nextSubpass();
 
-	shadowMapRenderPass->draw(cmd,descSet);
-
-	cmd.nextSubpass();
 
 	forwardRenderPass->draw(cmd,descSet);
 }
@@ -325,7 +265,7 @@ void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& renderTarget)
 
 	VkDescriptorImageInfo shadowMapInfo;
 	shadowMapInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-	shadowMapInfo.imageView   = renderTarget.getImageViewByIndex(2).getHandle();
+	shadowMapInfo.imageView   = renderTarget.getImageViewByIndex(0).getHandle();
 	shadowMapInfo.sampler     = resourceManager.getDefaultSampler().getHandle();
 
 	writes.emplace_back(descSetBindings.makeWrite(descSet,SceneBindings::eShadowMap,&shadowMapInfo));

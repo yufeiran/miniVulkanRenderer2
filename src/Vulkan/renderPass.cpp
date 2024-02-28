@@ -70,7 +70,11 @@ RenderPass::RenderPass(Device& device, const std::vector<Attachment>& attachment
 		if(isDepthStencilFormat(attachmentDescs[i].format))
 		{
 			ref.layout = attachmentDescs[i].initialLayout == VK_IMAGE_LAYOUT_UNDEFINED ?
-								VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:attachmentDescs[i].initialLayout;
+				VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:attachmentDescs[i].initialLayout;
+			if(attachmentDescs[i].finalLayout == VK_IMAGE_LAYOUT_GENERAL)
+			{
+				ref.layout = VK_IMAGE_LAYOUT_GENERAL;
+			}
 		}
 		else
 		{
@@ -140,8 +144,6 @@ RenderPass::RenderPass(Device& device, const std::vector<Attachment>& attachment
 		}
 	
 	}
-
-
 
 
 	VkRenderPassCreateInfo renderPassInfo{};

@@ -63,7 +63,6 @@ namespace mini
 
 		std::unique_ptr<ForwardRenderPass>    forwardRenderPass;
 		std::unique_ptr<SkyLightRenderPass>   skyLightRenderPass;
-		std::unique_ptr<ShadowMapRenderPass>     shadowMapRenderPass;
 
 
 		Device &device;

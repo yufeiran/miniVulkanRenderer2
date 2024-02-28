@@ -54,8 +54,6 @@ set(VULKAN_FRAMEWORK_FILES
     ./Vulkan/pipelineLayout.cpp
     ./Vulkan/renderPass.h 
     ./Vulkan/renderPass.cpp 
-    ./Vulkan/rayTracingBuilder.h 
-    ./Vulkan/rayTracingBuilder.cpp 
     ./Vulkan/rayTracingPipeline.h 
     ./Vulkan/rayTracingPipeline.cpp 
     ./Vulkan/queryPool.h 
@@ -64,9 +62,6 @@ set(VULKAN_FRAMEWORK_FILES
     ./Vulkan/descriptorSetBindings.cpp 
     ./Vulkan/texture.h 
     ./Vulkan/texture.cpp
-    ./Vulkan/graphicsPipelineBuilder.h
-    ./Vulkan/graphicsPipelineBuilder.cpp
-
 
 )
 
@@ -105,6 +100,12 @@ set(RENDERING_FILES
     ./Rendering/graphicsRenderPass.cpp
     ./Rendering/skyLightCube.h 
     ./Rendering/skyLightCube.cpp
+    ./Rendering/graphicsPipelineBuilder.h
+    ./Rendering/graphicsPipelineBuilder.cpp
+    ./Rendering/rayTracingBuilder.h 
+    ./Rendering/rayTracingBuilder.cpp 
+    ./Rendering/shadowPipelineBuilder.h 
+    ./Rendering/shadowPipelineBuilder.cpp 
 
 )
 

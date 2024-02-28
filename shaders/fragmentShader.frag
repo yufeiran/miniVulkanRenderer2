@@ -37,6 +37,9 @@ layout(location = 4) in vec2 inTexCoord;
 layout(location = 5) in vec3 inTangent;
 layout(location = 6) in vec3 inBitangent;
 
+
+layout(location = 7) in vec3 inModelPos;
+
 layout(location = 0) out vec4 outColor;
 
 vec4 SRGBtoLINEAR(vec4 srgbIn)
@@ -85,6 +88,21 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
 vec3 fresnelSchlick(float cosTheta, vec3 F0)
 {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}
+
+float shadowCalculation(vec4 fragPosLightSpace)
+{
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    projCoords = projCoords * 0.5 + 0.5;
+    float closestDepth = texture(shadowmap, projCoords.xy).r;
+    float currentDepth = projCoords.z;
+    float bias = 0.005;
+
+    float dif = closestDepth - currentDepth;
+    float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;  
+
+    return dif;
+
 }
 
 void main() {
@@ -241,9 +259,27 @@ void main() {
 
         L0 += (kD * albedo / PI + specular) * lightIntensity * NdotL;
 
+        //vec4 fragPosLightSpace = pcRaster.lightSpaceMatrix * vec4(inWorldPos, 1.0);
+
+
+        vec4 fragPosLightSpace = pcRaster.lightSpaceMatrix * pcRaster.modelMatrix * vec4(inModelPos, 1.0);
+
+        float shadow = shadowCalculation(fragPosLightSpace);
+
+        shadow = shadow * 0.5 + 0.5;
+
+        L0 *= (1.0 - shadow);
+
         vec3 ambient = vec3(0.0002) * pcRaster.skyLightIntensity * albedo * ao;
 
         vec3 color = ambient + L0 + emission;
+    
+        // if(shadow == 1.0){
+        //     color = vec3(1.0,0.0,0.0);
+        // }
+        color = vec3(shadow,shadow,shadow);
+
+
 
         // color = color / (color + vec3(1.0));
         // color = pow(color, vec3(1.0/2.2));

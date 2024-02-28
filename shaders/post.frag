@@ -36,11 +36,8 @@ void main()
     const float gamma = 2.2;
 
     vec3 color;
-    if(pcPost.debugShadowMap == 1)
-        color = texture(shadowmap,TexCoords).rgb;
-    else {
-        color = texture(offscreenColor,TexCoords).rgb;
-    }
+    color = texture(offscreenColor,TexCoords).rgb;
+
 
     // exposure tone mapping
     vec3 mapped = vec3(1.0) - exp(-color * pcPost.exposure);
@@ -48,4 +45,8 @@ void main()
     mapped = pow(mapped, vec3(1.0 / gamma));
 
     FragColor = vec4(mapped,1.0);
+
+    if(pcPost.debugShadowMap == 1)
+        FragColor = vec4(vec3(texture(shadowmap,TexCoords).r,texture(shadowmap,TexCoords).r,texture(shadowmap,TexCoords).r),1.0);
+
 }

@@ -25,10 +25,6 @@ layout( push_constant ) uniform _PushConstantRaster
     PushConstantRaster pcRaster;
 };
 
-layout(binding= eGlobals) uniform _GlobalUniforms{
-    GlobalUniforms uni;
-};
-
 
 void main()
 {

@@ -86,8 +86,8 @@ struct PushConstantRaster
 	float lightIntensity;
 	int   lightType;
 	float skyLightIntensity;
-	mat4  lightSpaceMatrix;
 	int   debugMode;      // 0:no degbug 1:normal 
+	mat4  lightSpaceMatrix;
 };
 
 struct PushConstantRay

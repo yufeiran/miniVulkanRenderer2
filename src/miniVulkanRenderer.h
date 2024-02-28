@@ -40,11 +40,12 @@
 #include "Vulkan/buffer.h"
 #include "Vulkan/pipelineLayout.h"
 #include "Vulkan/renderPass.h"
-#include "Vulkan/rayTracingBuilder.h"
+#include "Rendering/rayTracingBuilder.h"
 #include "Vulkan/rayTracingPipeline.h"
 #include "Vulkan/descriptorSetBindings.h"
 #include "Vulkan/image.h"
-#include "Vulkan/graphicsPipelineBuilder.h"
+#include "Rendering/graphicsPipelineBuilder.h"
+#include "Rendering/shadowPipelineBuilder.h"
 
 
 
@@ -77,7 +78,7 @@ public:
 
 	void loadFeatures();
 
-	void init(int width = 1080, int height = 768);
+	void init(int width = 1024, int height = 1024);
 
 	void initImGUI();
 
@@ -146,13 +147,14 @@ public:
 
 	PushConstantRaster pcRaster{
 		glm::identity<mat4>(),                 // 
-		{10.f, 15.f, 8.f},   // light position
+		{0.f, 5.f, 0.f},   // light position
 		0,                   // instance id
 		5.5f,                // light intensity
 		0,                   // light type
 		10,                   // skyLightIntensity
-		{},                  // lightSpaceMatrix
 		0,                   // debugMode
+		{},                  // lightSpaceMatrix
+
 	};
 
 	PushConstantRay pcRay{
@@ -212,13 +214,13 @@ private:
 	std::unique_ptr<RenderTarget> offscreenRenderTarget;
 	std::unique_ptr<FrameBuffer> offscreenFramebuffer;
 
-	// shadowmap render data
-	std::unique_ptr<RenderTarget> shadowMapRenderTarget;
-	std::unique_ptr<FrameBuffer>  shadowMapFramebuffer;
+
 
 
 
 	std::unique_ptr<GraphicsPipelineBuilder> graphicsPipelineBuilder;
+
+	std::unique_ptr<ShadowPipelineBuilder> shadowPipelineBuilder;
 
 
 

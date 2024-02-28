@@ -119,10 +119,10 @@ void MiniVulkanRenderer::loadTestGltf()
 	objMat = glm::translate(objMat,{0, 5, -3});
 	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/cube/glTF/cube.gltf", objMat);
 
-	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoxVertexColors/glTF/BoxVertexColors.gltf", objMat);
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoxVertexColors/glTF/BoxVertexColors.gltf", objMat);
 
-	
-	resourceManager->loadScene("D://yufeiran/model/AMD/Robot/Robot.gltf");
+	//
+	//resourceManager->loadScene("D://yufeiran/model/AMD/Robot/Robot.gltf");
 
 	
 
@@ -146,55 +146,57 @@ void MiniVulkanRenderer::loadTestGltf()
 	//resourceManager->loadScene("../../assets/glTFBox/Box.gltf");
 	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf");
 
+	//objMat = glm::mat4(1.0f);
+	//objMat = glm::translate(objMat,{-12,5,0});
+	//resourceManager->loadScene("../../assets/cornellBox/cornellBox.gltf",objMat);
 	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat,{-12,5,0});
-	resourceManager->loadScene("../../assets/cornellBox/cornellBox.gltf",objMat);
-	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat,{0,-1,0});
+	objMat = glm::translate(objMat,{0,0,0});
 	objMat = glm::scale(objMat,{3,1,3});
 	resourceManager->loadScene( "../../assets/plane/plane1.gltf",objMat);
 
 
-	resourceManager->loadScene("../../assets/lightScene.gltf");
-
-
-
-	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoxTextured/glTF/BoxTextured.gltf");
-
-
-
+	//resourceManager->loadScene("../../assets/lightScene.gltf");
 
 
 	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat,{0, 8, -3});
-	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/cube/glTF/cube.gltf", objMat);
+	objMat = glm::translate(objMat,{0,3,0});
+	objMat = glm::scale(objMat,{3,3,3});
+	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoxTextured/glTF/BoxTextured.gltf",objMat);
 
-	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/Duck/glTF/Duck.gltf", objMat);
+
+
+
+
+	//objMat = glm::mat4(1.0f);
+	//objMat = glm::translate(objMat,{0, 8, -3});
+	////resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/cube/glTF/cube.gltf", objMat);
+
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/Duck/glTF/Duck.gltf", objMat);
+
+	//
 
 	
 
-	
-
-	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat,{5, 2, 1});
-	objMat = glm::scale(objMat, {0.005, 0.005, 0.005});
+	//objMat = glm::mat4(1.0f);
+	//objMat = glm::translate(objMat,{5, 2, 1});
+	//objMat = glm::scale(objMat, {0.005, 0.005, 0.005});
 
 
 	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/cube/glTF/cube.gltf", objMat);
 
-	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/2CylinderEngine/glTF/2CylinderEngine.gltf", objMat);
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/2CylinderEngine/glTF/2CylinderEngine.gltf", objMat);
 
-	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat,{-15, 0, 0});
-	objMat = glm::scale(objMat, {0.1, 0.1, 0.1});
+	//objMat = glm::mat4(1.0f);
+	//objMat = glm::translate(objMat,{-15, 0, 0});
+	//objMat = glm::scale(objMat, {0.1, 0.1, 0.1});
 
-	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/GearboxAssy/glTF/GearboxAssy.gltf", objMat);
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/GearboxAssy/glTF/GearboxAssy.gltf", objMat);
 
 
-	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat,{5, 5, 1});
-	objMat = glm::scale(objMat, {0.01, 0.01, 0.01});
-	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/Buggy/glTF/Buggy.gltf",objMat);
+	//objMat = glm::mat4(1.0f);
+	//objMat = glm::translate(objMat,{5, 5, 1});
+	//objMat = glm::scale(objMat, {0.01, 0.01, 0.01});
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/Buggy/glTF/Buggy.gltf",objMat);
 
 
 
@@ -366,9 +368,18 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	graphicsPipelineBuilder = std::make_unique<GraphicsPipelineBuilder>(*device,*resourceManager, *renderContext,offscreenColorFormat,pcRaster);
 
+	
+
 	createOffScreenFrameBuffer();
 
-	graphicsPipelineBuilder->updateDescriptorSet(*offscreenRenderTarget);
+	shadowPipelineBuilder = std::make_unique<ShadowPipelineBuilder>(*device,*resourceManager,pcRaster);
+
+
+	auto& shadowMapRenderTarget = shadowPipelineBuilder->getRenderTarget();
+
+	graphicsPipelineBuilder->updateDescriptorSet(shadowMapRenderTarget);
+
+
 
 
 
@@ -896,7 +907,7 @@ void MiniVulkanRenderer::loop()
 		calFps();
 		processIO();
 
-		updateLightSpaceMatrix();
+		
 		updateInstances();
 
 		auto result= renderContext->beginFrame();
@@ -922,6 +933,8 @@ void MiniVulkanRenderer::loop()
 		{
 			renderUI(clearValues);
 		}
+
+		updateLightSpaceMatrix();
 	
 		cmd.reset();
 		cmd.begin();
@@ -946,6 +959,8 @@ void MiniVulkanRenderer::loop()
 			}
 			else 
 			{
+				shadowPipelineBuilder->draw(cmd);
+
 				auto& rasterRenderPass = graphicsPipelineBuilder->getRasterRenderPass();
 				cmd.beginRenderPass(rasterRenderPass, *offscreenFramebuffer,clearValues);
 				rasterize(cmd);
@@ -988,17 +1003,27 @@ void MiniVulkanRenderer::loop()
 
 void MiniVulkanRenderer::updateLightSpaceMatrix()
 {
-	float near_plane = 0.1f, far_plane = 30.5f;
-	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+	float near_plane = 0.1f, far_plane = 20.0f;
+	glm::mat4 lightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, near_plane, far_plane);
+	lightProjection[1][1] *= -1;
+
 
 	
-	glm::mat4 lightView = glm::lookAt(pcRaster.lightPosition,
+	glm::mat4 lightView = glm::lookAt(glm::vec3(-2.0f, 6.0f, -1.0f), 
 									  glm::vec3( 0.0f, 0.0f,  0.0f), 
 									  glm::vec3( 0.0f, 1.0f,  0.0f));  
 
 	//lightView = camera.getViewMat();
 
 	glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+	//const float aspectRatio = surfaceExtent.width / static_cast<float>(surfaceExtent.height);
+	//GlobalUniforms hostUBO = {};
+	//const auto& view = camera.getViewMat();
+	//auto& proj = glm::perspective(glm::radians(45.0f), (float)surfaceExtent.width / (float)surfaceExtent.height, 0.1f, 1000.0f);
+	//proj[1][1] *= -1;
+
+	//lightSpaceMatrix       = proj * view;
 
 	pcRaster.lightSpaceMatrix = lightSpaceMatrix;
 
@@ -1405,6 +1430,7 @@ void MiniVulkanRenderer::handleSizeChange()
 	updatePostDescriptorSet();
 
 	graphicsPipelineBuilder->rebuild(extent);
+	graphicsPipelineBuilder->updateDescriptorSet(shadowPipelineBuilder->getRenderTarget());
 
 
 
@@ -1440,12 +1466,10 @@ void MiniVulkanRenderer::createOffScreenFrameBuffer()
     std::unique_ptr<Image> depthImage = std::make_unique<Image>(imageColor.getDevice(),
         imageColor.getExtent(), depthFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
 
-	std::unique_ptr<Image> shadowDepthImage = std::make_unique<Image>(imageColor.getDevice(),
-    imageColor.getExtent(), depthFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT|VK_IMAGE_USAGE_SAMPLED_BIT);
+
 
     images.push_back(std::move(imageColor));
     images.push_back(std::move(*depthImage));
-	images.push_back(std::move(*shadowDepthImage));
 
 
 	
@@ -1611,9 +1635,11 @@ void MiniVulkanRenderer::updatePostDescriptorSet()
 
 	writes.push_back(writeDescriptorSets);
 
+	auto& renderTarget = shadowPipelineBuilder->getRenderTarget();
+
 	VkDescriptorImageInfo shadowMapInfo;
 	shadowMapInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-	shadowMapInfo.imageView   = offscreenRenderTarget->getImageViewByIndex(2).getHandle();
+	shadowMapInfo.imageView   = renderTarget.getImageViewByIndex(0).getHandle();
 	shadowMapInfo.sampler     = resourceManager->getDefaultSampler().getHandle();
 
 	writes.push_back(postDescSetBind.makeWrite(postDescriptorSet,2,&shadowMapInfo));

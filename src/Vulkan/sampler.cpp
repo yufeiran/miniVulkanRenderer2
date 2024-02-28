@@ -27,7 +27,7 @@ Sampler::Sampler(Device& device):device(device)
 	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 	samplerInfo.mipLodBias = 0.0f;
 	samplerInfo.minLod = 0.0f;
-	samplerInfo.maxLod = 0.0f;
+	samplerInfo.maxLod = 100.0f;
 
 	if (vkCreateSampler(device.getHandle(), &samplerInfo, nullptr, &handle) != VK_SUCCESS) {
 		throw Error("Failed to create sampler!");
