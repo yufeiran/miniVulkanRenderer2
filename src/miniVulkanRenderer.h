@@ -78,7 +78,7 @@ public:
 
 	void loadFeatures();
 
-	void init(int width = 1024, int height = 1024);
+	void init(int width = 1440, int height = 1080);
 
 	void initImGUI();
 
@@ -147,10 +147,10 @@ public:
 
 	PushConstantRaster pcRaster{
 		glm::identity<mat4>(),                 // 
-		{0.f, 5.f, 0.f},   // light position
+		{0.f, 6.f, 2.f},   // light position
 		0,                   // instance id
-		5.5f,                // light intensity
-		0,                   // light type
+		2.5f,                // light intensity
+		1,                   // light type
 		10,                   // skyLightIntensity
 		0,                   // debugMode
 		{},                  // lightSpaceMatrix

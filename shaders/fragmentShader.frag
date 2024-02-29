@@ -28,6 +28,11 @@ layout( push_constant ) uniform _PushConstantRaster
     PushConstantRaster pcRaster;
 };
 
+layout(binding= eGlobals) uniform _GlobalUniforms{
+    GlobalUniforms uni;
+};
+
+
 
 
 layout(location = 1) in vec3 inWorldPos;
@@ -93,15 +98,15 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 float shadowCalculation(vec4 fragPosLightSpace)
 {
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    projCoords = projCoords * 0.5 + 0.5;
-    float closestDepth = texture(shadowmap, projCoords.xy).r;
+    vec2 projCoordsXY = projCoords.xy * 0.5 + 0.5;
+    float closestDepth = texture(shadowmap, projCoordsXY.xy).r;
     float currentDepth = projCoords.z;
     float bias = 0.005;
 
     float dif = closestDepth - currentDepth;
     float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;  
 
-    return dif;
+    return shadow;
 
 }
 
@@ -259,14 +264,14 @@ void main() {
 
         L0 += (kD * albedo / PI + specular) * lightIntensity * NdotL;
 
-        //vec4 fragPosLightSpace = pcRaster.lightSpaceMatrix * vec4(inWorldPos, 1.0);
+        vec4 fragPosLightSpace = pcRaster.lightSpaceMatrix * vec4(inWorldPos, 1.0);
+
+        //vec4 fragPosLightSpace = pcRaster.lightSpaceMatrix * pcRaster.modelMatrix * vec4(inModelPos, 1.0);
 
 
-        vec4 fragPosLightSpace = pcRaster.lightSpaceMatrix * pcRaster.modelMatrix * vec4(inModelPos, 1.0);
+        //vec4 fragPosLightSpace = pcRaster.lightSpaceMatrix * uni.viewInverse * uni.projInverse * vec4(gl_FragCoord.xyz,1.0);
 
         float shadow = shadowCalculation(fragPosLightSpace);
-
-        shadow = shadow * 0.5 + 0.5;
 
         L0 *= (1.0 - shadow);
 
@@ -277,12 +282,15 @@ void main() {
         // if(shadow == 1.0){
         //     color = vec3(1.0,0.0,0.0);
         // }
-        color = vec3(shadow,shadow,shadow);
+        //color = vec3(shadow,shadow,shadow);
+
+        //color = vec3(fragPosLightSpace.xyz);
 
 
 
         // color = color / (color + vec3(1.0));
         // color = pow(color, vec3(1.0/2.2));
+        
 
         outColor = vec4(color, 1.0);
 

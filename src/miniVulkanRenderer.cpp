@@ -203,7 +203,7 @@ void MiniVulkanRenderer::loadTestGltf()
 
 	camera.setPos(glm::vec3(-0.0, 0, 15.0));
 	camera.setViewDir(-90, 0);
-	pcRaster.lightPosition = glm::vec3(0, 4.5f, 0.f);
+	//pcRaster.lightPosition = glm::vec3(0, 4.5f, 0.f);
 
 
 	
@@ -1009,7 +1009,7 @@ void MiniVulkanRenderer::updateLightSpaceMatrix()
 
 
 	
-	glm::mat4 lightView = glm::lookAt(glm::vec3(-2.0f, 6.0f, -1.0f), 
+	glm::mat4 lightView = glm::lookAt(pcRaster.lightPosition, 
 									  glm::vec3( 0.0f, 0.0f,  0.0f), 
 									  glm::vec3( 0.0f, 1.0f,  0.0f));  
 

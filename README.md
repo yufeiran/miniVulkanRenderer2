@@ -34,6 +34,9 @@
 
 ### 2.2 rasterization
 
+* ShadowMapPass
+![shadowMap](assets/screenshot/shadowMap.png)
+
 * SkyBoxPass
 ![skyBOxPass](assets/screenshot/skylightPass.png)
 
