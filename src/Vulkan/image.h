@@ -21,7 +21,7 @@ public:
 		VkImageUsageFlags imageUsage,VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT);
 
 	Image(Device& device, const VkExtent2D& extent, VkFormat format,
-		VkImageUsageFlags imageUsage, VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT);
+		VkImageUsageFlags imageUsage,int layerCount = 1, VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT);
 
 	Image(Device& device, const VkExtent2D& extent, size_t size, const void* data, VkFormat format = VK_FORMAT_R8G8B8A8_SRGB);
 
@@ -46,6 +46,8 @@ public:
 
 	VkSampleCountFlagBits getSampleCount() const;
 
+	inline int getLayers() const{return layers;}
+
 	
 private:
 
@@ -59,6 +61,8 @@ private:
 	Device& device;
 
 	ImageType imageType;
+
+	int layers{1};
 
 	VkImage handle{ VK_NULL_HANDLE };
 

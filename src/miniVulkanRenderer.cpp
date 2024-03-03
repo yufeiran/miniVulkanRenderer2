@@ -371,9 +371,10 @@ void MiniVulkanRenderer::init(int width, int height)
 	shadowPipelineBuilder = std::make_unique<ShadowPipelineBuilder>(*device,*resourceManager,pcRaster,graphicsPipelineBuilder->getLightUniformsBuffer());
 
 
-	auto& shadowMapRenderTarget = shadowPipelineBuilder->getRenderTarget();
+	auto& shadowMapRenderTarget = shadowPipelineBuilder->getDirRenderTarget();
+	auto& PointShadowMapRenderPass = shadowPipelineBuilder->getPointRenderTarget();
 
-	graphicsPipelineBuilder->updateDescriptorSet(shadowMapRenderTarget);
+	graphicsPipelineBuilder->updateDescriptorSet(shadowMapRenderTarget,PointShadowMapRenderPass);
 
 
 
@@ -1421,7 +1422,7 @@ void MiniVulkanRenderer::handleSizeChange()
 	updatePostDescriptorSet();
 
 	graphicsPipelineBuilder->rebuild(extent);
-	graphicsPipelineBuilder->updateDescriptorSet(shadowPipelineBuilder->getRenderTarget());
+	graphicsPipelineBuilder->updateDescriptorSet(shadowPipelineBuilder->getDirRenderTarget(),shadowPipelineBuilder->getPointRenderTarget());
 
 
 
@@ -1626,7 +1627,7 @@ void MiniVulkanRenderer::updatePostDescriptorSet()
 
 	writes.push_back(writeDescriptorSets);
 
-	auto& renderTarget = shadowPipelineBuilder->getRenderTarget();
+	auto& renderTarget = shadowPipelineBuilder->getDirRenderTarget();
 
 	VkDescriptorImageInfo shadowMapInfo;
 	shadowMapInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;

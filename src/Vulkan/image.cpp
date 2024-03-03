@@ -18,7 +18,7 @@ Image::Image( Device& device, VkImage handle, const VkExtent2D& extent, VkFormat
 
 }
 
-Image::Image(Device& device, const VkExtent2D& extent, VkFormat format, VkImageUsageFlags imageUsage, VkSampleCountFlagBits sampleCount)
+Image::Image(Device& device, const VkExtent2D& extent, VkFormat format, VkImageUsageFlags imageUsage, int layerCount, VkSampleCountFlagBits sampleCount)
 :device(device), extent(extent), format(format), usage(imageUsage), sampleCount(sampleCount), imageType(CREATED_IMG)
 
 {
@@ -28,7 +28,8 @@ Image::Image(Device& device, const VkExtent2D& extent, VkFormat format, VkImageU
 	imageInfo.extent.height = extent.height;
 	imageInfo.extent.depth = 1;
 	imageInfo.mipLevels = 1;
-	imageInfo.arrayLayers = 1;
+	imageInfo.arrayLayers = layerCount;
+	this->layers = layerCount;
 
 	imageInfo.format = format;
 	format = imageInfo.format;
@@ -40,6 +41,12 @@ Image::Image(Device& device, const VkExtent2D& extent, VkFormat format, VkImageU
 
 	imageInfo.samples = sampleCount;
 	imageInfo.flags = 0;
+
+	if(layerCount == 6)
+	{
+		imageInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+	}
+
 	if (vkCreateImage(device.getHandle(), &imageInfo, nullptr, &handle) != VK_SUCCESS) {
 		throw Error("Failed to create image");
 	}
@@ -50,11 +57,11 @@ Image::Image(Device& device, const VkExtent2D& extent, VkFormat format, VkImageU
 	//如果用于depth图就改变layout到dpeth对应的
 	if (usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
 	{
-		transitionImageLayout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+		transitionImageLayout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,layerCount);
 	}
 	else 
 	{
-		transitionImageLayout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
+		transitionImageLayout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL,layerCount);
 	}
 }
 
@@ -166,7 +173,7 @@ Image::Image(Device& device, const std::vector<std::string>& filenames, bool fli
 
 	// only handle cubemap
 	assert(filenames.size()==6);
-
+	this->layers = 6;
 	// Load Textures
 	int texWidth, texHeight, texChannels;
 	stbi_uc* pixels[6]={};
@@ -254,7 +261,7 @@ Image::Image(Device& device, const std::vector<std::string>& filenames, bool fli
 
 Image::Image(Image&& other):device(other.device),imageType(other.imageType),handle(other.handle),
 deviceMemory(std::move(other.deviceMemory)),extent(other.extent),format(other.format),
-usage(other.usage),sampleCount(other.sampleCount),tiling(other.tiling),subresource(other.subresource),name(other.name)
+usage(other.usage),sampleCount(other.sampleCount),tiling(other.tiling),subresource(other.subresource),name(other.name),layers(other.layers)
 
 {
 	other.handle = VK_NULL_HANDLE;

@@ -58,10 +58,14 @@ ShadowPipelineBuilder::ShadowPipelineBuilder(Device& device, ResourceManager& re
 
 	VkExtent2D surfaceExtent = {SHADOW_WIDTH,SHADOW_HEIGHT};
 
-	renderPass     = std::make_unique<RenderPass>(device,attachments,loadStoreInfos,subpassInfos);
+	dirShadowRenderPass  = std::make_unique<RenderPass>(device,attachments,loadStoreInfos,subpassInfos);
+
+	pointShadowRenderPass  = std::make_unique<RenderPass>(device,attachments,loadStoreInfos,subpassInfos);
 
 
-	shadowMapRenderPass  = std::make_unique<DirShadowMapRenderPass>(device,resourceManager,*renderPass,surfaceExtent,descSetLayout,pcRaster,0);
+	shadowMapRenderPass  = std::make_unique<DirShadowMapRenderPass>(device,resourceManager,*dirShadowRenderPass,surfaceExtent,descSetLayout,pcRaster,0);
+
+	pointShadowMapRenderPass = std::make_unique<PointShadowMapRenderPass>(device,resourceManager,*pointShadowRenderPass,surfaceExtent,descSetLayout,pcRaster,0);
 
 	createRenderTarget();
 
@@ -104,9 +108,22 @@ void ShadowPipelineBuilder::createRenderTarget()
 
 
 	
-	renderTarget = std::make_unique<RenderTarget>(std::move(images));
+	dirShadowRenderTarget = std::make_unique<RenderTarget>(std::move(images));
 
-	framebuffer = std::make_unique<FrameBuffer>(device,*renderTarget,*renderPass);
+	dirShadowFramebuffer = std::make_unique<FrameBuffer>(device,*dirShadowRenderTarget,*dirShadowRenderPass);
+
+
+	std::vector<Image> pointShadowImages;
+
+	std::unique_ptr<Image> pointShadowDepthImage = std::make_unique<Image>(device,
+		 shadowExtent, depthFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT|VK_IMAGE_USAGE_SAMPLED_BIT,6);
+
+
+	pointShadowImages.push_back(std::move(*pointShadowDepthImage));
+
+	pointShadowRenderTarget = std::make_unique<RenderTarget>(std::move(pointShadowImages),VK_IMAGE_VIEW_TYPE_CUBE);
+
+	pointShadowFramebuffer = std::make_unique<FrameBuffer>(device,*pointShadowRenderTarget,*pointShadowRenderPass);
 
 	
 
@@ -133,8 +150,13 @@ void ShadowPipelineBuilder::draw(CommandBuffer& cmd)
 
 	clearValues[0].depthStencil = { 1.0f,0 };
 
-	cmd.beginRenderPass(*renderPass, *framebuffer,clearValues);
+	cmd.beginRenderPass(*dirShadowRenderPass, *dirShadowFramebuffer,clearValues);
 	shadowMapRenderPass->draw(cmd,descSet);
+
+	cmd.endRenderPass();
+
+	cmd.beginRenderPass(*pointShadowRenderPass, *pointShadowFramebuffer,clearValues);
+	pointShadowMapRenderPass->draw(cmd,descSet);
 
 	cmd.endRenderPass();
 

@@ -25,7 +25,7 @@ FrameBuffer::FrameBuffer(Device& device, RenderTarget& renderTarget,const Render
 	createInfo.pAttachments = attachments.data();
 	createInfo.width = extent.width;
 	createInfo.height = extent.height;
-	createInfo.layers = 1;
+	createInfo.layers = renderTarget.getLayerCount();
 
 	if (vkCreateFramebuffer(device.getHandle(), &createInfo, nullptr, &handle) != VK_SUCCESS) {
 		throw Error("failed to create framebuffer!");

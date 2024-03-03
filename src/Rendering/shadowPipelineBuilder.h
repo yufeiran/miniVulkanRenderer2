@@ -32,7 +32,8 @@ public:
 
 	void updateDescriptorSet();
 
-	RenderTarget& getRenderTarget() { return *renderTarget; }
+	RenderTarget& getDirRenderTarget() { return *dirShadowRenderTarget; }
+	RenderTarget& getPointRenderTarget() { return *pointShadowRenderTarget; }
 
 	void draw(CommandBuffer& cmd);
 
@@ -50,12 +51,19 @@ private:
 
 
 	std::unique_ptr<PipelineLayout>       pipelineLayout;
-	std::unique_ptr<RenderPass>           renderPass;
+	std::unique_ptr<RenderPass>           dirShadowRenderPass;
 
-	std::unique_ptr<RenderTarget>         renderTarget;
-	std::unique_ptr<FrameBuffer>          framebuffer;
+	std::unique_ptr<RenderPass>           pointShadowRenderPass;
+
+	std::unique_ptr<RenderTarget>         dirShadowRenderTarget;
+	std::unique_ptr<FrameBuffer>          dirShadowFramebuffer;
+
+	std::unique_ptr<RenderTarget>         pointShadowRenderTarget;
+	std::unique_ptr<FrameBuffer>          pointShadowFramebuffer;
 
 	std::unique_ptr<DirShadowMapRenderPass>  shadowMapRenderPass;
+
+	std::unique_ptr<PointShadowMapRenderPass>  pointShadowMapRenderPass;
 
 	PushConstantRaster&                   pcRaster;
 

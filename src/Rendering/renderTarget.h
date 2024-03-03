@@ -50,7 +50,7 @@ static const CreateFunc DEFAULT_CREATE_FUNC;
 
 static const CreateFunc NO_DEPTH_CREATE_FUNC;
 
-RenderTarget(std::vector<Image>&& images);
+RenderTarget(std::vector<Image>&& images, VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_2D);
 
 RenderTarget(std::vector<ImageView>&& imageViews);
 
@@ -62,10 +62,14 @@ const Image& getImageByIndex(int i) const;
 
 const ImageView& getImageViewByIndex(int i)const;
 
+int getLayerCount() const{ return layers; }
+
 
 private:
 
 Device& device;
+
+int layers{ 1 };
 
 VkExtent2D extent{};
 

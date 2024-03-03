@@ -20,12 +20,13 @@ using uint = unsigned int;
 #endif
 
 START_ENUM(SceneBindings)
-	eGlobals  = 0,
-	eObjDescs = 1,
-	eTextures = 2,
-	eCubeMap  = 3,
-	eShadowMap = 4,
-	eLight     = 5
+	eGlobals         = 0,
+	eObjDescs        = 1,
+	eTextures        = 2,
+	eCubeMap         = 3,
+	eDirShadowMap    = 4,
+	ePointShadowMap  = 5,
+	eLight           = 6
 END_ENUM();
 
 START_ENUM(RtBindings)
@@ -68,6 +69,9 @@ struct LightDesc
 	float intensity;
 
 	int type; // 0:directional 1:point 2:spot
+
+	float nearPlane;
+	float farPlane;
 };
 
 #define MAX_LIGHTS 16

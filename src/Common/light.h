@@ -125,8 +125,12 @@ namespace mini
 				{
 					lightUniforms.dirShadowIndex = i;
 					
-					float near_plane = 0.1f, far_plane = 60.0f;
-					glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, near_plane, far_plane);
+					float near = 0.1f, far = 60.0f;
+
+					lightUniforms.lights[i].nearPlane = near;
+					lightUniforms.lights[i].farPlane = far;
+
+					glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, near, far);
 					lightProjection[1][1] *= -1;
 
 					glm::mat4 lightView = glm::lookAt( light.getPosition(), 
@@ -145,6 +149,8 @@ namespace mini
 					float aspect = (float)SHADOW_WIDTH / (float)SHADOW_HEIGHT;
 					float near  = 1.0f;
 					float far   = 25.0f;
+					lightUniforms.lights[i].nearPlane = near;
+					lightUniforms.lights[i].farPlane = far;
 					glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspect, near, far);
 
 					auto& lightMartix = lightUniforms.lights[i].pointLightSpaceMatrix;

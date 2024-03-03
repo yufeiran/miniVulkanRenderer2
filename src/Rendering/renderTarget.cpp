@@ -43,13 +43,14 @@ const RenderTarget::CreateFunc RenderTarget::NO_DEPTH_CREATE_FUNC = [](Image&& i
     	return std::make_unique<RenderTarget>(std::move(images));
 };
 
-RenderTarget::RenderTarget(std::vector<Image>&& images):
+RenderTarget::RenderTarget(std::vector<Image>&& images, VkImageViewType viewType):
     device(images.back().getDevice()),
     images{std::move(images)}
 {
     if (this->images.empty()) {
         throw Error("RenderTarget should specify at least 1 image");
     }
+
 
     std::set<VkExtent2D, CompareExtent2D> uniqueExtent;
 
@@ -65,10 +66,12 @@ RenderTarget::RenderTarget(std::vector<Image>&& images):
 
     extent = *uniqueExtent.begin();
 
+    layers = this->images[0].getLayers();
+
     for (auto& image : this->images)
     {
         //´´½¨imageViews
-        ImageView imageView(image, image.getFormat());
+        ImageView imageView(image, image.getFormat(),viewType);
 
         views.emplace_back(std::move(imageView));
 

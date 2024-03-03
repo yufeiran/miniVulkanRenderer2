@@ -275,7 +275,31 @@ void DirShadowMapRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
 
 PointShadowMapRenderPass::PointShadowMapRenderPass(Device& device, ResourceManager& resourceManager, const RenderPass& renderPass, VkExtent2D extent, std::shared_ptr<DescriptorSetLayout> descSetLayout, PushConstantRaster& pcRaster, int subpassIndex)
 :GraphicsRenderPass(device,resourceManager,extent),renderPass(renderPass),pcRaster(pcRaster)
-{
+{	
+	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/shadowMapPoint.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/shadowMapPoint.geom.spv", device, VK_SHADER_STAGE_GEOMETRY_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/shadowMapPoint.frag.spv", device, VK_SHADER_STAGE_FRAGMENT_BIT));
+	
+	std::vector<VkPushConstantRange> pushConstants;
+	VkPushConstantRange pushConstant={};
+	pushConstant.offset = 0;
+	pushConstant.size = sizeof(PushConstantRaster);
+	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+	pushConstants.push_back(pushConstant);
+
+
+
+    std::vector<std::shared_ptr<DescriptorSetLayout>>  descSetLayouts;
+	descSetLayouts.push_back(descSetLayout);
+
+	pipelineLayout = std::make_unique<PipelineLayout>(device,descSetLayouts,pushConstants);
+
+
+	graphicsPipeline = std::make_unique<GraphicsPipeline>(shaderModules,*pipelineLayout,device,extent);
+	graphicsPipeline->setSubpassIndex(subpassIndex);
+
+
+	graphicsPipeline->build(renderPass);
 
 }
 
@@ -291,10 +315,36 @@ void PointShadowMapRenderPass::update()
 
 void PointShadowMapRenderPass::draw(CommandBuffer& cmd, VkDescriptorSet descSet)
 {
+	VkDeviceSize offset{0};
 
+	cmd.setViewPortAndScissor(extent);
+
+	auto& rasterPipeline = graphicsPipeline;
+
+	cmd.bindPipeline(*rasterPipeline);
+
+	
+	cmd.bindDescriptorSet(descSet);
+
+	for(const ObjInstance& inst:resourceManager.instances)
+	{
+		auto& model          = resourceManager.objModel[inst.objIndex];
+		pcRaster.objIndex    = inst.objIndex;
+		pcRaster.modelMatrix = inst.transform;
+		cmd.pushConstant(pcRaster,static_cast<VkShaderStageFlagBits>( VK_SHADER_STAGE_VERTEX_BIT| VK_SHADER_STAGE_GEOMETRY_BIT |VK_SHADER_STAGE_FRAGMENT_BIT));
+		
+		cmd.bindVertexBuffer(*model->vertexBuffer);
+		cmd.bindIndexBuffer(*model->indexBuffer);
+		vkCmdDrawIndexed(cmd.getHandle(),model->nbIndices,1,0,0,0);
+
+	}
 }
 
 void PointShadowMapRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
 {
+	graphicsPipeline = std::make_unique<GraphicsPipeline>(shaderModules,*pipelineLayout,device,extent);
+	graphicsPipeline->setSubpassIndex(subpassIndex);
 
+
+	graphicsPipeline->build(renderPass);
 }

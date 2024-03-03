@@ -21,7 +21,8 @@ layout(buffer_reference, scalar) buffer MatIndices { int i[]; };
 
 layout(binding = eObjDescs, scalar) buffer ObjDesc_ { ObjDesc i[]; } objDesc;
 layout(binding = eTextures) uniform sampler2D[] textureSamplers;
-layout(binding = eShadowMap) uniform sampler2D shadowmap;
+layout(binding = eDirShadowMap) uniform sampler2D shadowmap;
+layout(binding = ePointShadowMap) uniform samplerCube pointShadowMapTexture;
 layout(binding = eLight,std140) uniform _LightUniforms {LightUniforms lightsUni;};
 
 layout( push_constant ) uniform _PushConstantRaster
@@ -109,6 +110,21 @@ float shadowCalculation(vec4 fragPosLightSpace)
 
     return shadow;
 
+}
+
+float shadowCalculationPoint(vec3 fragPos)
+{
+
+    vec3 fragToLight   = fragPos - lightsUni.lights[0].position.xyz;
+    float closestDepth = texture(pointShadowMapTexture, fragToLight).r;
+    float farPlane     = lightsUni.lights[0].farPlane;
+    closestDepth       *= farPlane;
+
+    float currentDepth = length(fragToLight);
+    float bias         = 0.05;
+    float shadow       = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
+
+    return shadow;
 }
 
 void main() {
@@ -278,7 +294,11 @@ void main() {
 
         //vec4 fragPosLightSpace = pcRaster.lightSpaceMatrix * uni.viewInverse * uni.projInverse * vec4(gl_FragCoord.xyz,1.0);
 
-        float shadow = shadowCalculation(fragPosLightSpace);
+        float shadow = 0.0;
+        if(lightsUni.lights[0].type == 1)
+            shadow = shadowCalculation(fragPosLightSpace);
+        else
+            shadow = shadowCalculationPoint(inWorldPos);
 
         L0 *= (1.0 - shadow);
 
