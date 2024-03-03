@@ -11,6 +11,7 @@
 #include "glm/mat4x4.hpp"
 #include "Common/miniLog.h"
 #include "Common/camera.h"
+#include "Common/light.h"
 
 #include "Platform/GUIWindow.h"
 
@@ -46,6 +47,7 @@
 #include "Vulkan/image.h"
 #include "Rendering/graphicsPipelineBuilder.h"
 #include "Rendering/shadowPipelineBuilder.h"
+
 
 
 
@@ -113,7 +115,6 @@ public:
 
 	void loop();
 
-	void updateLightSpaceMatrix();
 
 	void updateInstances();
 
@@ -147,13 +148,10 @@ public:
 
 	PushConstantRaster pcRaster{
 		glm::identity<mat4>(),                 // 
-		{0.f, 6.f, 2.f},   // light position
 		0,                   // instance id
-		2.5f,                // light intensity
-		1,                   // light type
 		10,                   // skyLightIntensity
 		0,                   // debugMode
-		{},                  // lightSpaceMatrix
+
 
 	};
 
@@ -174,6 +172,12 @@ public:
 	PushConstantPost pcPost{
 		1,   // exposure
 		0,   // debugShadowMap
+	};
+
+	std::vector<Light> lights = {
+		{LightType::LIGHT_TYPE_DIRECTIONAL, {0.f, 6.f, 2.f}, {0.f, -1.f, 0.f}, {1.f, 1.f, 1.f}, 2.5f,true}
+		//{LightType::LIGHT_TYPE_DIRECTIONAL, {0.f, 6.f, 2.f}, {0.f, -1.f, 0.f}, {1.f, 1.f, 1.f}, 2.5f}
+		
 	};
 
 private:

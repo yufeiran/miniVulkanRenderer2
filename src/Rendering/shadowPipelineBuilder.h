@@ -1,6 +1,7 @@
 #pragma once 
 
 #include "Common/common.h"
+#include "Common/light.h"
 #include "Vulkan/shaderModule.h"
 #include "Vulkan/descriptorSetBindings.h"
 #include "Vulkan/descriptorSetLayout.h"
@@ -23,21 +24,22 @@ class DescriptorPool;
 class ShadowPipelineBuilder
 {
 public:
-	ShadowPipelineBuilder(Device& device, ResourceManager& resourceManager,PushConstantRaster& pcRaster);
+	ShadowPipelineBuilder(Device& device, ResourceManager& resourceManager,PushConstantRaster& pcRaster, Buffer&  lightUniformsBuffer);
 	~ShadowPipelineBuilder();
 
 	void createDescriptorSetLayout();
 	void createRenderTarget();
+
+	void updateDescriptorSet();
 
 	RenderTarget& getRenderTarget() { return *renderTarget; }
 
 	void draw(CommandBuffer& cmd);
 
 
+
 private:
 
-	const int SHADOW_WIDTH = 1024;
-	const int SHADOW_HEIGHT = 1024;
 
 	Device&                               device;		
 	ResourceManager&                      resourceManager;
@@ -53,9 +55,11 @@ private:
 	std::unique_ptr<RenderTarget>         renderTarget;
 	std::unique_ptr<FrameBuffer>          framebuffer;
 
-	std::unique_ptr<ShadowMapRenderPass>  shadowMapRenderPass;
+	std::unique_ptr<DirShadowMapRenderPass>  shadowMapRenderPass;
 
 	PushConstantRaster&                   pcRaster;
+
+	Buffer&               lightUniformsBuffer;
 };
 
 }

@@ -11,6 +11,8 @@
 
 #include "deviceDataStruct.h"
 
+layout(binding = eLight,std140) uniform _LightUniforms {LightUniforms lightsUni;};
+
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec3 aColor;
@@ -28,5 +30,7 @@ layout( push_constant ) uniform _PushConstantRaster
 
 void main()
 {
-    gl_Position = pcRaster.lightSpaceMatrix * pcRaster.modelMatrix * vec4(aPos, 1.0);
+
+    mat4 lightSpaceMatrix = lightsUni.lights[0].dirLightSpaceMatrix;
+    gl_Position = lightSpaceMatrix * pcRaster.modelMatrix * vec4(aPos, 1.0);
 }

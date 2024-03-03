@@ -15,6 +15,7 @@ layout(set = 1, binding = eGlobals) uniform _GlobalUniforms { GlobalUniforms uni
 layout(set = 1, binding = eObjDescs, scalar) buffer ObjDesc_ { ObjDesc i[]; } objDesc;
 layout(set = 1, binding = eTextures) uniform sampler2D[] textureSamplers;
 layout(set = 1, binding = eCubeMap) uniform samplerCube cubeMapTexture;
+layout(set = 1, binding = eLight,std140) uniform _LightUniforms {LightUniforms lightsUni;};
 
 
 layout(buffer_reference, scalar) buffer Vertices {Vertex v[]; };

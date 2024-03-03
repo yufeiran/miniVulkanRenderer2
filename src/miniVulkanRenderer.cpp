@@ -273,10 +273,6 @@ MiniVulkanRenderer::MiniVulkanRenderer()
 void MiniVulkanRenderer::init(int width, int height)
 {
 
-
-
-
-
 	LogLogo();
 	Log("init start");
 	LogTimerStart("init");
@@ -372,7 +368,7 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	createOffScreenFrameBuffer();
 
-	shadowPipelineBuilder = std::make_unique<ShadowPipelineBuilder>(*device,*resourceManager,pcRaster);
+	shadowPipelineBuilder = std::make_unique<ShadowPipelineBuilder>(*device,*resourceManager,pcRaster,graphicsPipelineBuilder->getLightUniformsBuffer());
 
 
 	auto& shadowMapRenderTarget = shadowPipelineBuilder->getRenderTarget();
@@ -802,9 +798,7 @@ void MiniVulkanRenderer::raytrace(CommandBuffer& cmd, const glm::vec4& clearColo
 
 	// Initializing push constant vulues
 	pcRay.clearColor     = clearColor;
-	pcRay.lightPosition  = pcRaster.lightPosition;
-	pcRay.lightIntensity = pcRaster.lightIntensity;
-	pcRay.lightType      = pcRaster.lightType;
+
 
 	std::vector<VkDescriptorSet> descSets{rtDescSet,graphicsPipelineBuilder->getDescriptorSet()};
 	vkCmdBindPipeline(cmd.getHandle(),VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR,rtPipeline->getHandle());
@@ -833,16 +827,40 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>&  clearValues)
 	
 	if(ImGui::CollapsingHeader("Light",ImGuiTreeNodeFlags_DefaultOpen ))
 	{
-		auto& pc = pcRaster;
-		changed |= ImGui::RadioButton("Point", &pc.lightType, 0);
-		ImGui::SameLine();
-		changed |= ImGui::RadioButton("Infinite", &pc.lightType,1);
 
-		changed |= ImGui::SliderFloat3("Position", &pc.lightPosition.x, -20.f, 20.f);
-		changed |= ImGui::SliderFloat("Intensity", &pc.lightIntensity, 0.f , 150.f);
+		int index = 0;
+		for(auto& Light:lights)
+		{
+
+			ImGui::Text("Light %d",index);
+			changed |= ImGui::SliderFloat3("Position", &Light.position.x, -20.f, 20.f);
+			changed |= ImGui::SliderFloat("Intensity", &Light.intensity, 0.f , 150.f);
+			int type = static_cast<int>(Light.type);
+			changed |= ImGui::RadioButton("Point", &type, 0);
+			ImGui::SameLine();
+			changed |= ImGui::RadioButton("Infinite", &type,1);
+			Light.type = static_cast<LightType>(type);
+
+			index ++;
+		}
+
+
 		ImGui::Text("Skylight");
 		changed |= ImGui::SliderFloat("SkylightIntensity", &pcRay.skyLightIntensity, 0.f , 300.f);
 		pcRaster.skyLightIntensity = pcRay.skyLightIntensity;
+
+
+
+		//auto& pc = pcRaster;
+		//changed |= ImGui::RadioButton("Point", &pc.lightType, 0);
+		//ImGui::SameLine();
+		//changed |= ImGui::RadioButton("Infinite", &pc.lightType,1);
+
+		//changed |= ImGui::SliderFloat3("Position", &pc.lightPosition.x, -20.f, 20.f);
+		//changed |= ImGui::SliderFloat("Intensity", &pc.lightIntensity, 0.f , 150.f);
+		//ImGui::Text("Skylight");
+		//changed |= ImGui::SliderFloat("SkylightIntensity", &pcRay.skyLightIntensity, 0.f , 300.f);
+		//pcRaster.skyLightIntensity = pcRay.skyLightIntensity;
 	}
 	if(ImGui::CollapsingHeader("Rendering",ImGuiTreeNodeFlags_DefaultOpen))
 	{
@@ -853,7 +871,7 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>&  clearValues)
 	}
 	if(ImGui::CollapsingHeader("Debug",ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		const int DEBUG_MODE_SUM = 10;
+		const int DEBUG_MODE_SUM = 11;
 		const char* DEBUG_MODE_STR[DEBUG_MODE_SUM] ={
 			"no debug",
 			"base color",
@@ -864,7 +882,8 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>&  clearValues)
 			"roughness",
 			"texcoord",
 			"tangent",
-			"bitangent"
+			"bitangent",
+			"specular"
 		};
 		changed |= ImGui::Combo("mode",&debugModeIndex,DEBUG_MODE_STR,DEBUG_MODE_SUM);
 		pcRay.debugMode = debugModeIndex;
@@ -934,7 +953,6 @@ void MiniVulkanRenderer::loop()
 			renderUI(clearValues);
 		}
 
-		updateLightSpaceMatrix();
 	
 		cmd.reset();
 		cmd.begin();
@@ -943,7 +961,7 @@ void MiniVulkanRenderer::loop()
 
 
 		
-		graphicsPipelineBuilder->update(cmd,camera,surfaceExtent);
+		graphicsPipelineBuilder->update(cmd,camera,surfaceExtent,lights);
 
 		// Raster render pass
 		{
@@ -1001,33 +1019,6 @@ void MiniVulkanRenderer::loop()
 	device->waitIdle();
 }
 
-void MiniVulkanRenderer::updateLightSpaceMatrix()
-{
-	float near_plane = 0.1f, far_plane = 20.0f;
-	glm::mat4 lightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, near_plane, far_plane);
-	lightProjection[1][1] *= -1;
-
-
-	
-	glm::mat4 lightView = glm::lookAt(pcRaster.lightPosition, 
-									  glm::vec3( 0.0f, 0.0f,  0.0f), 
-									  glm::vec3( 0.0f, 1.0f,  0.0f));  
-
-	//lightView = camera.getViewMat();
-
-	glm::mat4 lightSpaceMatrix = lightProjection * lightView;
-
-	//const float aspectRatio = surfaceExtent.width / static_cast<float>(surfaceExtent.height);
-	//GlobalUniforms hostUBO = {};
-	//const auto& view = camera.getViewMat();
-	//auto& proj = glm::perspective(glm::radians(45.0f), (float)surfaceExtent.width / (float)surfaceExtent.height, 0.1f, 1000.0f);
-	//proj[1][1] *= -1;
-
-	//lightSpaceMatrix       = proj * view;
-
-	pcRaster.lightSpaceMatrix = lightSpaceMatrix;
-
-}
 
 auto start = std::chrono::system_clock::now();
 void MiniVulkanRenderer::updateInstances()

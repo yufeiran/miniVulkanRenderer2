@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Common/common.h"
+#include "Common/light.h"
 #include "Vulkan/shaderModule.h"
 #include "Vulkan/descriptorSetBindings.h"
 #include "Vulkan/descriptorSetLayout.h"
@@ -24,11 +25,16 @@ namespace mini
 
 
 		void draw(CommandBuffer& cmd);
-		void update(CommandBuffer& cmd,Camera& camera, VkExtent2D surfaceExtent);
+		void update(CommandBuffer& cmd,Camera& camera, VkExtent2D surfaceExtent,std::vector<Light>& lights);
 		
-		void updateUniformBuffer(CommandBuffer& cmd, Camera& camera, VkExtent2D surfaceExtent);
+		void updateUniformBuffer(CommandBuffer& cmd, Camera& camera, VkExtent2D surfaceExtent);	
+
+		void createLightUniformsBuffer();
+		void updateLightUniformsBuffer(CommandBuffer& cmd,const std::vector<Light>& shadowLights);
 
 		void updateDescriptorSet(RenderTarget& renderTarget);
+
+		Buffer& getLightUniformsBuffer() { return *lightUniformsBuffer; }
 
 		std::shared_ptr<DescriptorSetLayout> getDescriptorSetLayout() const { return descSetLayout; }
 		std::unique_ptr<DescriptorPool>&     getDescriptorPool()            { return descPool; }
@@ -56,6 +62,7 @@ namespace mini
 		VkDescriptorSet                       descSet;
 		std::unique_ptr<Buffer>               globalsBuffer;
 		std::unique_ptr<Buffer>               objDescBuffer;
+		std::unique_ptr<Buffer>               lightUniformsBuffer;
 
 		std::unique_ptr<PipelineLayout>       rasterPipelineLayout;
 		std::unique_ptr<RenderPass>           rasterRenderPass;

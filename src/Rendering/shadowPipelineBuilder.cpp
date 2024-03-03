@@ -2,8 +2,8 @@
 
 using namespace mini;
 
-ShadowPipelineBuilder::ShadowPipelineBuilder(Device& device, ResourceManager& resourceManager,PushConstantRaster& pcRaster)
-	:device(device),resourceManager(resourceManager),pcRaster(pcRaster)
+ShadowPipelineBuilder::ShadowPipelineBuilder(Device& device, ResourceManager& resourceManager,PushConstantRaster& pcRaster,Buffer&  lightUniformsBuffer)
+	:device(device),resourceManager(resourceManager),pcRaster(pcRaster),lightUniformsBuffer(lightUniformsBuffer)
 {
 	
 	std::vector<SubpassInfo> subpassInfos;
@@ -61,9 +61,11 @@ ShadowPipelineBuilder::ShadowPipelineBuilder(Device& device, ResourceManager& re
 	renderPass     = std::make_unique<RenderPass>(device,attachments,loadStoreInfos,subpassInfos);
 
 
-	shadowMapRenderPass  = std::make_unique<ShadowMapRenderPass>(device,resourceManager,*renderPass,surfaceExtent,descSetLayout,pcRaster,0);
+	shadowMapRenderPass  = std::make_unique<DirShadowMapRenderPass>(device,resourceManager,*renderPass,surfaceExtent,descSetLayout,pcRaster,0);
 
 	createRenderTarget();
+
+	updateDescriptorSet();
 
 }
 
@@ -74,6 +76,9 @@ ShadowPipelineBuilder::~ShadowPipelineBuilder()
 
 void ShadowPipelineBuilder::createDescriptorSetLayout()
 {
+	descSetBindings.addBinding(SceneBindings::eLight,  VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
+									VK_SHADER_STAGE_VERTEX_BIT |VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_RAYGEN_BIT_KHR |  VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
+	
 
 	descSetLayout = descSetBindings.createLayout(device);
 	descPool      = descSetBindings.createPool(device,1);
@@ -103,12 +108,28 @@ void ShadowPipelineBuilder::createRenderTarget()
 
 	framebuffer = std::make_unique<FrameBuffer>(device,*renderTarget,*renderPass);
 
+	
 
+}
+
+void ShadowPipelineBuilder::updateDescriptorSet()
+{
+
+	std::vector<VkWriteDescriptorSet> writes;
+
+
+	VkDescriptorBufferInfo lightUnif{lightUniformsBuffer.getHandle(), 0, VK_WHOLE_SIZE};
+	writes.emplace_back(descSetBindings.makeWrite(descSet,SceneBindings::eLight,&lightUnif));
+
+
+	vkUpdateDescriptorSets(device.getHandle(),static_cast<uint32_t>(writes.size()),writes.data(),0,nullptr);
 }
 
 void ShadowPipelineBuilder::draw(CommandBuffer& cmd)
 {
 	std::vector<VkClearValue> clearValues(1);
+
+	
 
 	clearValues[0].depthStencil = { 1.0f,0 };
 
@@ -119,3 +140,4 @@ void ShadowPipelineBuilder::draw(CommandBuffer& cmd)
 
 
 }
+

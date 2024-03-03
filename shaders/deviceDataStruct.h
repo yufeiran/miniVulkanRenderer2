@@ -24,7 +24,8 @@ START_ENUM(SceneBindings)
 	eObjDescs = 1,
 	eTextures = 2,
 	eCubeMap  = 3,
-	eShadowMap = 4
+	eShadowMap = 4,
+	eLight     = 5
 END_ENUM();
 
 START_ENUM(RtBindings)
@@ -42,7 +43,8 @@ START_ENUM(DebugMode)
 	eRoughness = 6,  //
 	eTexCoord  = 7,  //
 	eTangent   = 8,  //
-	eBitangent = 9   //
+	eBitangent = 9,  //
+	eSpecular  = 10
 
 END_ENUM();
 
@@ -54,6 +56,31 @@ struct ObjDesc
 	uint64_t materialAddress;
 	uint64_t materialIndexAddress;
 };
+
+struct LightDesc
+{
+	vec4 position;
+	vec4 color;
+
+	mat4  dirLightSpaceMatrix;
+	mat4  pointLightSpaceMatrix[6];
+
+	float intensity;
+
+	int type; // 0:directional 1:point 2:spot
+};
+
+#define MAX_LIGHTS 16
+struct LightUniforms
+{
+	int       lightCount;
+	int       pointShadowIndex;
+	int       dirShadowIndex;
+	int       spotShadowIndex;
+
+	LightDesc lights[MAX_LIGHTS];
+};
+
 
 struct GlobalUniforms
 {
@@ -81,13 +108,9 @@ struct Vertex
 struct PushConstantRaster
 {
 	mat4  modelMatrix;
-	vec3  lightPosition;
 	uint  objIndex;
-	float lightIntensity;
-	int   lightType;
 	float skyLightIntensity;
 	int   debugMode;      // 0:no degbug 1:normal 
-	mat4  lightSpaceMatrix;
 };
 
 struct PushConstantRay

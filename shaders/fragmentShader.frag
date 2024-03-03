@@ -22,6 +22,7 @@ layout(buffer_reference, scalar) buffer MatIndices { int i[]; };
 layout(binding = eObjDescs, scalar) buffer ObjDesc_ { ObjDesc i[]; } objDesc;
 layout(binding = eTextures) uniform sampler2D[] textureSamplers;
 layout(binding = eShadowMap) uniform sampler2D shadowmap;
+layout(binding = eLight,std140) uniform _LightUniforms {LightUniforms lightsUni;};
 
 layout( push_constant ) uniform _PushConstantRaster
 {
@@ -123,18 +124,20 @@ void main() {
 
     // Vector toward light 
     vec3 L;
-    float lightIntensity = pcRaster.lightIntensity;
-    if(pcRaster.lightType == 0)
+    
+    float lightIntensity = lightsUni.lights[0].intensity;
+    vec3 lightPos = lightsUni.lights[0].position.xyz;
+    if(lightsUni.lights[0].type == 0)
     {
-        vec3  lDir     = pcRaster.lightPosition - inWorldPos;
+        vec3  lDir     = lightPos - inWorldPos;
         float d        = length(lDir);
-        lightIntensity = pcRaster.lightIntensity / (d *d);
+        lightIntensity = lightIntensity / (d *d);
             //(LIGHT_QUADRATIC * d * d + LIGHT_LINEAR * d + LIGHT_CONSTANT + 0.0001);
         L              = normalize(lDir);   
     }
     else 
     {
-        L = normalize(pcRaster.lightPosition);
+        L = normalize(lightPos);
     }
     //vec3 LDirView = pcRaster.viewMatrix * vec4(L, 0.0);
 
@@ -245,13 +248,15 @@ void main() {
 
         float NDF = DistributionGGX(N, H, roughness);       
         float G   = GeometrySmith(N, V, L, roughness);       
-        vec3  F   = fresnelSchlick(max(dot(H, V), 0.0), F0);
+        vec3  F   = fresnelSchlick(max(dot(H, V), 0.3), F0);
+        //  F   = F_Schlick(F0, F90, VdotH);
     
 
         vec3 numerator = NDF * G * F;
         float denominator =  4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001; // prevent divide by zero.
 
         vec3 specular = numerator / denominator;
+        
 
         // kS is equal to Fresnel
         vec3 kS = F;
@@ -264,7 +269,9 @@ void main() {
 
         L0 += (kD * albedo / PI + specular) * lightIntensity * NdotL;
 
-        vec4 fragPosLightSpace = pcRaster.lightSpaceMatrix * vec4(inWorldPos, 1.0);
+        mat4 lightSpaceMatrix = lightsUni.lights[0].dirLightSpaceMatrix;
+
+        vec4 fragPosLightSpace = lightSpaceMatrix * vec4(inWorldPos, 1.0);
 
         //vec4 fragPosLightSpace = pcRaster.lightSpaceMatrix * pcRaster.modelMatrix * vec4(inModelPos, 1.0);
 
@@ -278,19 +285,7 @@ void main() {
         vec3 ambient = vec3(0.0002) * pcRaster.skyLightIntensity * albedo * ao;
 
         vec3 color = ambient + L0 + emission;
-    
-        // if(shadow == 1.0){
-        //     color = vec3(1.0,0.0,0.0);
-        // }
-        //color = vec3(shadow,shadow,shadow);
 
-        //color = vec3(fragPosLightSpace.xyz);
-
-
-
-        // color = color / (color + vec3(1.0));
-        // color = pow(color, vec3(1.0/2.2));
-        
 
         outColor = vec4(color, 1.0);
 
@@ -323,6 +318,10 @@ void main() {
                 return;
             case eBitangent:
                 outColor = vec4(inBitangent.xyz + vec3(1), 1.0);
+                return;
+            case eSpecular:
+                outColor = vec4(kD * albedo * lightIntensity * NdotL, 1.0);
+                
                 return;
 
         }

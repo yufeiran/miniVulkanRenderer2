@@ -195,7 +195,7 @@ void SkyLightRenderPass::rebuild(VkExtent2D surfaceExtent,int subpassIndex)
 	graphicsPipeline->build(renderPass);
 }
 
-ShadowMapRenderPass::ShadowMapRenderPass(Device& device, 
+DirShadowMapRenderPass::DirShadowMapRenderPass(Device& device, 
 										 ResourceManager& resourceManager, 
 										 const RenderPass& renderPass, 
 										 VkExtent2D extent, 
@@ -229,15 +229,15 @@ ShadowMapRenderPass::ShadowMapRenderPass(Device& device,
 	graphicsPipeline->build(renderPass);
 }
 
-ShadowMapRenderPass::~ShadowMapRenderPass()
+DirShadowMapRenderPass::~DirShadowMapRenderPass()
 {
 }
 
-void ShadowMapRenderPass::update()
+void DirShadowMapRenderPass::update()
 {
 }
 
-void ShadowMapRenderPass::draw(CommandBuffer& cmd, VkDescriptorSet descSet)
+void DirShadowMapRenderPass::draw(CommandBuffer& cmd, VkDescriptorSet descSet)
 {
 	VkDeviceSize offset{0};
 
@@ -264,11 +264,37 @@ void ShadowMapRenderPass::draw(CommandBuffer& cmd, VkDescriptorSet descSet)
 	}
 }
 
-void ShadowMapRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
+void DirShadowMapRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
 {
 	graphicsPipeline = std::make_unique<GraphicsPipeline>(shaderModules,*pipelineLayout,device,extent);
 	graphicsPipeline->setSubpassIndex(subpassIndex);
 
 
 	graphicsPipeline->build(renderPass);
+}
+
+PointShadowMapRenderPass::PointShadowMapRenderPass(Device& device, ResourceManager& resourceManager, const RenderPass& renderPass, VkExtent2D extent, std::shared_ptr<DescriptorSetLayout> descSetLayout, PushConstantRaster& pcRaster, int subpassIndex)
+:GraphicsRenderPass(device,resourceManager,extent),renderPass(renderPass),pcRaster(pcRaster)
+{
+
+}
+
+PointShadowMapRenderPass::~PointShadowMapRenderPass()
+{
+
+}
+
+void PointShadowMapRenderPass::update()
+{
+
+}
+
+void PointShadowMapRenderPass::draw(CommandBuffer& cmd, VkDescriptorSet descSet)
+{
+
+}
+
+void PointShadowMapRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
+{
+
 }

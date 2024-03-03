@@ -120,6 +120,7 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 
 	//createRasterPipeline();
 	createUniformBuffer();
+	createLightUniformsBuffer();
 	createObjDescriptionBuffer();	
 
 
@@ -148,9 +149,10 @@ void GraphicsPipelineBuilder::draw(CommandBuffer& cmd)
 	forwardRenderPass->draw(cmd,descSet);
 }
 
-void GraphicsPipelineBuilder::update(CommandBuffer& cmd,Camera& camera, VkExtent2D surfaceExtent)
+void GraphicsPipelineBuilder::update(CommandBuffer& cmd,Camera& camera, VkExtent2D surfaceExtent,std::vector<Light>& lights)
 {
 	updateUniformBuffer(cmd,camera,surfaceExtent);
+	updateLightUniformsBuffer(cmd,lights);
 }
 
 
@@ -172,6 +174,10 @@ void GraphicsPipelineBuilder::createDescriptorSetLayout()
 											| VK_SHADER_STAGE_MISS_BIT_KHR | VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
 
 	descSetBindings.addBinding(SceneBindings::eShadowMap, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
+
+	descSetBindings.addBinding(SceneBindings::eLight,  VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
+										VK_SHADER_STAGE_VERTEX_BIT |VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_RAYGEN_BIT_KHR |  VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
+	
 
 	descSetLayout = descSetBindings.createLayout(device);
 	descPool      = descSetBindings.createPool(device,1);
@@ -270,6 +276,11 @@ void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& renderTarget)
 
 	writes.emplace_back(descSetBindings.makeWrite(descSet,SceneBindings::eShadowMap,&shadowMapInfo));
 
+	VkDescriptorBufferInfo lightUnif{lightUniformsBuffer->getHandle(), 0, VK_WHOLE_SIZE};
+	writes.emplace_back(descSetBindings.makeWrite(descSet,SceneBindings::eLight,&lightUnif));
+
+
+
 
 	vkUpdateDescriptorSets(device.getHandle(),static_cast<uint32_t>(writes.size()),writes.data(),0,nullptr);
 }
@@ -314,5 +325,41 @@ void GraphicsPipelineBuilder::updateUniformBuffer( CommandBuffer& cmd , Camera& 
 	afterBarrier.offset        = 0;
 	afterBarrier.size          = sizeof(hostUBO);
 	vkCmdPipelineBarrier(cmd.getHandle(), VK_PIPELINE_STAGE_TRANSFER_BIT, uboUsageStages, VK_DEPENDENCY_DEVICE_GROUP_BIT, 0,
-					    nullptr, 1, &afterBarrier, 0, nullptr);
+					    nullptr, 1, &afterBarrier, 0, nullptr); 
+}
+
+void GraphicsPipelineBuilder::createLightUniformsBuffer()
+{
+	lightUniformsBuffer = std::make_unique<Buffer>(device,static_cast<VkDeviceSize>(sizeof(LightUniforms)),
+		static_cast<VkBufferUsageFlags>( VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT));
+}
+
+void GraphicsPipelineBuilder::updateLightUniformsBuffer(CommandBuffer& cmd,const std::vector<Light>& shadowLights)
+{
+	LightUniforms hostUBO = createLightUniforms(shadowLights);
+
+	// UBO on the device, and what stages access it.
+	VkBuffer deviceUBO      = lightUniformsBuffer->getHandle();
+	auto     uboUsageStages = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT | VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR;
+
+	// set lock to ensure the modified UBO is not visible to previous frames.
+	VkBufferMemoryBarrier beforeBarrier{VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER};
+	beforeBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+	beforeBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+	beforeBarrier.buffer        = deviceUBO;
+	beforeBarrier.size          = sizeof(hostUBO);
+	vkCmdPipelineBarrier(cmd.getHandle(), uboUsageStages, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_DEPENDENCY_DEVICE_GROUP_BIT, 0,
+						nullptr, 1, &beforeBarrier, 0, nullptr);
+
+	vkCmdUpdateBuffer(cmd.getHandle(), lightUniformsBuffer->getHandle(), 0, sizeof(LightUniforms),&hostUBO);
+
+	// Making sure the updated UBO will be visible
+	VkBufferMemoryBarrier afterBarrier{VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER};
+	afterBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+	afterBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+	afterBarrier.buffer        = deviceUBO;
+	afterBarrier.offset        = 0;
+	afterBarrier.size          = sizeof(hostUBO);
+	vkCmdPipelineBarrier(cmd.getHandle(), VK_PIPELINE_STAGE_TRANSFER_BIT, uboUsageStages, VK_DEPENDENCY_DEVICE_GROUP_BIT, 0,
+					    nullptr, 1, &afterBarrier, 0, nullptr); 
 }

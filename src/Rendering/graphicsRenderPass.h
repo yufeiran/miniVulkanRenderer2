@@ -70,10 +70,10 @@ namespace mini
 
 	};
 
-	class ShadowMapRenderPass :public GraphicsRenderPass
+	class DirShadowMapRenderPass :public GraphicsRenderPass
 	{
 	public:
-		ShadowMapRenderPass(Device& device,
+		DirShadowMapRenderPass(Device& device,
 						ResourceManager& resourceManager,
 						const RenderPass& renderPass,
 						VkExtent2D extent,
@@ -81,7 +81,7 @@ namespace mini
 						PushConstantRaster& pcRaster,
 						int subpassIndex = 1
 		);
-		~ShadowMapRenderPass();
+		~DirShadowMapRenderPass();
 
 		void update();
 		void draw(CommandBuffer& cmd, VkDescriptorSet descSet);
@@ -94,6 +94,33 @@ namespace mini
 
 		std::vector<std::unique_ptr<ShaderModule>> shaderModules;
 		std::unique_ptr<PipelineLayout>            pipelineLayout;
+	};
+
+	class PointShadowMapRenderPass :public GraphicsRenderPass
+	{
+	public:
+		PointShadowMapRenderPass(Device& device,
+						ResourceManager& resourceManager,
+						const RenderPass& renderPass,
+						VkExtent2D extent,
+						std::shared_ptr<DescriptorSetLayout> descSetLayout,
+						PushConstantRaster& pcRaster,
+						int subpassIndex = 1
+				);
+		~PointShadowMapRenderPass();
+
+		void update();
+		void draw(CommandBuffer& cmd, VkDescriptorSet descSet);
+
+		void rebuild(VkExtent2D surfaceExtent, int subpassIndex = 1);
+	private:
+		const RenderPass& renderPass;
+
+		PushConstantRaster& pcRaster;
+
+		std::vector<std::unique_ptr<ShaderModule>> shaderModules;
+		std::unique_ptr<PipelineLayout>            pipelineLayout;
+	
 	};
 
 	class ForwardRenderPass :public GraphicsRenderPass

@@ -77,6 +77,8 @@ set(COMMON_FILES
     ./Common/camera.cpp 
     ./Common/common.h
     ./Common/common.cpp
+    ./Common/light.h 
+    ./Common/light.cpp
 )
 
 set(PLATFORM_FILES
