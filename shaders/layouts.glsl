@@ -14,8 +14,8 @@ layout(set = 0, binding = eOutImage, rgba32f) uniform image2D image;
 layout(set = 1, binding = eGlobals) uniform _GlobalUniforms { GlobalUniforms uni; };
 layout(set = 1, binding = eObjDescs, scalar) buffer ObjDesc_ { ObjDesc i[]; } objDesc;
 layout(set = 1, binding = eTextures) uniform sampler2D[] textureSamplers;
-layout(set = 1, binding = eDirShadowMap) uniform samplerCube cubeMapTexture;
-layout(set = 1, binding = ePointShadowMap) uniform samplerCube pointShadowMapTexture;
+layout(set = 1, binding = eCubeMap) uniform samplerCube cubeMapTexture;
+
 
 layout(set = 1, binding = eLight,std140) uniform _LightUniforms {LightUniforms lightsUni;};
 
