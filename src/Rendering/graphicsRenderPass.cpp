@@ -15,7 +15,7 @@ GraphicsRenderPass::~GraphicsRenderPass()
 {
 }
 
-ForwardRenderPass::ForwardRenderPass(Device&                               device, 
+GeometryRenderPass::GeometryRenderPass(Device&                               device, 
 									 ResourceManager&                      resourceManager,
 									 const RenderPass&                     renderPass, 
 									 VkExtent2D                            extent,
@@ -25,8 +25,8 @@ ForwardRenderPass::ForwardRenderPass(Device&                               devic
 	)
 	:GraphicsRenderPass(device,resourceManager,extent),renderPass(renderPass),pcRaster(pcRaster)
 {
-	rasterShaderModules.push_back(std::make_unique<ShaderModule>("../../spv/vertexShader.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
-	rasterShaderModules.push_back(std::make_unique<ShaderModule>("../../spv/fragmentShader.frag.spv", device, VK_SHADER_STAGE_FRAGMENT_BIT));
+	rasterShaderModules.push_back(std::make_unique<ShaderModule>("../../spv/geometry.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
+	rasterShaderModules.push_back(std::make_unique<ShaderModule>("../../spv/geometry.frag.spv", device, VK_SHADER_STAGE_FRAGMENT_BIT));
 	
 	std::vector<VkPushConstantRange> pushConstants;
 	VkPushConstantRange pushConstant={};
@@ -35,25 +35,6 @@ ForwardRenderPass::ForwardRenderPass(Device&                               devic
 	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 	pushConstants.push_back(pushConstant);
 
-	//VkDescriptorSetLayoutBinding uboLayoutBinding{};
-	//uboLayoutBinding.binding = 0;
-	//uboLayoutBinding.descriptorCount = 1;
-	//uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	//uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-	//uboLayoutBinding.pImmutableSamplers = nullptr;
-
-	//VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-	//samplerLayoutBinding.binding = 1;
-	//samplerLayoutBinding.descriptorCount=1;
-	//samplerLayoutBinding.descriptorType=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	//samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	//samplerLayoutBinding.pImmutableSamplers = nullptr;
-
-	//std::vector<VkDescriptorSetLayoutBinding>layoutBindings{uboLayoutBinding,samplerLayoutBinding};
-
-
-
-	//rasterDescriptorSetLayouts.push_back(std::make_unique<DescriptorSetLayout>(*device,layoutBindings));
 
     std::vector<std::shared_ptr<DescriptorSetLayout>>  descSetLayouts;
 	descSetLayouts.push_back(descSetLayout);
@@ -63,21 +44,33 @@ ForwardRenderPass::ForwardRenderPass(Device&                               devic
 
 	graphicsPipeline = std::make_unique<GraphicsPipeline>(rasterShaderModules,*rasterPipelineLayout,device,extent);
 
+
+	auto colorBlendAttachment = graphicsPipeline->colorBlendAttachment;
+	std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachments;
+	colorBlendAttachments.push_back(colorBlendAttachment);
+	colorBlendAttachments.push_back(colorBlendAttachment);
+	colorBlendAttachments.push_back(colorBlendAttachment);
+	colorBlendAttachments.push_back(colorBlendAttachment);
+	colorBlendAttachments.push_back(colorBlendAttachment);
+
+	graphicsPipeline->colorBlending.attachmentCount = static_cast<uint32_t>(colorBlendAttachments.size());
+	graphicsPipeline->colorBlending.pAttachments = colorBlendAttachments.data();
+
 	graphicsPipeline->setSubpassIndex(subpassIndex);
 
 	graphicsPipeline->build(renderPass);
 }
 
-mini::ForwardRenderPass::~ForwardRenderPass()
+mini::GeometryRenderPass::~GeometryRenderPass()
 {
 }
 
-void ForwardRenderPass::update()
+void GeometryRenderPass::update()
 {
 
 }
 
-void ForwardRenderPass::draw(CommandBuffer& cmd, VkDescriptorSet descSet)
+void GeometryRenderPass::draw(CommandBuffer& cmd, std::vector<VkDescriptorSet> descSet)
 {
 	VkDeviceSize offset{0};
 
@@ -106,7 +99,7 @@ void ForwardRenderPass::draw(CommandBuffer& cmd, VkDescriptorSet descSet)
 
 }
 
-void ForwardRenderPass::rebuild(VkExtent2D surfaceExtent,int subpassIndex)
+void GeometryRenderPass::rebuild(VkExtent2D surfaceExtent,int subpassIndex)
 {
 	graphicsPipeline = std::make_unique<GraphicsPipeline>(rasterShaderModules,*rasterPipelineLayout,device,surfaceExtent);
 	graphicsPipeline->setSubpassIndex(subpassIndex);
@@ -160,7 +153,7 @@ void SkyLightRenderPass::update()
 
 }
 
-void SkyLightRenderPass::draw(CommandBuffer& cmd, VkDescriptorSet descSet)
+void SkyLightRenderPass::draw(CommandBuffer& cmd, std::vector<VkDescriptorSet> descSet)
 {
 	VkDeviceSize offset{0};
 
@@ -237,7 +230,7 @@ void DirShadowMapRenderPass::update()
 {
 }
 
-void DirShadowMapRenderPass::draw(CommandBuffer& cmd, VkDescriptorSet descSet)
+void DirShadowMapRenderPass::draw(CommandBuffer& cmd, std::vector<VkDescriptorSet> descSet)
 {
 	VkDeviceSize offset{0};
 
@@ -313,7 +306,7 @@ void PointShadowMapRenderPass::update()
 
 }
 
-void PointShadowMapRenderPass::draw(CommandBuffer& cmd, VkDescriptorSet descSet)
+void PointShadowMapRenderPass::draw(CommandBuffer& cmd, std::vector<VkDescriptorSet> descSet)
 {
 	VkDeviceSize offset{0};
 
@@ -347,4 +340,67 @@ void PointShadowMapRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassInde
 
 
 	graphicsPipeline->build(renderPass);
+}
+
+LightingRenderPass::LightingRenderPass(Device& device, ResourceManager& resourceManager, const RenderPass& renderPass, VkExtent2D extent, std::shared_ptr<DescriptorSetLayout> globalDescSetLayout,std::shared_ptr<DescriptorSetLayout> gBufferDescSetLayout, PushConstantRaster& pcRaster, int subpassIndex)
+:GraphicsRenderPass(device,resourceManager,extent),renderPass(renderPass),pcRaster(pcRaster),postQuad(device)
+{
+	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/lighting.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/lighting.frag.spv", device, VK_SHADER_STAGE_FRAGMENT_BIT));
+	
+	std::vector<VkPushConstantRange> pushConstants;
+	VkPushConstantRange pushConstant={};
+	pushConstant.offset = 0;
+	pushConstant.size = sizeof(PushConstantRaster);
+	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+	pushConstants.push_back(pushConstant);
+
+
+    std::vector<std::shared_ptr<DescriptorSetLayout>>  descSetLayouts;
+	descSetLayouts.push_back(globalDescSetLayout);
+	descSetLayouts.push_back(gBufferDescSetLayout);
+
+	pipelineLayout = std::make_unique<PipelineLayout>(device,descSetLayouts,pushConstants);
+
+
+	graphicsPipeline = std::make_unique<GraphicsPipeline>(shaderModules,*pipelineLayout,device,extent);
+
+
+	graphicsPipeline->setSubpassIndex(subpassIndex);
+
+	graphicsPipeline->build(renderPass);
+}
+
+LightingRenderPass::~LightingRenderPass()
+{
+
+}
+
+void LightingRenderPass::update()
+{
+
+}
+
+void LightingRenderPass::draw(CommandBuffer& cmd, std::vector<VkDescriptorSet> descSet)
+{
+
+	cmd.bindPipeline(*graphicsPipeline);
+
+	cmd.bindDescriptorSet(descSet);
+
+
+	vkCmdPushConstants(cmd.getHandle(), pipelineLayout->getHandle(), VK_SHADER_STAGE_VERTEX_BIT|VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstantPost), &pcRaster);
+	cmd.bindVertexBuffer(postQuad.getVertexBuffer());
+
+	cmd.setViewPortAndScissor(extent);
+
+	cmd.draw(3,1,0,0);
+	cmd.draw(3,1,1,0);
+
+
+}
+
+void LightingRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
+{
+
 }

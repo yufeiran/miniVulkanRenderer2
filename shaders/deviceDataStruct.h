@@ -34,6 +34,14 @@ START_ENUM(RtBindings)
 	eOutImage = 1
 END_ENUM();
 
+START_ENUM(GBufferType)
+	eGPosition   = 0,
+	eGNormal     = 1,
+	eGAlbedo     = 2,
+	eGMetalRough = 3,
+	eGDepth      = 4
+END_ENUM();
+
 START_ENUM(DebugMode)
 	eNoDebug   = 0,  //
 	eBaseColor = 1,  //

@@ -8,6 +8,7 @@
 #include "Vulkan/graphicsPipeline.h"
 #include "ResourceManagement/ResourceManager.h"
 #include "Rendering/skyLightCube.h"
+#include "postQuad.h"
 
 namespace mini
 {
@@ -26,7 +27,7 @@ namespace mini
 		~GraphicsRenderPass();
 
 		virtual void update() = 0;
-		virtual void draw(CommandBuffer& cmd,VkDescriptorSet descSet) = 0;
+		virtual void draw(CommandBuffer& cmd,std::vector<VkDescriptorSet> descSet) = 0;
 
 		GraphicsPipeline& getGraphicsPipeline() { return *graphicsPipeline; }
 	protected:
@@ -53,7 +54,7 @@ namespace mini
 		~SkyLightRenderPass();
 
 		void update();
-		void draw(CommandBuffer& cmd, VkDescriptorSet descSet);
+		void draw(CommandBuffer& cmd, std::vector<VkDescriptorSet> descSet);
 
 		void rebuild(VkExtent2D surfaceExtent,int subpassIndex = 0);
 
@@ -84,7 +85,7 @@ namespace mini
 		~DirShadowMapRenderPass();
 
 		void update();
-		void draw(CommandBuffer& cmd, VkDescriptorSet descSet);
+		void draw(CommandBuffer& cmd, std::vector<VkDescriptorSet> descSet);
 
 		void rebuild(VkExtent2D surfaceExtent, int subpassIndex = 1);
 	private:
@@ -110,7 +111,7 @@ namespace mini
 		~PointShadowMapRenderPass();
 
 		void update();
-		void draw(CommandBuffer& cmd, VkDescriptorSet descSet);
+		void draw(CommandBuffer& cmd, std::vector<VkDescriptorSet> descSet);
 
 		void rebuild(VkExtent2D surfaceExtent, int subpassIndex = 1);
 	private:
@@ -123,10 +124,10 @@ namespace mini
 	
 	};
 
-	class ForwardRenderPass :public GraphicsRenderPass
+	class GeometryRenderPass :public GraphicsRenderPass
 	{
 	public:
-		ForwardRenderPass(Device& device, 
+		GeometryRenderPass(Device& device, 
 						  ResourceManager& resourceManager,
 						  const RenderPass& renderPass,
 						  VkExtent2D extent,
@@ -134,10 +135,10 @@ namespace mini
 						  PushConstantRaster& pcRaster,
 						  int subpassIndex = 2
 		);
-		~ForwardRenderPass();
+		~GeometryRenderPass();
 
 		void update();
-		void draw(CommandBuffer& cmd,VkDescriptorSet descSet);
+		void draw(CommandBuffer& cmd,std::vector<VkDescriptorSet> descSet);
 
 		void rebuild(VkExtent2D surfaceExtent, int subpassIndex = 2);
 	private:
@@ -149,6 +150,36 @@ namespace mini
 		std::unique_ptr<PipelineLayout>       rasterPipelineLayout;
 
 	};
+
+	class LightingRenderPass :public GraphicsRenderPass
+	{
+		public:
+		LightingRenderPass(Device& device,
+						ResourceManager& resourceManager,
+						const RenderPass& renderPass,
+						VkExtent2D extent,
+						std::shared_ptr<DescriptorSetLayout> descSetLayout,
+						std::shared_ptr<DescriptorSetLayout> gBufferDescSetLayout,
+						PushConstantRaster& pcRaster,
+						int subpassIndex = 3
+				);
+		~LightingRenderPass();
+
+		void update();
+		void draw(CommandBuffer& cmd, std::vector<VkDescriptorSet> descSet);
+
+		void rebuild(VkExtent2D surfaceExtent, int subpassIndex = 3);
+	private:
+		PostQuad postQuad;
+		const RenderPass& renderPass;
+
+		PushConstantRaster& pcRaster;
+
+		std::vector<std::unique_ptr<ShaderModule>> shaderModules;
+		std::unique_ptr<PipelineLayout>            pipelineLayout;
+	
+	};
+
 
 
 }

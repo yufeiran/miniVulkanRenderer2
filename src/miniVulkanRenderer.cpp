@@ -374,7 +374,7 @@ void MiniVulkanRenderer::init(int width, int height)
 	auto& shadowMapRenderTarget = shadowPipelineBuilder->getDirRenderTarget();
 	auto& PointShadowMapRenderPass = shadowPipelineBuilder->getPointRenderTarget();
 
-	graphicsPipelineBuilder->updateDescriptorSet(shadowMapRenderTarget,PointShadowMapRenderPass);
+	graphicsPipelineBuilder->updateDescriptorSet(shadowMapRenderTarget,PointShadowMapRenderPass,*offscreenRenderTarget);
 
 
 
@@ -964,6 +964,8 @@ void MiniVulkanRenderer::loop()
 		
 		graphicsPipelineBuilder->update(cmd,camera,surfaceExtent,lights);
 
+
+
 		// Raster render pass
 		{
 			
@@ -978,12 +980,18 @@ void MiniVulkanRenderer::loop()
 			}
 			else 
 			{
-				shadowPipelineBuilder->draw(cmd);
+				clearValues = std::vector<VkClearValue>(6);
 
-				auto& rasterRenderPass = graphicsPipelineBuilder->getRasterRenderPass();
-				cmd.beginRenderPass(rasterRenderPass, *offscreenFramebuffer,clearValues);
-				rasterize(cmd);
-				cmd.endRenderPass();
+				clearValues[0].color = defaultClearColor;
+				clearValues[1].depthStencil = { 1.0f,0 };
+				clearValues[2].color = {0,0,0};
+				clearValues[3].color = {0,0,0};
+				clearValues[4].color = {0,0,0};
+				clearValues[5].color = {0,0,0};
+
+
+				rasterize(cmd,clearValues);
+
 			}
 
 		}
@@ -1044,10 +1052,16 @@ void MiniVulkanRenderer::updateInstances()
 	rayTracingBuilder->buildTlas(tlas, rtFlags, true);
 }
 
-void MiniVulkanRenderer::rasterize(CommandBuffer& cmd)
+void MiniVulkanRenderer::rasterize(CommandBuffer& cmd,const std::vector<VkClearValue>& clearColors)
 {
 
+	shadowPipelineBuilder->draw(cmd);
+
+	auto& rasterRenderPass = graphicsPipelineBuilder->getRasterRenderPass();
+	cmd.beginRenderPass(rasterRenderPass, *offscreenFramebuffer,clearColors);
 	graphicsPipelineBuilder->draw(cmd);
+	cmd.endRenderPass();
+
 
 	//VkDeviceSize offset{0};
 
@@ -1422,7 +1436,7 @@ void MiniVulkanRenderer::handleSizeChange()
 	updatePostDescriptorSet();
 
 	graphicsPipelineBuilder->rebuild(extent);
-	graphicsPipelineBuilder->updateDescriptorSet(shadowPipelineBuilder->getDirRenderTarget(),shadowPipelineBuilder->getPointRenderTarget());
+	graphicsPipelineBuilder->updateDescriptorSet(shadowPipelineBuilder->getDirRenderTarget(),shadowPipelineBuilder->getPointRenderTarget(),*offscreenRenderTarget);
 
 
 
@@ -1451,17 +1465,30 @@ void MiniVulkanRenderer::createOffScreenFrameBuffer()
 
 	std::vector<Image> images;
 
-	auto imageColor = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT);
+	auto imageColor = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT );
 	
 
 	auto depthFormat = imageColor.getDevice().getPhysicalDevice().findDepthFormat();
     std::unique_ptr<Image> depthImage = std::make_unique<Image>(imageColor.getDevice(),
-        imageColor.getExtent(), depthFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+        imageColor.getExtent(), depthFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
 
+
+	// GBuffer
+	auto imagePos = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
+	auto imageNormal = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
+	auto imageAlbedoSpec = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
+	auto imageMetalRough = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
+	
 
 
     images.push_back(std::move(imageColor));
     images.push_back(std::move(*depthImage));
+	images.push_back(std::move(imagePos));
+	images.push_back(std::move(imageNormal));
+	images.push_back(std::move(imageAlbedoSpec));
+	images.push_back(std::move(imageMetalRough));
+
+
 
 
 	

@@ -151,12 +151,12 @@ void ShadowPipelineBuilder::draw(CommandBuffer& cmd)
 	clearValues[0].depthStencil = { 1.0f,0 };
 
 	cmd.beginRenderPass(*dirShadowRenderPass, *dirShadowFramebuffer,clearValues);
-	shadowMapRenderPass->draw(cmd,descSet);
+	shadowMapRenderPass->draw(cmd,{descSet});
 
 	cmd.endRenderPass();
 
 	cmd.beginRenderPass(*pointShadowRenderPass, *pointShadowFramebuffer,clearValues);
-	pointShadowMapRenderPass->draw(cmd,descSet);
+	pointShadowMapRenderPass->draw(cmd,{descSet});
 
 	cmd.endRenderPass();
 

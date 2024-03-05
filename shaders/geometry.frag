@@ -48,6 +48,10 @@ layout(location = 6) in vec3 inBitangent;
 layout(location = 7) in vec3 inModelPos;
 
 layout(location = 0) out vec4 outColor;
+layout(location = 1) out vec3 gPosition;
+layout(location = 2) out vec3 gNormal;
+layout(location = 3) out vec4 gAlbedoSpce;
+layout(location = 4) out vec4 gMetalRough;
 
 vec4 SRGBtoLINEAR(vec4 srgbIn)
 {
@@ -307,9 +311,13 @@ void main() {
         vec3 color = ambient + L0 + emission;
 
 
+        
+        gPosition = inWorldPos;
+        gNormal   = inWorldNormal;
+        gAlbedoSpce = vec4(albedo, specular);
+        gMetalRough = vec4(metallic, roughness, 0.0, 0.0);
+
         outColor = vec4(color, 1.0);
-
-
         switch(pcRaster.debugMode)
         {
             case eNormal:

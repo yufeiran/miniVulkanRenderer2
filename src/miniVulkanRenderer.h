@@ -101,7 +101,7 @@ public:
 
 	void raytrace(CommandBuffer& cmd, const glm::vec4& clearColor);
 
-	void rasterize(CommandBuffer& cmd);
+	void rasterize(CommandBuffer& cmd,const std::vector<VkClearValue>& clearColors);
 
 	// ui---------------------
 	void renderUI(std::vector<VkClearValue>& clearValues);
