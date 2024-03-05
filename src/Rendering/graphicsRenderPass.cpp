@@ -47,11 +47,13 @@ GeometryRenderPass::GeometryRenderPass(Device&                               dev
 
 	auto colorBlendAttachment = graphicsPipeline->colorBlendAttachment;
 	std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachments;
-	colorBlendAttachments.push_back(colorBlendAttachment);
-	colorBlendAttachments.push_back(colorBlendAttachment);
-	colorBlendAttachments.push_back(colorBlendAttachment);
-	colorBlendAttachments.push_back(colorBlendAttachment);
-	colorBlendAttachments.push_back(colorBlendAttachment);
+
+	colorBlendAttachments.push_back(colorBlendAttachment); // Color
+	colorBlendAttachments.push_back(colorBlendAttachment); // position
+	colorBlendAttachments.push_back(colorBlendAttachment); // normal
+	colorBlendAttachments.push_back(colorBlendAttachment); // albedo
+	colorBlendAttachments.push_back(colorBlendAttachment); // metallicRoughness
+	colorBlendAttachments.push_back(colorBlendAttachment); // emissive
 
 	graphicsPipeline->colorBlending.attachmentCount = static_cast<uint32_t>(colorBlendAttachments.size());
 	graphicsPipeline->colorBlending.pAttachments = colorBlendAttachments.data();

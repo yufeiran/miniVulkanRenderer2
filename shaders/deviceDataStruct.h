@@ -39,7 +39,9 @@ START_ENUM(GBufferType)
 	eGNormal     = 1,
 	eGAlbedo     = 2,
 	eGMetalRough = 3,
-	eGDepth      = 4
+	eGEmission   = 4,
+	eGDepth      = 5
+
 END_ENUM();
 
 START_ENUM(DebugMode)

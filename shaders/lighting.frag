@@ -36,11 +36,12 @@ layout(binding= eGlobals) uniform _GlobalUniforms{
 
 
 
-layout (input_attachment_index = 0, set = 1, binding = 0) uniform subpassInput inputPosition;
-layout (input_attachment_index = 1, set = 1, binding = 1) uniform subpassInput inputNormal;
-layout (input_attachment_index = 2, set = 1, binding = 2) uniform subpassInput inputAlbedo;
-layout (input_attachment_index = 3, set = 1, binding = 3) uniform subpassInput inputMetalRough;
-layout (input_attachment_index = 4, set = 1, binding = 4) uniform subpassInput inputDepth;
+layout (input_attachment_index = eGPosition   , set = 1, binding = eGPosition   ) uniform subpassInput inputPosition;
+layout (input_attachment_index = eGNormal     , set = 1, binding = eGNormal     ) uniform subpassInput inputNormal;
+layout (input_attachment_index = eGAlbedo     , set = 1, binding = eGAlbedo     ) uniform subpassInput inputAlbedo;
+layout (input_attachment_index = eGMetalRough , set = 1, binding = eGMetalRough ) uniform subpassInput inputMetalRough;
+layout (input_attachment_index = eGEmission   , set = 1, binding = eGEmission   ) uniform subpassInput inputEmission;
+layout (input_attachment_index = eGDepth      , set = 1, binding = eGDepth      ) uniform subpassInput inputDepth;
 
 
 layout(location = 0) in vec2 TexCoords;
@@ -49,12 +50,31 @@ layout(location = 0) out vec4 outColor;
 
 
 
+
+
 void main() {
+
+
     vec3 fragPos = subpassLoad(inputPosition).rgb;
-    vec3 fragColor = subpassLoad(inputAlbedo).rgb;
-    
-    outColor = vec4(fragColor, 1.0);
-  
+
+    vec3 origin = vec3(uni.viewInverse * vec4(0,0,0,1));
+
+    vec3 viewDir = normalize(fragPos - origin);
+
+
+
+    State state;
+    state.position = fragPos;
+    state.normal = subpassLoad(inputNormal).rgb * 2.0 - 1.0;;
+    state.ffnormal = dot(state.normal, viewDir) >= 0.0 ? state.normal : -state.normal;
+    createCoordinateSystem(state.normal, state.tangent, state.bitangent);
+
+    state.mat.albedo = subpassLoad(inputAlbedo).rgb;
+    state.mat.metallic = subpassLoad(inputMetalRough).r;
+    state.mat.roughness = subpassLoad(inputMetalRough).g;
+    state.mat.ior = 1.4;
+
+
 
 
 }

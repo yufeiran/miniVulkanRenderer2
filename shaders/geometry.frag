@@ -52,6 +52,7 @@ layout(location = 1) out vec3 gPosition;
 layout(location = 2) out vec3 gNormal;
 layout(location = 3) out vec4 gAlbedoSpce;
 layout(location = 4) out vec4 gMetalRough;
+layout(location = 5) out vec4 gEmissive;
 
 vec4 SRGBtoLINEAR(vec4 srgbIn)
 {
@@ -313,9 +314,10 @@ void main() {
 
         
         gPosition = inWorldPos;
-        gNormal   = inWorldNormal;
+        gNormal   = inWorldNormal.rgb * 0.5 + 0.5 ;
         gAlbedoSpce = vec4(albedo, specular);
         gMetalRough = vec4(metallic, roughness, 0.0, 0.0);
+        gEmissive = vec4(emission, 1.0);
 
         outColor = vec4(color, 1.0);
         switch(pcRaster.debugMode)

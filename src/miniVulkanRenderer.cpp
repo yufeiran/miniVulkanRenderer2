@@ -980,7 +980,7 @@ void MiniVulkanRenderer::loop()
 			}
 			else 
 			{
-				clearValues = std::vector<VkClearValue>(6);
+				clearValues = std::vector<VkClearValue>(7);
 
 				clearValues[0].color = defaultClearColor;
 				clearValues[1].depthStencil = { 1.0f,0 };
@@ -988,6 +988,7 @@ void MiniVulkanRenderer::loop()
 				clearValues[3].color = {0,0,0};
 				clearValues[4].color = {0,0,0};
 				clearValues[5].color = {0,0,0};
+				clearValues[6].color = {0,0,0};
 
 
 				rasterize(cmd,clearValues);
@@ -1478,7 +1479,7 @@ void MiniVulkanRenderer::createOffScreenFrameBuffer()
 	auto imageNormal = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
 	auto imageAlbedoSpec = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
 	auto imageMetalRough = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
-	
+	auto imageEmissive = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
 
 
     images.push_back(std::move(imageColor));
@@ -1487,6 +1488,7 @@ void MiniVulkanRenderer::createOffScreenFrameBuffer()
 	images.push_back(std::move(imageNormal));
 	images.push_back(std::move(imageAlbedoSpec));
 	images.push_back(std::move(imageMetalRough));
+	images.push_back(std::move(imageEmissive));
 
 
 

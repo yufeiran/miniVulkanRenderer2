@@ -51,6 +51,7 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 		subpassInfo.output.push_back(3);
 		subpassInfo.output.push_back(4);
 		subpassInfo.output.push_back(5);
+		subpassInfo.output.push_back(6);
 
 		VkSubpassDependency geomToLightingDependency = {};
 
@@ -77,10 +78,11 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 		subpassInfo.input.push_back(3);
 		subpassInfo.input.push_back(4);
 		subpassInfo.input.push_back(5);
+		subpassInfo.input.push_back(6);
 		subpassInfo.input.push_back(1);
 
+
 		subpassInfo.output.push_back(0);
-		subpassInfo.output.push_back(1);
 
 		VkSubpassDependency lightDependency = {};
 
@@ -145,6 +147,12 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 
 		attachments.push_back(metalRoughAttachment);
 
+		Attachment emissionAttachment{ offscreenColorFormat,VK_SAMPLE_COUNT_1_BIT,VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT };
+		emissionAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		emissionAttachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
+
+		attachments.push_back(emissionAttachment);
+
 
 	}
 
@@ -187,6 +195,13 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 		metalRoughLoadStoreInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 
 		loadStoreInfos.push_back(metalRoughLoadStoreInfo);
+
+		LoadStoreInfo emissionLoadStoreInfo{};
+
+		emissionLoadStoreInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		emissionLoadStoreInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+		loadStoreInfos.push_back(emissionLoadStoreInfo);
 
 	}
 
@@ -282,7 +297,9 @@ void GraphicsPipelineBuilder::createDescriptorSetLayout()
 	gBufferDescSetBindings.addBinding(GBufferType::eGNormal, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
 	gBufferDescSetBindings.addBinding(GBufferType::eGAlbedo, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
 	gBufferDescSetBindings.addBinding(GBufferType::eGMetalRough, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
+	gBufferDescSetBindings.addBinding(GBufferType::eGEmission, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
 	gBufferDescSetBindings.addBinding(GBufferType::eGDepth, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
+
 
 	gBufferDescSetLayout = gBufferDescSetBindings.createLayout(device);
 	gBufferDescPool = gBufferDescSetBindings.createPool(device, 1);
@@ -352,7 +369,8 @@ void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& dirShadowRenderT
 
 
 
-	std::array<VkDescriptorImageInfo, 5> descriptors{};
+	const int GBufferCount = 6;
+	std::array<VkDescriptorImageInfo, GBufferCount> descriptors{};
 
 	// Position
 
@@ -379,57 +397,34 @@ void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& dirShadowRenderT
 	descriptors[3].imageView = offscreenRenderTarget.getImageViewByIndex(5).getHandle();;
 	descriptors[3].sampler = resourceManager.getDefaultSampler().getHandle();
 
-	// Depth
+	// emssion
 	descriptors[4].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	// 指定 Input attachment 资源视图
-	descriptors[4].imageView = offscreenRenderTarget.getImageViewByIndex(1).getHandle();;
+	descriptors[4].imageView = offscreenRenderTarget.getImageViewByIndex(6).getHandle();
 	descriptors[4].sampler = resourceManager.getDefaultSampler().getHandle();
 
 
+	// Depth
+	descriptors[5].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	// 指定 Input attachment 资源视图
+	descriptors[5].imageView = offscreenRenderTarget.getImageViewByIndex(1).getHandle();;
+	descriptors[5].sampler = resourceManager.getDefaultSampler().getHandle();
 
-	std::array<VkWriteDescriptorSet, 5> writeDescriptorSets{};
 
-	writeDescriptorSets[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	// 指定根据上面 DescriptorSet layout 创建的 DescriptorSet
-	writeDescriptorSets[0].dstSet = gBufferDescSet;
-	// 指定描述符类型为 Input Attachment，此处与上一步描述符设置的类型一致
-	writeDescriptorSets[0].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-	writeDescriptorSets[0].descriptorCount = 1;
-	writeDescriptorSets[0].dstBinding = 0;
-	writeDescriptorSets[0].pImageInfo = &descriptors[0];
 
-	writeDescriptorSets[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	// 指定根据上面 DescriptorSet layout 创建的 DescriptorSet
-	writeDescriptorSets[1].dstSet = gBufferDescSet;
-	// 指定描述符类型为 Input Attachment，此处与上一步描述符设置的描述符类型一致
-	writeDescriptorSets[1].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-	writeDescriptorSets[1].descriptorCount = 1;
-	writeDescriptorSets[1].dstBinding = 1;
-	writeDescriptorSets[1].pImageInfo = &descriptors[1];
 
-	writeDescriptorSets[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	writeDescriptorSets[2].dstSet = gBufferDescSet;
-	// 指定描述符类型为 Input Attachment，此处与上一步描述符设置的描述符类型一致
-	writeDescriptorSets[2].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-	writeDescriptorSets[2].descriptorCount = 1;
-	writeDescriptorSets[2].dstBinding = 2;
-	writeDescriptorSets[2].pImageInfo = &descriptors[2];
+	std::array<VkWriteDescriptorSet, GBufferCount> writeDescriptorSets{};
 
-	writeDescriptorSets[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	writeDescriptorSets[3].dstSet = gBufferDescSet;
-	// 指定描述符类型为 Input Attachment，此处与上一步描述符设置的描述符类型一致
-	writeDescriptorSets[3].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-	writeDescriptorSets[3].descriptorCount = 1;
-	writeDescriptorSets[3].dstBinding = 3;
-	writeDescriptorSets[3].pImageInfo = &descriptors[3];
+	for(int i =0; i< GBufferCount;i++)
+	{
+		writeDescriptorSets[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		writeDescriptorSets[i].dstSet = gBufferDescSet;
+		writeDescriptorSets[i].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+		writeDescriptorSets[i].descriptorCount = 1;
+		writeDescriptorSets[i].dstBinding = i;
+		writeDescriptorSets[i].pImageInfo = &descriptors[i];
+	}
 
-	writeDescriptorSets[4].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	writeDescriptorSets[4].dstSet = gBufferDescSet;
-	// 指定描述符类型为 Input Attachment，此处与上一步描述符设置的描述符类型一致
-	writeDescriptorSets[4].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-	writeDescriptorSets[4].descriptorCount = 1;
-	writeDescriptorSets[4].dstBinding = 4;
-	writeDescriptorSets[4].pImageInfo = &descriptors[4];
 
 	// 将资源绑定到描述符集
 	vkUpdateDescriptorSets(device.getHandle(), writeDescriptorSets.size(), writeDescriptorSets.data(), 0, nullptr);
