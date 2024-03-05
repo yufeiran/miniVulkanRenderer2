@@ -6,6 +6,11 @@
 #include "globals.glsl"
 #include "random.glsl"
 
+float powerHeuristic(float a, float b)
+{
+    float t = a * a;
+    return t / (b * b + t);
+}
 
 float clampedDot(vec3 x, vec3 y)
 {

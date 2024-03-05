@@ -2,7 +2,7 @@
 #include "random.glsl"
 #include "shadeState.glsl"
 #include "gltfMaterial.glsl"
-#include "pbr_gltf.glsl"
+#include "pbr.glsl"
 
 
 vec3 Sample(in State state, in vec3 V, in vec3 N,inout vec3 L, inout float pdf, inout uint seed)
@@ -117,6 +117,8 @@ vec3 PathTrace(Ray r)
         // fill the material 
         GetMaterialsAndTextures(state, prd, r);
 
+        bool isInside = dot(state.normal, r.direction) > 0.0;
+
 
 
         if(pcRay.debugMode !=  eNoDebug)
@@ -161,6 +163,7 @@ vec3 PathTrace(Ray r)
         // }
 
 
+
         if(bsdfSampleRec.pdf > 0.0)
         {
             throughput *= bsdfSampleRec.f * abs(dot(state.ffnormal, bsdfSampleRec.L)) / bsdfSampleRec.pdf;
@@ -170,7 +173,73 @@ vec3 PathTrace(Ray r)
             break;
         }
 
+        vec3 L = vec3(0); // vector to light
+        float lightIntensity = 0.0;
+        float lightDistance = 100000.0;
+        float lightPdf = 1.0;
+
+       
+        lightIntensity = lightsUni.lights[0].intensity;
+        vec3 lightPos = lightsUni.lights[0].position.xyz;
+        if(lightsUni.lights[0].type == 0)
+        {
+            vec3  lDir     = lightPos - state.position;
+            float d        = length(lDir);
+            lightIntensity = lightIntensity / (d *d);
+                //(LIGHT_QUADRATIC * d * d + LIGHT_LINEAR * d + LIGHT_CONSTANT + 0.0001);
+            L              = normalize(-lDir);   
+        }
+        else 
+        { 
+            L = normalize(-lightPos);
+        }
+
+
+
+
         // Direction Light
+        vec3 Li = vec3(0);
+        if(state.mat.transmission > 0.0 && isInside || dot(state.ffnormal, L)<0)
+        {
+            BsdfSampleRec directBsdf;
+
+            
+            directBsdf.f = PbrEval(state, -r.direction, state.ffnormal, -L,directBsdf.pdf);
+            float misWeightBsdf = max(0, powerHeuristic(directBsdf.pdf, lightPdf));
+            
+            Li = misWeightBsdf * directBsdf.f * abs(dot(state.ffnormal, L)) * lightIntensity * throughput / directBsdf.pdf;
+        }
+
+        if(state.mat.transmission > 0.0 && isInside || dot(state.ffnormal, L)<0)
+        {
+            prdShadow.isShadowed = true;
+
+            uint rayFlags = gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT | gl_RayFlagsCullBackFacingTrianglesEXT;
+
+            traceRayEXT(topLevelAS,   // acceleration structure
+                        rayFlags,     // rayFlags
+                        0xFF,         // cullMask
+                        0,            // sbtRecordOffset
+                        0,            // sbtRecordStride
+                        1,            // missIndex
+                        state.position,     // ray origin
+                        0.0,          // ray min range
+                        -L,            // ray direction
+                        lightDistance,         // ray max range
+                        1             // payload layout(location = 1)
+            );
+
+            if(!prdShadow.isShadowed)
+            {
+                if(any(isnan(Li)))
+                {
+                    Li = vec3(0);
+                }
+                radiance += Li;
+            }
+
+        }
+
 
 
         r.direction = bsdfSampleRec.L;

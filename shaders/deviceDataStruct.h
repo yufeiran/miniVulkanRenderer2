@@ -70,6 +70,7 @@ struct LightDesc
 {
 	vec4 position;
 	vec4 color;
+	vec4 direction;
 
 	mat4  dirLightSpaceMatrix;
 	mat4  pointLightSpaceMatrix[6];

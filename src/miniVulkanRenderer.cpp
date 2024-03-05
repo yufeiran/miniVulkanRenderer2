@@ -19,7 +19,7 @@ using namespace std::chrono;
 
 void MiniVulkanRenderer::load()
 {
-	int testCase = 1;
+	int testCase = 2;
 	switch(testCase)
 	{
 	case 0:
@@ -221,7 +221,7 @@ void MiniVulkanRenderer::loadSponza()
 	
 	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",objMat);
 
-	resourceManager->loadScene("../../assets/lightScene.gltf");
+	//resourceManager->loadScene("../../assets/lightScene.gltf");
 }
 
 

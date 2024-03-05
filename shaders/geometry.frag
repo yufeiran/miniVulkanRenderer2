@@ -11,7 +11,7 @@
 
 #include "deviceDataStruct.h"
 #include "wavefront.glsl"
-#include "pbr_gltf.glsl"
+#include "pbr.glsl"
 
 
 layout(buffer_reference, scalar) buffer Vertices {Vertex v[]; };

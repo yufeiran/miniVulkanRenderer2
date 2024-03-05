@@ -7,6 +7,7 @@
 
 layout(push_constant) uniform _PushConstantRay {PushConstantRay pcRay; };
 layout(location = 0) rayPayloadEXT hitPayload prd;
+layout(location = 1) rayPayloadEXT shadowPayload prdShadow;
 
 layout(set = 0, binding = eTlas) uniform accelerationStructureEXT topLevelAS;
 layout(set = 0, binding = eOutImage, rgba32f) uniform image2D image;

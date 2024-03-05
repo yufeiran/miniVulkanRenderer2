@@ -38,6 +38,11 @@ struct hitPayload
 
 };
 
+struct shadowPayload 
+{
+    bool isShadowed;
+};
+
 struct Material
 {
     vec3   albedo;
