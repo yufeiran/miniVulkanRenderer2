@@ -8,7 +8,7 @@
 * Raster
 ![raster](assets/screenshot/shadowMappingPoint_raster.png)
 * RayTracing
-![raytracing](assets/screenshot/shadowMappingPoint_raytracing.png)|
+![raytracing](assets/screenshot/shadowMappingPoint_raytracing.png)
 
 
 
