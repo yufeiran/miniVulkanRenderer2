@@ -3,7 +3,8 @@
 
 #include "random.glsl"
 #include "deviceDataStruct.h"
-#include "layouts.glsl"
+#include "layouts.glsl" 
+
 
 vec4 SRGBtoLINEAR(vec4 srgbIn)
 {
@@ -57,11 +58,11 @@ void GetMetallicRoughness(inout State state, in GltfShadeMaterial material, int 
 }
 
 
-void GetMaterialsAndTextures(inout State state,in hitPayload prd, in Ray r)
+void GetMaterialsAndTextures(inout State state,int instanceCustomIndex)
 {
 
         // Object data
-    ObjDesc    objResource = objDesc.i[prd.instanceCustomIndex];
+    ObjDesc    objResource = objDesc.i[instanceCustomIndex];
     MatIndices matIndices  = MatIndices(objResource.materialIndexAddress);
     Materials  materials   = Materials(objResource.materialAddress);
     Indices    indices     = Indices(objResource.indexAddress);
@@ -92,9 +93,9 @@ void GetMaterialsAndTextures(inout State state,in hitPayload prd, in Ray r)
 
     }
 
-    bool isInside = dot(state.normal, r.direction) > 0.0;
+    // bool isInside = dot(state.normal, r.direction) > 0.0;
 
-    state.ffnormal = isInside ? -state.normal : state.normal;
+    // state.ffnormal = isInside ? -state.normal : state.normal;
         
     //createCoordinateSystem(state.ffnormal, state.tangent, state.bitangent);
 

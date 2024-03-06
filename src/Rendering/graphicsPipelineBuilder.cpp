@@ -45,7 +45,6 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 	{
 
 		SubpassInfo subpassInfo = {};
-		subpassInfo.output.push_back(0);
 		subpassInfo.output.push_back(1);
 		subpassInfo.output.push_back(2);
 		subpassInfo.output.push_back(3);

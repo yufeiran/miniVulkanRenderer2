@@ -5,13 +5,20 @@
  * PathTrace
  * SubPass
  ## 2. Screenshot
-![Emission1](assets/screenshot/emssion1.png)
+* Raster
+![raster](assets/screenshot/shadowMappingPoint_raster.png)
+* RayTracing
+![raytracing](assets/screenshot/shadowMappingPoint_raytracing.png)|
+
+
+
  ### 2.1 RayTracing
 * Demo
 ![demo](assets/screenshot/sceneDemo.png)
 
 * Normal Map 
 ![Noraml Map](assets/screenshot/normalMap.png)
+![Emission1](assets/screenshot/emssion1.png)
  <details> 
 <summary>more RayTracing sample </summary>
 

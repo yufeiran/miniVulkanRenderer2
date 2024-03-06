@@ -123,7 +123,7 @@ struct Vertex
 struct PushConstantRaster
 {
 	mat4  modelMatrix;
-	uint  objIndex;
+	int  objIndex;
 	float skyLightIntensity;
 	int   debugMode;      // 0:no degbug 1:normal 
 };

@@ -48,7 +48,6 @@ GeometryRenderPass::GeometryRenderPass(Device&                               dev
 	auto colorBlendAttachment = graphicsPipeline->colorBlendAttachment;
 	std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachments;
 
-	colorBlendAttachments.push_back(colorBlendAttachment); // Color
 	colorBlendAttachments.push_back(colorBlendAttachment); // position
 	colorBlendAttachments.push_back(colorBlendAttachment); // normal
 	colorBlendAttachments.push_back(colorBlendAttachment); // albedo

@@ -1,6 +1,8 @@
 #include "globals.glsl"
+#include "layouts.glsl"
 #include "random.glsl"
 #include "shadeState.glsl"
+
 #include "gltfMaterial.glsl"
 #include "pbr.glsl"
 
@@ -115,10 +117,12 @@ vec3 PathTrace(Ray r)
 
         
         // fill the material 
-        GetMaterialsAndTextures(state, prd, r);
+        GetMaterialsAndTextures(state, prd.instanceCustomIndex);
 
         bool isInside = dot(state.normal, r.direction) > 0.0;
 
+
+        state.ffnormal = isInside ? -state.normal : state.normal;
 
 
         if(pcRay.debugMode !=  eNoDebug)

@@ -5,6 +5,8 @@
 
 #include "globals.glsl"
 #include "random.glsl"
+#include "deviceDataStruct.h"
+
 
 float powerHeuristic(float a, float b)
 {
