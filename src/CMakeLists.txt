@@ -108,6 +108,8 @@ set(RENDERING_FILES
     ./Rendering/rayTracingBuilder.cpp 
     ./Rendering/shadowPipelineBuilder.h 
     ./Rendering/shadowPipelineBuilder.cpp 
+    ./Rendering/ssaoPipelineBuilder.h
+    ./Rendering/ssaoPipelineBuilder.cpp
 
 )
 

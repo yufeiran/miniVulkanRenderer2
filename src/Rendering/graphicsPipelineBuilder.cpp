@@ -1,3 +1,5 @@
+#include <random>
+
 #include "Rendering/graphicsPipelineBuilder.h"
 #include "ResourceManagement/ResourceManager.h"
 #include "Common/camera.h"
@@ -51,8 +53,13 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 		subpassInfo.output.push_back(4);
 		subpassInfo.output.push_back(5);
 		subpassInfo.output.push_back(6);
+		subpassInfo.output.push_back(7);
+		subpassInfo.output.push_back(8);
+
+
 
 		VkSubpassDependency geomToLightingDependency = {};
+
 
 		geomToLightingDependency.srcSubpass = 1;
 		geomToLightingDependency.dstSubpass = 2;
@@ -62,13 +69,20 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 		geomToLightingDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
 
+
+
+
 		subpassInfo.dependencies.push_back(geomToLightingDependency);
+
 
 		subpassInfos.push_back(subpassInfo);
 
 
 	}
 
+
+
+	// lighting pass
 	{
 
 		SubpassInfo subpassInfo = {};
@@ -78,6 +92,8 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 		subpassInfo.input.push_back(4);
 		subpassInfo.input.push_back(5);
 		subpassInfo.input.push_back(6);
+		subpassInfo.input.push_back(7);
+		subpassInfo.input.push_back(8);
 		subpassInfo.input.push_back(1);
 
 
@@ -152,6 +168,25 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 
 		attachments.push_back(emissionAttachment);
 
+		Attachment ssaoAttachment{ offscreenColorFormat,VK_SAMPLE_COUNT_1_BIT,VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT };
+		ssaoAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		ssaoAttachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
+
+		attachments.push_back(ssaoAttachment);
+
+		Attachment posViewSpaceAttachment{ offscreenColorFormat,VK_SAMPLE_COUNT_1_BIT,VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT };
+		posViewSpaceAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		posViewSpaceAttachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
+
+		attachments.push_back(posViewSpaceAttachment);
+
+		Attachment normalViewSpaceAttachment{ offscreenColorFormat,VK_SAMPLE_COUNT_1_BIT,VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT };
+		normalViewSpaceAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		normalViewSpaceAttachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
+
+		attachments.push_back(normalViewSpaceAttachment);
+
+
 
 	}
 
@@ -202,6 +237,25 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 
 		loadStoreInfos.push_back(emissionLoadStoreInfo);
 
+		LoadStoreInfo ssaoLoadStoreInfo{};
+
+		ssaoLoadStoreInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		ssaoLoadStoreInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+		loadStoreInfos.push_back(ssaoLoadStoreInfo);
+
+		LoadStoreInfo posViewSpaceLoadStoreInfo{};
+		posViewSpaceLoadStoreInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		posViewSpaceLoadStoreInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+		loadStoreInfos.push_back(posViewSpaceLoadStoreInfo);
+
+		LoadStoreInfo normalViewSpaceLoadStoreInfo{};
+		normalViewSpaceLoadStoreInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		normalViewSpaceLoadStoreInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+		loadStoreInfos.push_back(normalViewSpaceLoadStoreInfo);
+
 	}
 
 
@@ -217,10 +271,12 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 
 	skyLightRenderPass = std::make_unique<SkyLightRenderPass>(device, resourceManager, *rasterRenderPass, surfaceExtent, descSetLayout, pcRaster, 0);
 
+
 	//createRasterPipeline();
 	createUniformBuffer();
 	createLightUniformsBuffer();
 	createObjDescriptionBuffer();
+
 
 
 }
@@ -233,6 +289,7 @@ GraphicsPipelineBuilder::~GraphicsPipelineBuilder()
 void GraphicsPipelineBuilder::rebuild(VkExtent2D surfaceExtent)
 {
 	this->surfaceExtent = surfaceExtent;
+	lightingRenderPass->rebuild(surfaceExtent, 2);
 	geomRenderPass->rebuild(surfaceExtent, 1);
 	skyLightRenderPass->rebuild(surfaceExtent, 0);
 }
@@ -246,6 +303,7 @@ void GraphicsPipelineBuilder::draw(CommandBuffer& cmd)
 
 
 	geomRenderPass->draw(cmd, {descSet});
+
 
 	cmd.nextSubpass();
 
@@ -297,12 +355,17 @@ void GraphicsPipelineBuilder::createDescriptorSetLayout()
 	gBufferDescSetBindings.addBinding(GBufferType::eGAlbedo, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
 	gBufferDescSetBindings.addBinding(GBufferType::eGMetalRough, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
 	gBufferDescSetBindings.addBinding(GBufferType::eGEmission, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
+	gBufferDescSetBindings.addBinding(GBufferType::eGPositionViewSpace, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
+	gBufferDescSetBindings.addBinding(GBufferType::eGNormalViewSpace, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
 	gBufferDescSetBindings.addBinding(GBufferType::eGDepth, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
+
 
 
 	gBufferDescSetLayout = gBufferDescSetBindings.createLayout(device);
 	gBufferDescPool = gBufferDescSetBindings.createPool(device, 1);
 	gBufferDescSet = gBufferDescPool->allocateDescriptorSet(*gBufferDescSetLayout);
+
+
 
 }
 
@@ -314,6 +377,8 @@ void GraphicsPipelineBuilder::createUniformBuffer()
 		static_cast<VkBufferUsageFlags>(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT));
 
 }
+
+
 
 void GraphicsPipelineBuilder::createObjDescriptionBuffer()
 {
@@ -368,7 +433,7 @@ void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& dirShadowRenderT
 
 
 
-	const int GBufferCount = 6;
+	const int GBufferCount = 8;
 	std::array<VkDescriptorImageInfo, GBufferCount> descriptors{};
 
 	// Position
@@ -402,12 +467,25 @@ void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& dirShadowRenderT
 	descriptors[4].imageView = offscreenRenderTarget.getImageViewByIndex(6).getHandle();
 	descriptors[4].sampler = resourceManager.getDefaultSampler().getHandle();
 
+	// Position in view space
 
-	// Depth
 	descriptors[5].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	// 指定 Input attachment 资源视图
-	descriptors[5].imageView = offscreenRenderTarget.getImageViewByIndex(1).getHandle();;
+	descriptors[5].imageView = offscreenRenderTarget.getImageViewByIndex(7).getHandle();
 	descriptors[5].sampler = resourceManager.getDefaultSampler().getHandle();
+
+	// Normal
+	descriptors[6].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	// 指定 Input attachment 资源视图
+	descriptors[6].imageView = offscreenRenderTarget.getImageViewByIndex(8).getHandle();;
+	descriptors[6].sampler = resourceManager.getDefaultSampler().getHandle();
+	
+
+	// Depth
+	descriptors[7].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	// 指定 Input attachment 资源视图
+	descriptors[7].imageView = offscreenRenderTarget.getImageViewByIndex(1).getHandle();;
+	descriptors[7].sampler = resourceManager.getDefaultSampler().getHandle();
 
 
 
@@ -427,6 +505,8 @@ void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& dirShadowRenderT
 
 	// 将资源绑定到描述符集
 	vkUpdateDescriptorSets(device.getHandle(), writeDescriptorSets.size(), writeDescriptorSets.data(), 0, nullptr);
+
+
 
 
 

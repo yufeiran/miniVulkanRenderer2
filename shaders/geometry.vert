@@ -26,6 +26,8 @@ layout(location = 4) out vec2 outTexCoord;
 layout(location = 5) out vec3 outTangent;
 layout(location = 6) out vec3 outBitangent;
 layout(location = 7) out vec3 outModelPos;
+layout(location = 8) out vec3 outViewPos;
+layout(location = 9) out vec3 outViewNormal;
 
 layout( push_constant ) uniform _PushConstantRaster
 {
@@ -49,6 +51,9 @@ void main(){
     outTangent     = inTangent;
     outBitangent   = inBitangent;
     outModelPos    = inPosition;
+
+    outViewPos = vec3(uni.view * vec4(outWorldPos,1.0));
+    outViewNormal = vec3(uni.view * vec4(outWorldNormal,0.0));
 
     gl_Position = uni.viewProj * vec4(outWorldPos,1.0);
 

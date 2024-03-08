@@ -47,6 +47,7 @@
 #include "Vulkan/image.h"
 #include "Rendering/graphicsPipelineBuilder.h"
 #include "Rendering/shadowPipelineBuilder.h"
+#include "Rendering/ssaoPipelineBuilder.h"
 
 
 
@@ -101,7 +102,7 @@ public:
 
 	void raytrace(CommandBuffer& cmd, const glm::vec4& clearColor);
 
-	void rasterize(CommandBuffer& cmd,const std::vector<VkClearValue>& clearColors);
+	void rasterize(CommandBuffer& cmd,VkClearColorValue defaultClearColor);
 
 	// ui---------------------
 	void renderUI(std::vector<VkClearValue>& clearValues);
@@ -224,7 +225,10 @@ private:
 
 	std::unique_ptr<GraphicsPipelineBuilder> graphicsPipelineBuilder;
 
-	std::unique_ptr<ShadowPipelineBuilder> shadowPipelineBuilder;
+	std::unique_ptr<ShadowPipelineBuilder>   shadowPipelineBuilder;
+
+	std::unique_ptr<SSAOPipelineBuilder>     ssaoPipelineBuilder;
+
 
 
 

@@ -37,6 +37,8 @@ namespace mini
 		Buffer& getLightUniformsBuffer() { return *lightUniformsBuffer; }
 
 		std::shared_ptr<DescriptorSetLayout> getDescriptorSetLayout() const { return descSetLayout; }
+		std::shared_ptr<DescriptorSetLayout> getGBufferDescriptorSetLayout() const { return gBufferDescSetLayout; }
+
 		std::unique_ptr<DescriptorPool>& getDescriptorPool() { return descPool; }
 		const VkDescriptorSet& getDescriptorSet()       const { return descSet; }
 		//GraphicsPipeline&                    getRasterPipeline()      const { return *rasterPipeline; }
@@ -67,6 +69,8 @@ namespace mini
 		VkDescriptorSet                       gBufferDescSet;
 
 
+
+
 		std::unique_ptr<Buffer>               globalsBuffer;
 		std::unique_ptr<Buffer>               objDescBuffer;
 		std::unique_ptr<Buffer>               lightUniformsBuffer;
@@ -77,7 +81,7 @@ namespace mini
 
 		std::unique_ptr<GeometryRenderPass>    geomRenderPass;
 		std::unique_ptr<LightingRenderPass>    lightingRenderPass;
-		std::unique_ptr<SkyLightRenderPass>   skyLightRenderPass;
+		std::unique_ptr<SkyLightRenderPass>    skyLightRenderPass;
 
 
 		Device& device;

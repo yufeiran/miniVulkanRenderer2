@@ -18,7 +18,7 @@ public:
 
 	DescriptorSet(const DescriptorSet&des);
 
-	VkDescriptorSet getHandle();
+	VkDescriptorSet getHandle() const;
 private:
 	VkDescriptorSet handle{ VK_NULL_HANDLE };
 	DescriptorPool& descriptorPool;

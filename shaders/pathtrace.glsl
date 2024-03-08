@@ -190,6 +190,7 @@ vec3 PathTrace(Ray r)
             vec3  lDir     = lightPos - state.position;
             float d        = length(lDir);
             lightIntensity = lightIntensity / (d *d);
+            lightDistance  = d;
                 //(LIGHT_QUADRATIC * d * d + LIGHT_LINEAR * d + LIGHT_CONSTANT + 0.0001);
             L              = normalize(-lDir);   
         }
@@ -218,7 +219,7 @@ vec3 PathTrace(Ray r)
         {
             prdShadow.isShadowed = true;
 
-            uint rayFlags = gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT | gl_RayFlagsCullBackFacingTrianglesEXT;
+            uint rayFlags = gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT ;
 
             traceRayEXT(topLevelAS,   // acceleration structure
                         rayFlags,     // rayFlags

@@ -11,7 +11,7 @@ class ImageView;
 class Sampler
 {
 public:
-	Sampler(Device& device);
+	Sampler(Device& device,VkSamplerAddressMode addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT,VkSamplerMipmapMode mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR);
 	Sampler(Device& device,const VkSamplerCreateInfo& createInfo);
 	~Sampler();
 

@@ -80,7 +80,7 @@ DescriptorSet::DescriptorSet(const DescriptorSet& des):
 {
 }
 
-VkDescriptorSet DescriptorSet::getHandle()
+VkDescriptorSet DescriptorSet::getHandle() const
 {
 	return handle;
 }

@@ -23,6 +23,7 @@ ResourceManager::ResourceManager(Device& device):
 {
 	cmdPool = std::make_unique<CommandPool>(device);
 	defaultSampler = std::make_unique<Sampler>(device);
+	repeatSampler  = std::make_unique<Sampler>(device,VK_SAMPLER_ADDRESS_MODE_REPEAT);
 }
 
 ResourceManager::~ResourceManager()

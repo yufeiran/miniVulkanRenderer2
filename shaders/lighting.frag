@@ -215,7 +215,7 @@ vec3 DebugInfo(State state,vec3 color)
 void main() {
 
 
-    vec3 fragPos = subpassLoad(inputPosition).rgb;
+    vec3 fragPos = subpassLoad(inputPosition).xyz;
 
     vec3 origin = vec3(uni.viewInverse * vec4(0,0,0,1));
 

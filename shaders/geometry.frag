@@ -52,11 +52,16 @@ layout(location = 6) in vec3 inBitangent;
 
 layout(location = 7) in vec3 inModelPos;
 
+layout(location = 8) in vec3 inViewPos;
+layout(location = 9) in vec3 inViewNormal;
+
 layout(location = 0) out vec3 gPosition;
 layout(location = 1) out vec3 gNormal;
 layout(location = 2) out vec4 gAlbedoSpce;
 layout(location = 3) out vec4 gMetalRough;
 layout(location = 4) out vec4 gEmissive;
+layout(location = 5) out vec3 gPositionViewSpace;
+layout(location = 6) out vec3 gNormalViewSpace;
 
 
 
@@ -86,6 +91,9 @@ void main() {
     gAlbedoSpce = vec4(state.mat.albedo, state.mat.alpha);
     gMetalRough = vec4(state.mat.metallic, state.mat.roughness, 0.0, 0.0);
     gEmissive = vec4(state.mat.emission, 1.0);
+
+    gPositionViewSpace = inViewPos;
+    gNormalViewSpace   = normalize(inViewNormal);
 
         
     

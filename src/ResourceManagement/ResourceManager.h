@@ -53,6 +53,7 @@ public:
 	int32_t getInstanceId(const std::string name);
 
 	Sampler& getDefaultSampler() { return *defaultSampler; }
+	Sampler& getRepeatSampler() { return *repeatSampler; }
 
 	const std::vector<std::unique_ptr<ObjModel>>&  getModels() const{return objModel;}
 	std::vector<ObjInstance>&     getInstances() {return instances;}
@@ -66,6 +67,7 @@ public:
 	std::vector<std::unique_ptr<Image>>       images;
 	std::vector<std::unique_ptr<ImageView>>   imageViews;
 	std::unique_ptr<Sampler>                  defaultSampler;
+	std::unique_ptr<Sampler>                  repeatSampler;
 
 	std::unique_ptr<Image>                    cubeMap;
 	std::unique_ptr<ImageView>                cubeMapView;

@@ -370,6 +370,8 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	shadowPipelineBuilder = std::make_unique<ShadowPipelineBuilder>(*device,*resourceManager,pcRaster,graphicsPipelineBuilder->getLightUniformsBuffer());
 
+	ssaoPipelineBuilder = std::make_unique<SSAOPipelineBuilder>(*device,*resourceManager,window->getExtent(),graphicsPipelineBuilder->getDescriptorSetLayout(),
+		*offscreenRenderTarget,offscreenColorFormat,pcRaster);
 
 	auto& shadowMapRenderTarget = shadowPipelineBuilder->getDirRenderTarget();
 	auto& PointShadowMapRenderPass = shadowPipelineBuilder->getPointRenderTarget();
@@ -937,7 +939,8 @@ void MiniVulkanRenderer::loop()
 			continue;
 		}
 
-
+		pcRaster.screenHeight = window->getExtent().height;
+		pcRaster.screenWidth  = window->getExtent().width;
 
 		auto& cmd = renderContext->getCurrentCommandBuffer();
 		auto& renderFrame = renderContext->getActiveFrame();
@@ -980,18 +983,10 @@ void MiniVulkanRenderer::loop()
 			}
 			else 
 			{
-				clearValues = std::vector<VkClearValue>(7);
-
-				clearValues[0].color = defaultClearColor;
-				clearValues[1].depthStencil = { 1.0f,0 };
-				clearValues[2].color = {0,0,0};
-				clearValues[3].color = {0,0,0};
-				clearValues[4].color = {0,0,0};
-				clearValues[5].color = {0,0,0};
-				clearValues[6].color = {0,0,0};
 
 
-				rasterize(cmd,clearValues);
+
+				rasterize(cmd,defaultClearColor);
 
 			}
 
@@ -1053,42 +1048,29 @@ void MiniVulkanRenderer::updateInstances()
 	rayTracingBuilder->buildTlas(tlas, rtFlags, true);
 }
 
-void MiniVulkanRenderer::rasterize(CommandBuffer& cmd,const std::vector<VkClearValue>& clearColors)
+void MiniVulkanRenderer::rasterize(CommandBuffer& cmd,VkClearColorValue defaultClearColor)
 {
+	std::vector<VkClearValue>clearValues = std::vector<VkClearValue>(10);
+
+	clearValues[0].color = defaultClearColor;
+	clearValues[1].depthStencil = { 1.0f,0 };
+	clearValues[2].color = {0,0,0};
+	clearValues[3].color = {0,0,0};
+	clearValues[4].color = {0,0,0};
+	clearValues[5].color = {0,0,0};
+	clearValues[6].color = {0,0,0};
+	clearValues[7].color = {0,0,0};
+	clearValues[8].color = {0,0,0};
+	clearValues[9].color = {0,0,0};
 
 	shadowPipelineBuilder->draw(cmd);
 
 	auto& rasterRenderPass = graphicsPipelineBuilder->getRasterRenderPass();
-	cmd.beginRenderPass(rasterRenderPass, *offscreenFramebuffer,clearColors);
+	cmd.beginRenderPass(rasterRenderPass, *offscreenFramebuffer,clearValues);
 	graphicsPipelineBuilder->draw(cmd);
 	cmd.endRenderPass();
 
-
-	//VkDeviceSize offset{0};
-
-	//cmd.setViewPortAndScissor(surfaceExtent);
-
-	//auto& rasterPipeline = graphicsPipelineBuilder->getRasterPipeline();
-
-	//cmd.bindPipeline(rasterPipeline);
-
-	//const auto& descSet = graphicsPipelineBuilder->getDescriptorSet();
-	//
-	//cmd.bindDescriptorSet(descSet);
-
-	//for(const ObjInstance& inst:resourceManager->instances)
-	//{
-	//	auto& model          = resourceManager->objModel[inst.objIndex];
-	//	pcRaster.objIndex    = inst.objIndex;
-	//	pcRaster.modelMatrix = inst.transform;
-	//	cmd.pushConstant(pcRaster,static_cast<VkShaderStageFlagBits>( VK_SHADER_STAGE_VERTEX_BIT|VK_SHADER_STAGE_FRAGMENT_BIT));
-	//	
-	//	cmd.bindVertexBuffer(*model->vertexBuffer);
-	//	cmd.bindIndexBuffer(*model->indexBuffer);
-	//	vkCmdDrawIndexed(cmd.getHandle(),model->nbIndices,1,0,0,0);
-
-	//}
-
+	ssaoPipelineBuilder->draw(cmd,graphicsPipelineBuilder->getDescriptorSet());
 
 		
 }
@@ -1475,12 +1457,14 @@ void MiniVulkanRenderer::createOffScreenFrameBuffer()
 
 
 	// GBuffer
-	auto imagePos = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
-	auto imageNormal = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
-	auto imageAlbedoSpec = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
-	auto imageMetalRough = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
-	auto imageEmissive = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
-
+	auto imagePos				  = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
+	auto imageNormal			  = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
+	auto imageAlbedoSpec		  = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
+	auto imageMetalRough		  = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
+	auto imageEmissive			  = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
+	auto imageSSAO				  = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
+	auto imagePosViewSpace        = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
+	auto imageNormalViewSpace     = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
 
     images.push_back(std::move(imageColor));
     images.push_back(std::move(*depthImage));
@@ -1489,6 +1473,9 @@ void MiniVulkanRenderer::createOffScreenFrameBuffer()
 	images.push_back(std::move(imageAlbedoSpec));
 	images.push_back(std::move(imageMetalRough));
 	images.push_back(std::move(imageEmissive));
+	images.push_back(std::move(imageSSAO));
+	images.push_back(std::move(imagePosViewSpace));
+	images.push_back(std::move(imageNormalViewSpace));
 
 
 

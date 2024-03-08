@@ -26,7 +26,8 @@ START_ENUM(SceneBindings)
 	eCubeMap         = 3,
 	eDirShadowMap    = 4,
 	ePointShadowMap  = 5,
-	eLight           = 6
+	eLight           = 6,
+	eSSAOSamples	 = 7
 END_ENUM();
 
 START_ENUM(RtBindings)
@@ -35,13 +36,27 @@ START_ENUM(RtBindings)
 END_ENUM();
 
 START_ENUM(GBufferType)
-	eGPosition   = 0,
-	eGNormal     = 1,
-	eGAlbedo     = 2,
-	eGMetalRough = 3,
-	eGEmission   = 4,
-	eGDepth      = 5
+	eGPosition          = 0,
+	eGNormal            = 1,
+	eGAlbedo            = 2,
+	eGMetalRough        = 3,
+	eGEmission          = 4,
+	eGPositionViewSpace = 5,
+	eGNormalViewSpace   = 6,
+	eGDepth             = 7
+END_ENUM();
 
+START_ENUM(SSAOBindings)
+	eSSAOSAMPLE = 0,
+	eSSAONoise  = 1,
+	eSSAOPosition   = 2,
+	eSSAONormal     = 3,
+	eSSAOAlbedo     = 4,
+	eSSAODepth      = 5
+END_ENUM();
+
+START_ENUM(SSAOBlurBindings)
+    eSSAOInput = 0
 END_ENUM();
 
 START_ENUM(DebugMode)
@@ -97,6 +112,7 @@ struct LightUniforms
 };
 
 
+
 struct GlobalUniforms
 {
 	mat4 viewProj;
@@ -126,6 +142,8 @@ struct PushConstantRaster
 	int  objIndex;
 	float skyLightIntensity;
 	int   debugMode;      // 0:no degbug 1:normal 
+	int   screenWidth;
+	int   screenHeight;
 };
 
 struct PushConstantRay
