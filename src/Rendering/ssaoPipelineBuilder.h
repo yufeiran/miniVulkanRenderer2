@@ -72,8 +72,6 @@ private:
 	std::unique_ptr<RenderTarget>         ssaoRenderTarget;
 	std::unique_ptr<FrameBuffer>          ssaoFramebuffer;
 
-	std::unique_ptr<RenderTarget>         ssaoBlurRenderTarget;
-	std::unique_ptr<FrameBuffer>          ssaoBlurFramebuffer;
 
 
 	DescriptorSetBindings                 ssaoDescSetBindings;

@@ -36,12 +36,14 @@ layout(binding= eGlobals) uniform _GlobalUniforms{
 
 
 
-layout (input_attachment_index = eGPosition   , set = 1, binding = eGPosition   ) uniform subpassInput inputPosition;
-layout (input_attachment_index = eGNormal     , set = 1, binding = eGNormal     ) uniform subpassInput inputNormal;
-layout (input_attachment_index = eGAlbedo     , set = 1, binding = eGAlbedo     ) uniform subpassInput inputAlbedo;
-layout (input_attachment_index = eGMetalRough , set = 1, binding = eGMetalRough ) uniform subpassInput inputMetalRough;
-layout (input_attachment_index = eGEmission   , set = 1, binding = eGEmission   ) uniform subpassInput inputEmission;
-layout (input_attachment_index = eGDepth      , set = 1, binding = eGDepth      ) uniform subpassInput inputDepth;
+layout (input_attachment_index = eGPosition  , set = 1, binding = eGPosition   ) uniform subpassInput  inputPosition;
+layout (input_attachment_index = eGNormal    , set = 1, binding = eGNormal     ) uniform subpassInput  inputNormal;
+layout (input_attachment_index = eGAlbedo    , set = 1, binding = eGAlbedo     ) uniform subpassInput  inputAlbedo;
+layout (input_attachment_index = eGMetalRough, set = 1, binding = eGMetalRough ) uniform subpassInput  inputMetalRough;
+layout (input_attachment_index = eGEmission  , set = 1, binding = eGEmission   ) uniform subpassInput  inputEmission;
+layout (input_attachment_index = eGDepth     , set = 1, binding = eGDepth      ) uniform subpassInput  inputDepth;
+layout (input_attachment_index = eGSSAOBlur  ,set = 1, binding = eGSSAOBlur    ) uniform subpassInput  inputSSAOBlur;
+
 
 
 layout(location = 0) in vec2 TexCoords;
@@ -208,6 +210,9 @@ vec3 DebugInfo(State state,vec3 color)
         case eSpecular:
             outColor = vec3( 1.0);
             return outColor;
+        case eSSAO:
+            outColor = vec3(state.mat.ao);
+            return outColor;
 
     }
 }
@@ -240,6 +245,7 @@ void main() {
     state.mat.metallic = subpassLoad(inputMetalRough).r;
     state.mat.roughness = subpassLoad(inputMetalRough).g;
     state.mat.ior = 1.4;
+    state.mat.ao  = subpassLoad(inputSSAOBlur).r;
 
     float dielectricSpecular = (state.mat.ior - 1) / (state.mat.ior + 1);
     dielectricSpecular *=  dielectricSpecular;
@@ -334,6 +340,10 @@ void main() {
 
     color += state.mat.emission;
     vec3 ambient = vec3(0.001) * pcRaster.skyLightIntensity * state.mat.albedo;
+    if(pcRaster.needSSAO == 1)
+    {
+        ambient *= state.mat.ao;
+    }
     color += ambient;
 
     color = DebugInfo(state, color);

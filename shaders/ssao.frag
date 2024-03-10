@@ -62,7 +62,7 @@ void main()
     mat3 TBN       = mat3(tangent, bitangent, normalInView);
 
     float occlusion = 0.0;
-    const int kernelSize = 16;
+    const int kernelSize = 32;
     const float radius = 0.5;
     const float bias = 0.025;
     for(int i = 0; i < kernelSize; ++i)
@@ -84,6 +84,6 @@ void main()
         occlusion += (sampleDepth >= samplePos.z + bias ? 1.0 : 0.0) * rangeCheck;
     }
     occlusion = 1.0 - (occlusion / kernelSize);
-    FragColor = vec4(occlusion, occlusion, occlusion, 1.0);
+    FragColor = vec4(pow(occlusion, 2.2));
 
 }

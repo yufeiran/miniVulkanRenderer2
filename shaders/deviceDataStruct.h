@@ -41,9 +41,11 @@ START_ENUM(GBufferType)
 	eGAlbedo            = 2,
 	eGMetalRough        = 3,
 	eGEmission          = 4,
-	eGPositionViewSpace = 5,
-	eGNormalViewSpace   = 6,
-	eGDepth             = 7
+	eGSSAO              = 5,
+	eGSSAOBlur          = 6,
+	eGPositionViewSpace = 7,
+	eGNormalViewSpace   = 8,
+	eGDepth             = 9
 END_ENUM();
 
 START_ENUM(SSAOBindings)
@@ -70,7 +72,8 @@ START_ENUM(DebugMode)
 	eTexCoord  = 7,  //
 	eTangent   = 8,  //
 	eBitangent = 9,  //
-	eSpecular  = 10
+	eSpecular  = 10, //
+	eSSAO      = 11  //
 
 END_ENUM();
 
@@ -144,6 +147,7 @@ struct PushConstantRaster
 	int   debugMode;      // 0:no degbug 1:normal 
 	int   screenWidth;
 	int   screenHeight;
+	int   needSSAO;   // 0: no 1:yes
 };
 
 struct PushConstantRay

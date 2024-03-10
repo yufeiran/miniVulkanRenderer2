@@ -3,10 +3,7 @@
 
 using namespace mini;
 
-float lerp(float a, float b, float f)
-{
-	return a + f * (b - a);
-}
+
 
 mini::SSAOPipelineBuilder::SSAOPipelineBuilder(Device& device, ResourceManager& resourceManager,VkExtent2D extent,
 	std::shared_ptr<DescriptorSetLayout> descSetLayout,
@@ -32,8 +29,8 @@ mini::SSAOPipelineBuilder::SSAOPipelineBuilder(Device& device, ResourceManager& 
 
 		VkSubpassDependency shadowDependency = {};
 
-		shadowDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-		shadowDependency.dstSubpass = 0;
+		shadowDependency.srcSubpass = 0;
+		shadowDependency.dstSubpass = 1;
 		shadowDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT|VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 		shadowDependency.srcAccessMask = 0;
 		shadowDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT| VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
@@ -44,47 +41,13 @@ mini::SSAOPipelineBuilder::SSAOPipelineBuilder(Device& device, ResourceManager& 
 		subpassInfos.push_back(subpassInfo);
 	}
 
-
-	std::vector<Attachment> attachments;
 	{
 
-		Attachment ssaoAttachment{ offscreenColorFormat,VK_SAMPLE_COUNT_1_BIT,VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT };
-		ssaoAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		ssaoAttachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
-
-		attachments.push_back(ssaoAttachment);
-
-	}
-
-	std::vector<LoadStoreInfo> loadStoreInfos;
-	{
-
-		LoadStoreInfo ssaoLoadStoreInfo{};
-
-		ssaoLoadStoreInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		ssaoLoadStoreInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-
-		loadStoreInfos.push_back(ssaoLoadStoreInfo);
-
-	}
-
-
-
-
-	renderPass  = std::make_unique<RenderPass>(device,attachments,loadStoreInfos,subpassInfos);
-
-
-
-
-		 
-	// SSAO blur pass
-
-	std::vector<SubpassInfo> blurSubpassInfos;
-	{
+	
 		SubpassInfo subpassInfo = {};
 
 
-		subpassInfo.output.push_back(0);
+		subpassInfo.output.push_back(1);
 		subpassInfo.output.push_back(-1);
 
 		VkSubpassDependency shadowDependency = {};
@@ -98,38 +61,56 @@ mini::SSAOPipelineBuilder::SSAOPipelineBuilder(Device& device, ResourceManager& 
 
 		subpassInfo.dependencies.push_back(shadowDependency);
 
-		blurSubpassInfos.push_back(subpassInfo);
+		subpassInfos.push_back(subpassInfo);
 	}
 
-	std::vector<Attachment> blurAttachments;
+	std::vector<Attachment> attachments;
 	{
+
+		Attachment ssaoAttachment{ offscreenColorFormat,VK_SAMPLE_COUNT_1_BIT,VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT };
+		ssaoAttachment.initialLayout = VK_IMAGE_LAYOUT_GENERAL;
+		ssaoAttachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
+
+		attachments.push_back(ssaoAttachment);
 
 		Attachment ssaoBlurAttachment{ offscreenColorFormat,VK_SAMPLE_COUNT_1_BIT,VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT };
 		ssaoBlurAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		ssaoBlurAttachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
 
-		blurAttachments.push_back(ssaoBlurAttachment);
+		attachments.push_back(ssaoBlurAttachment);
+
 	}
 
-	std::vector<LoadStoreInfo> blurLoadStoreInfos;
+	std::vector<LoadStoreInfo> loadStoreInfos;
 	{
 
+		LoadStoreInfo ssaoLoadStoreInfo{};
+
+		ssaoLoadStoreInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		ssaoLoadStoreInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+		loadStoreInfos.push_back(ssaoLoadStoreInfo);
 
 		LoadStoreInfo ssaoBlurLoadStoreInfo{};
 
 		ssaoBlurLoadStoreInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		ssaoBlurLoadStoreInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 
-		blurLoadStoreInfos.push_back(ssaoBlurLoadStoreInfo);
+		loadStoreInfos.push_back(ssaoBlurLoadStoreInfo);
+
 	}
 
-	blurRenderPass = std::make_unique<RenderPass>(device,blurAttachments,blurLoadStoreInfos,blurSubpassInfos);
+
+
+
+	renderPass  = std::make_unique<RenderPass>(device,attachments,loadStoreInfos,subpassInfos);
+		 
 
 	createRenderTarget();
 	createDescriptorSetLayout();
 
 	ssaoRenderPass = std::make_unique<SSAORenderPass>(device,resourceManager,*renderPass,extent,descSetLayout,ssaoDescSetLayout, pcRaster,0);
-	ssaoBlurRenderPass = std::make_unique<SSAOBlurRenderPass>(device,resourceManager,*blurRenderPass,extent,ssaoBlurDescSetLayout, pcRaster,0);
+	ssaoBlurRenderPass = std::make_unique<SSAOBlurRenderPass>(device,resourceManager,*renderPass,extent,ssaoBlurDescSetLayout, pcRaster,1);
 
 
 
@@ -206,7 +187,7 @@ void SSAOPipelineBuilder::updateDescriptorSet()
 	std::vector<VkWriteDescriptorSet> ssaoBlurWrites;
 	
 	VkDescriptorImageInfo ssaoInputInfo;
-	ssaoInputInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+	ssaoInputInfo.imageLayout =   VK_IMAGE_LAYOUT_GENERAL;
 	ssaoInputInfo.imageView = ssaoRenderTarget->getImageViewByIndex(0).getHandle();
 	ssaoInputInfo.sampler = resourceManager.getDefaultSampler().getHandle();
 	ssaoBlurWrites.emplace_back(ssaoBlurDescSetBindings.makeWrite(ssaoBlurDescSet, SSAOBlurBindings::eSSAOInput, &ssaoInputInfo));
@@ -220,19 +201,21 @@ void SSAOPipelineBuilder::updateDescriptorSet()
 
 void SSAOPipelineBuilder::draw(CommandBuffer& cmd,const VkDescriptorSet& descSet)
 {
-	std::vector<VkClearValue> clearValues(1);
+	std::vector<VkClearValue> clearValues(2);
 
 	
 
 	clearValues[0].color = { 0,0,0,1 };
+	clearValues[1].color = { 0,0,0,1 };
 	cmd.beginRenderPass(*renderPass,*ssaoFramebuffer,clearValues);
 	ssaoRenderPass->draw(cmd,{descSet,ssaoDescSet});
+
+	cmd.nextSubpass();
+
+	ssaoBlurRenderPass->draw(cmd,{ssaoBlurDescSet});
+
 	cmd.endRenderPass();
 
-	clearValues[0].color = { 0,0,0,1 };
-	cmd.beginRenderPass(*blurRenderPass,*ssaoBlurFramebuffer,clearValues);
-	ssaoBlurRenderPass->draw(cmd,{ssaoBlurDescSet});
-	cmd.endRenderPass();
 
 }
 
@@ -287,7 +270,12 @@ void mini::SSAOPipelineBuilder::createRenderTarget()
 		std::unique_ptr<Image> ssaoImage = std::make_unique<Image>(device,
 			 extent, offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT);
 
+		std::unique_ptr<Image> ssaoBlurImage = std::make_unique<Image>(device,
+			extent, offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT);
+
+
 		images.push_back(std::move(*ssaoImage));
+		images.push_back(std::move(*ssaoBlurImage));
 
 
 
@@ -295,21 +283,6 @@ void mini::SSAOPipelineBuilder::createRenderTarget()
 		ssaoRenderTarget = std::make_unique<RenderTarget>(std::move(images));
 
 		ssaoFramebuffer = std::make_unique<FrameBuffer>(device,*ssaoRenderTarget,*renderPass);
-	}
-
-	{
-		std::vector<Image> images;
-		std::unique_ptr<Image> ssaoBlurImage = std::make_unique<Image>(device,
-					extent, offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT);
-
-
-		images.push_back(std::move(*ssaoBlurImage));
-
-
-	
-		ssaoBlurRenderTarget = std::make_unique<RenderTarget>(std::move(images));
-
-		ssaoBlurFramebuffer = std::make_unique<FrameBuffer>(device,*ssaoBlurRenderTarget,*blurRenderPass);
 	}
 
 

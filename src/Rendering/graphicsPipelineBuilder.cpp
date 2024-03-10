@@ -53,10 +53,8 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 		subpassInfo.output.push_back(4);
 		subpassInfo.output.push_back(5);
 		subpassInfo.output.push_back(6);
-		subpassInfo.output.push_back(7);
-		subpassInfo.output.push_back(8);
-
-
+		subpassInfo.output.push_back(9);
+		subpassInfo.output.push_back(10);
 
 		VkSubpassDependency geomToLightingDependency = {};
 
@@ -68,16 +66,53 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 		geomToLightingDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 		geomToLightingDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
-
-
-
-
 		subpassInfo.dependencies.push_back(geomToLightingDependency);
-
 
 		subpassInfos.push_back(subpassInfo);
 
+	}
 
+	// SSAO pass
+	{
+		SubpassInfo subpassInfo = {};
+
+
+		subpassInfo.output.push_back(7);
+
+		VkSubpassDependency ssaoToSSAOBlurDependency = {};
+
+		ssaoToSSAOBlurDependency.srcSubpass = 2;
+		ssaoToSSAOBlurDependency.dstSubpass = 3;
+		ssaoToSSAOBlurDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		ssaoToSSAOBlurDependency.srcAccessMask = 0;
+		ssaoToSSAOBlurDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		ssaoToSSAOBlurDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+		subpassInfo.dependencies.push_back(ssaoToSSAOBlurDependency);
+
+		subpassInfos.push_back(subpassInfo);
+	
+	
+	}
+
+	// SSAO blur pass
+	{
+		SubpassInfo subpassInfo = {};
+
+		subpassInfo.output.push_back(8);
+
+		VkSubpassDependency ssaoBlurToLightingDependency = {};
+
+		ssaoBlurToLightingDependency.srcSubpass = 3;
+		ssaoBlurToLightingDependency.dstSubpass = 4;
+		ssaoBlurToLightingDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		ssaoBlurToLightingDependency.srcAccessMask = 0;
+		ssaoBlurToLightingDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		ssaoBlurToLightingDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+		subpassInfo.dependencies.push_back(ssaoBlurToLightingDependency);
+
+		subpassInfos.push_back(subpassInfo);
 	}
 
 
@@ -94,6 +129,8 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 		subpassInfo.input.push_back(6);
 		subpassInfo.input.push_back(7);
 		subpassInfo.input.push_back(8);
+		subpassInfo.input.push_back(9);
+		subpassInfo.input.push_back(10);
 		subpassInfo.input.push_back(1);
 
 
@@ -102,7 +139,7 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 		VkSubpassDependency lightDependency = {};
 
 		lightDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-		lightDependency.dstSubpass = 2;
+		lightDependency.dstSubpass = 4;
 		lightDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 		lightDependency.srcAccessMask = 0;
 		lightDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
@@ -151,7 +188,7 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 		attachments.push_back(normalAttachment);
 
 		Attachment albedoSpecAttachment{ offscreenColorFormat,VK_SAMPLE_COUNT_1_BIT,VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT };
-		albedoSpecAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		albedoSpecAttachment.initialLayout = VK_IMAGE_LAYOUT_GENERAL;
 		albedoSpecAttachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
 
 		attachments.push_back(albedoSpecAttachment);
@@ -169,19 +206,25 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 		attachments.push_back(emissionAttachment);
 
 		Attachment ssaoAttachment{ offscreenColorFormat,VK_SAMPLE_COUNT_1_BIT,VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT };
-		ssaoAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		ssaoAttachment.initialLayout = VK_IMAGE_LAYOUT_GENERAL;
 		ssaoAttachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
 
 		attachments.push_back(ssaoAttachment);
 
+		Attachment ssaoBlurAttachment{ offscreenColorFormat,VK_SAMPLE_COUNT_1_BIT,VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT };
+		ssaoBlurAttachment.initialLayout = VK_IMAGE_LAYOUT_GENERAL;
+		ssaoBlurAttachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
+
+		attachments.push_back(ssaoBlurAttachment);
+
 		Attachment posViewSpaceAttachment{ offscreenColorFormat,VK_SAMPLE_COUNT_1_BIT,VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT };
-		posViewSpaceAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		posViewSpaceAttachment.initialLayout = VK_IMAGE_LAYOUT_GENERAL;
 		posViewSpaceAttachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
 
 		attachments.push_back(posViewSpaceAttachment);
 
 		Attachment normalViewSpaceAttachment{ offscreenColorFormat,VK_SAMPLE_COUNT_1_BIT,VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT };
-		normalViewSpaceAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		normalViewSpaceAttachment.initialLayout = VK_IMAGE_LAYOUT_GENERAL;
 		normalViewSpaceAttachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
 
 		attachments.push_back(normalViewSpaceAttachment);
@@ -244,6 +287,13 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 
 		loadStoreInfos.push_back(ssaoLoadStoreInfo);
 
+		LoadStoreInfo ssaoBlurLoadStoreInfo{};
+
+		ssaoBlurLoadStoreInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		ssaoBlurLoadStoreInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+		loadStoreInfos.push_back(ssaoBlurLoadStoreInfo);
+
 		LoadStoreInfo posViewSpaceLoadStoreInfo{};
 		posViewSpaceLoadStoreInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		posViewSpaceLoadStoreInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -264,16 +314,25 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 
 	surfaceExtent = renderContext.getSurfaceExtent();
 
+	skyLightRenderPass = std::make_unique<SkyLightRenderPass>(device, resourceManager, *rasterRenderPass, surfaceExtent, descSetLayout, pcRaster, 0);
+
+
 	geomRenderPass = std::make_unique<GeometryRenderPass>(device, resourceManager, *rasterRenderPass, surfaceExtent, descSetLayout, pcRaster, 1);
 
 
-	lightingRenderPass = std::make_unique<LightingRenderPass>(device, resourceManager, *rasterRenderPass, surfaceExtent, descSetLayout,gBufferDescSetLayout, pcRaster, 2);
 
-	skyLightRenderPass = std::make_unique<SkyLightRenderPass>(device, resourceManager, *rasterRenderPass, surfaceExtent, descSetLayout, pcRaster, 0);
+	ssaoRenderPass = std::make_unique<SSAORenderPass>(device,resourceManager,*rasterRenderPass,surfaceExtent,descSetLayout,ssaoDescSetLayout, pcRaster,2);
+
+	ssaoBlurRenderPass = std::make_unique<SSAOBlurRenderPass>(device,resourceManager,*rasterRenderPass,surfaceExtent,ssaoBlurDescSetLayout, pcRaster,3);
+
+
+	lightingRenderPass = std::make_unique<LightingRenderPass>(device, resourceManager, *rasterRenderPass, surfaceExtent, descSetLayout,gBufferDescSetLayout, pcRaster, 4);
+
 
 
 	//createRasterPipeline();
 	createUniformBuffer();
+	createSSAOBuffers();
 	createLightUniformsBuffer();
 	createObjDescriptionBuffer();
 
@@ -289,7 +348,9 @@ GraphicsPipelineBuilder::~GraphicsPipelineBuilder()
 void GraphicsPipelineBuilder::rebuild(VkExtent2D surfaceExtent)
 {
 	this->surfaceExtent = surfaceExtent;
-	lightingRenderPass->rebuild(surfaceExtent, 2);
+	lightingRenderPass->rebuild(surfaceExtent, 4);
+	ssaoBlurRenderPass->rebuild(surfaceExtent, 3);
+	ssaoRenderPass->rebuild(surfaceExtent, 2);
 	geomRenderPass->rebuild(surfaceExtent, 1);
 	skyLightRenderPass->rebuild(surfaceExtent, 0);
 }
@@ -304,6 +365,14 @@ void GraphicsPipelineBuilder::draw(CommandBuffer& cmd)
 
 	geomRenderPass->draw(cmd, {descSet});
 
+
+	cmd.nextSubpass();
+
+	ssaoRenderPass->draw(cmd,{descSet,ssaoDescSet});
+
+	cmd.nextSubpass();
+
+	ssaoBlurRenderPass->draw(cmd,{ssaoBlurDescSet});
 
 	cmd.nextSubpass();
 
@@ -355,6 +424,8 @@ void GraphicsPipelineBuilder::createDescriptorSetLayout()
 	gBufferDescSetBindings.addBinding(GBufferType::eGAlbedo, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
 	gBufferDescSetBindings.addBinding(GBufferType::eGMetalRough, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
 	gBufferDescSetBindings.addBinding(GBufferType::eGEmission, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
+	gBufferDescSetBindings.addBinding(GBufferType::eGSSAO, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
+	gBufferDescSetBindings.addBinding(GBufferType::eGSSAOBlur, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
 	gBufferDescSetBindings.addBinding(GBufferType::eGPositionViewSpace, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
 	gBufferDescSetBindings.addBinding(GBufferType::eGNormalViewSpace, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
 	gBufferDescSetBindings.addBinding(GBufferType::eGDepth, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
@@ -364,6 +435,23 @@ void GraphicsPipelineBuilder::createDescriptorSetLayout()
 	gBufferDescSetLayout = gBufferDescSetBindings.createLayout(device);
 	gBufferDescPool = gBufferDescSetBindings.createPool(device, 1);
 	gBufferDescSet = gBufferDescPool->allocateDescriptorSet(*gBufferDescSetLayout);
+
+	// SSAO
+	ssaoDescSetBindings.addBinding(SSAOBindings::eSSAOSAMPLE, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
+	ssaoDescSetBindings.addBinding(SSAOBindings::eSSAONoise, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
+	ssaoDescSetBindings.addBinding(SSAOBindings::eSSAOPosition, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
+	ssaoDescSetBindings.addBinding(SSAOBindings::eSSAONormal, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
+	ssaoDescSetBindings.addBinding(SSAOBindings::eSSAOAlbedo, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
+
+	ssaoDescSetLayout = ssaoDescSetBindings.createLayout(device);
+	ssaoDescPool = ssaoDescSetBindings.createPool(device, 1);
+	ssaoDescSet = ssaoDescPool->allocateDescriptorSet(*ssaoDescSetLayout);
+
+	// SSAO Blur
+	ssaoBlurDescSetBindings.addBinding(SSAOBlurBindings::eSSAOInput, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
+	ssaoBlurDescSetLayout = ssaoBlurDescSetBindings.createLayout(device);
+	ssaoBlurDescPool = ssaoBlurDescSetBindings.createPool(device, 1);
+	ssaoBlurDescSet = ssaoBlurDescPool->allocateDescriptorSet(*ssaoBlurDescSetLayout);
 
 
 
@@ -383,6 +471,48 @@ void GraphicsPipelineBuilder::createUniformBuffer()
 void GraphicsPipelineBuilder::createObjDescriptionBuffer()
 {
 	objDescBuffer = std::make_unique<Buffer>(device, resourceManager.objDesc, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
+}
+
+
+
+void GraphicsPipelineBuilder::createSSAOBuffers()
+{
+	std::uniform_real_distribution<float> randomFloats(0.0, 1.0);
+	std::default_random_engine generator;
+	// Sample kernel
+
+	std::vector<glm::vec3> ssaoKernel;
+	for(unsigned int i = 0; i < 64; ++i)
+	{
+		glm::vec3 sample(
+					randomFloats(generator) * 2.0 - 1.0,
+					randomFloats(generator) * 2.0 - 1.0,
+					randomFloats(generator)
+				);
+		sample = glm::normalize(sample);
+		sample *= randomFloats(generator);
+		float scale = float(i) / 64.0;
+		scale = lerp(0.1f, 1.0f, scale * scale);
+		sample *= scale;
+		ssaoKernel.push_back(sample);
+	}
+
+	ssaoSamplesBuffer = std::make_unique<Buffer>(device, ssaoKernel, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT|VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
+
+	std::vector<glm::vec3> ssaoNoise;
+	for(unsigned int i = 0; i < 16; i++)
+	{
+		glm::vec3 noise(
+			randomFloats(generator) * 2.0 - 1.0,
+			randomFloats(generator) * 2.0 - 1.0,
+			0.0f);
+		ssaoNoise.push_back(noise);
+	}
+
+	VkExtent2D extent = { 4, 4 };
+	ssaoNoiseImage = std::make_unique<Image>(device,extent,ssaoNoise.size() * sizeof(glm::vec3),ssaoNoise.data(),VK_FORMAT_R8G8B8A8_UNORM);
+	ssaoNoiseImageView = std::make_unique<ImageView>( *ssaoNoiseImage, VK_FORMAT_R8G8B8A8_UNORM);
+
 }
 
 
@@ -433,7 +563,7 @@ void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& dirShadowRenderT
 
 
 
-	const int GBufferCount = 8;
+	const int GBufferCount = 10;
 	std::array<VkDescriptorImageInfo, GBufferCount> descriptors{};
 
 	// Position
@@ -467,25 +597,37 @@ void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& dirShadowRenderT
 	descriptors[4].imageView = offscreenRenderTarget.getImageViewByIndex(6).getHandle();
 	descriptors[4].sampler = resourceManager.getDefaultSampler().getHandle();
 
-	// Position in view space
-
+	// SSAO
 	descriptors[5].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	// 指定 Input attachment 资源视图
 	descriptors[5].imageView = offscreenRenderTarget.getImageViewByIndex(7).getHandle();
 	descriptors[5].sampler = resourceManager.getDefaultSampler().getHandle();
 
-	// Normal
+	// SSAO Blur 
 	descriptors[6].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	// 指定 Input attachment 资源视图
-	descriptors[6].imageView = offscreenRenderTarget.getImageViewByIndex(8).getHandle();;
+	descriptors[6].imageView = offscreenRenderTarget.getImageViewByIndex(8).getHandle();
 	descriptors[6].sampler = resourceManager.getDefaultSampler().getHandle();
+
+	// Position in view space
+
+	descriptors[7].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	// 指定 Input attachment 资源视图
+	descriptors[7].imageView = offscreenRenderTarget.getImageViewByIndex(9).getHandle();
+	descriptors[7].sampler = resourceManager.getDefaultSampler().getHandle();
+
+	// Normal
+	descriptors[8].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	// 指定 Input attachment 资源视图
+	descriptors[8].imageView = offscreenRenderTarget.getImageViewByIndex(10).getHandle();;
+	descriptors[8].sampler = resourceManager.getDefaultSampler().getHandle();
 	
 
 	// Depth
-	descriptors[7].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	descriptors[9].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	// 指定 Input attachment 资源视图
-	descriptors[7].imageView = offscreenRenderTarget.getImageViewByIndex(1).getHandle();;
-	descriptors[7].sampler = resourceManager.getDefaultSampler().getHandle();
+	descriptors[9].imageView = offscreenRenderTarget.getImageViewByIndex(1).getHandle();;
+	descriptors[9].sampler = resourceManager.getDefaultSampler().getHandle();
 
 
 
@@ -506,6 +648,51 @@ void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& dirShadowRenderT
 	// 将资源绑定到描述符集
 	vkUpdateDescriptorSets(device.getHandle(), writeDescriptorSets.size(), writeDescriptorSets.data(), 0, nullptr);
 
+
+	// SSAO
+	VkDescriptorBufferInfo ssaoSampleBufferInfo{ ssaoSamplesBuffer->getHandle(), 0, VK_WHOLE_SIZE };
+	std::vector<VkWriteDescriptorSet> ssaoWrites;
+
+	VkDescriptorImageInfo ssaoNoiseInfo;
+	ssaoNoiseInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	ssaoNoiseInfo.imageView = ssaoNoiseImageView->getHandle();
+	ssaoNoiseInfo.sampler = resourceManager.getRepeatSampler().getHandle();
+
+	VkDescriptorImageInfo gBufferPosInfo;
+	gBufferPosInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+	gBufferPosInfo.imageView = offscreenRenderTarget.getImageViewByIndex(9).getHandle();
+	gBufferPosInfo.sampler = resourceManager.getRepeatSampler().getHandle();
+
+	VkDescriptorImageInfo gBufferNormalInfo;
+	gBufferNormalInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+	gBufferNormalInfo.imageView = offscreenRenderTarget.getImageViewByIndex(10).getHandle();
+	gBufferNormalInfo.sampler = resourceManager.getRepeatSampler().getHandle();
+
+	VkDescriptorImageInfo gBufferAlbedoInfo;
+	gBufferAlbedoInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+	gBufferAlbedoInfo.imageView = offscreenRenderTarget.getImageViewByIndex(4).getHandle();
+	gBufferAlbedoInfo.sampler = resourceManager.getRepeatSampler().getHandle();
+
+	ssaoWrites.emplace_back(ssaoDescSetBindings.makeWrite(ssaoDescSet, SSAOBindings::eSSAOSAMPLE, &ssaoSampleBufferInfo));
+	ssaoWrites.emplace_back(ssaoDescSetBindings.makeWrite(ssaoDescSet, SSAOBindings::eSSAONoise, &ssaoNoiseInfo));
+
+	ssaoWrites.emplace_back(ssaoDescSetBindings.makeWrite(ssaoDescSet, SSAOBindings::eSSAOPosition, &gBufferPosInfo));
+	ssaoWrites.emplace_back(ssaoDescSetBindings.makeWrite(ssaoDescSet, SSAOBindings::eSSAONormal, &gBufferNormalInfo));
+	ssaoWrites.emplace_back(ssaoDescSetBindings.makeWrite(ssaoDescSet, SSAOBindings::eSSAOAlbedo, &ssaoNoiseInfo));
+
+
+	vkUpdateDescriptorSets(device.getHandle(), static_cast<uint32_t>(ssaoWrites.size()), ssaoWrites.data(), 0, nullptr);
+
+	// SSAO Blur
+	std::vector<VkWriteDescriptorSet> ssaoBlurWrites;
+	
+	VkDescriptorImageInfo ssaoInputInfo;
+	ssaoInputInfo.imageLayout =   VK_IMAGE_LAYOUT_GENERAL;
+	ssaoInputInfo.imageView = offscreenRenderTarget.getImageViewByIndex(7).getHandle();
+	ssaoInputInfo.sampler = resourceManager.getDefaultSampler().getHandle();
+	ssaoBlurWrites.emplace_back(ssaoBlurDescSetBindings.makeWrite(ssaoBlurDescSet, SSAOBlurBindings::eSSAOInput, &ssaoInputInfo));
+
+	vkUpdateDescriptorSets(device.getHandle(), static_cast<uint32_t>(ssaoBlurWrites.size()), ssaoBlurWrites.data(), 0, nullptr);
 
 
 

@@ -53,6 +53,11 @@ namespace mini
 		//void createRasterPipeline();
 		void createUniformBuffer();
 		void createObjDescriptionBuffer();
+
+		void createSSAOBuffers();
+
+
+
 		VkFormat offscreenColorFormat;
 		VkExtent2D surfaceExtent{};
 		// raster pipeline data
@@ -79,9 +84,29 @@ namespace mini
 		std::unique_ptr<RenderPass>           rasterRenderPass;
 		//std::unique_ptr<GraphicsPipeline>      rasterPipeline;
 
-		std::unique_ptr<GeometryRenderPass>    geomRenderPass;
-		std::unique_ptr<LightingRenderPass>    lightingRenderPass;
 		std::unique_ptr<SkyLightRenderPass>    skyLightRenderPass;
+		std::unique_ptr<GeometryRenderPass>    geomRenderPass;
+		std::unique_ptr<SSAORenderPass>        ssaoRenderPass;
+		std::unique_ptr<SSAOBlurRenderPass>    ssaoBlurRenderPass;
+
+		std::unique_ptr<LightingRenderPass>    lightingRenderPass;
+
+
+		// SSAO data
+		DescriptorSetBindings                 ssaoDescSetBindings;
+		std::shared_ptr<DescriptorSetLayout>  ssaoDescSetLayout;
+		std::unique_ptr<DescriptorPool>       ssaoDescPool;
+		VkDescriptorSet                       ssaoDescSet;
+
+		DescriptorSetBindings                 ssaoBlurDescSetBindings;
+		std::shared_ptr<DescriptorSetLayout>  ssaoBlurDescSetLayout;
+		std::unique_ptr<DescriptorPool>       ssaoBlurDescPool;
+		VkDescriptorSet                       ssaoBlurDescSet;
+
+		std::unique_ptr<Buffer>               ssaoSamplesBuffer;
+		std::unique_ptr<Image> 			      ssaoNoiseImage;
+		std::unique_ptr<ImageView>            ssaoNoiseImageView;
+
 
 
 		Device& device;

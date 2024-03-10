@@ -61,6 +61,7 @@ struct Material
     float  ior;
     vec3   attenuationColor;
     float  attenuationDistance;
+    float  ao;
 
     // Roughness calculated from anisotropic
     float  ax;

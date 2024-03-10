@@ -19,7 +19,7 @@ using namespace std::chrono;
 
 void MiniVulkanRenderer::load()
 {
-	int testCase = 2;
+	int testCase = 0;
 	switch(testCase)
 	{
 	case 0:
@@ -252,16 +252,18 @@ void MiniVulkanRenderer::loadShowCase()
 
 	//resourceManager->loadScene("../../assets/lightScene.gltf");
 
-	//objMat = glm::mat4(1.0f);
-	//objMat = glm::translate(objMat,{0,-1,0});
-	//objMat = glm::scale(objMat,{3,1,3});
-	//resourceManager->loadScene( "../../assets/plane/plane1.gltf",objMat);
+
 
 	//	objMat = glm::mat4(1.0f);
 	//objMat = glm::translate(objMat,{0, 0, -5});
 	////resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/cube/glTF/cube.gltf", objMat);
 
 	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf", objMat);
+
+		objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{0,-1,0});
+	objMat = glm::scale(objMat,{3,1,3});
+	resourceManager->loadScene( "../../assets/plane/plane1.gltf",objMat);
 }
 
 MiniVulkanRenderer::MiniVulkanRenderer()
@@ -821,6 +823,7 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>&  clearValues)
 
 	static int debugModeIndex = 0;
 
+	static bool needSSAO = true;
 	bool changed = false;
 
 	ImGui::SetNextWindowSize(ImVec2(500,0));
@@ -871,10 +874,20 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>&  clearValues)
 		changed |= ImGui::SliderInt("Sample Number", &pcRay.nbSample, 1, 10);
 		changed |= ImGui::SliderInt("Max Depth", &pcRay.maxDepth, 1, 20);
 		ImGui::Text("Now Frame %d ", pcRay.frame);
+
+		changed |= ImGui::Checkbox("SSAO",&needSSAO);
+		if(needSSAO == false)
+		{
+			pcRaster.needSSAO = 0;
+		}
+		else{
+			pcRaster.needSSAO = 1;
+		}
+		
 	}
 	if(ImGui::CollapsingHeader("Debug",ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		const int DEBUG_MODE_SUM = 11;
+		const int DEBUG_MODE_SUM = 12;
 		const char* DEBUG_MODE_STR[DEBUG_MODE_SUM] ={
 			"no debug",
 			"base color",
@@ -886,7 +899,8 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>&  clearValues)
 			"texcoord",
 			"tangent",
 			"bitangent",
-			"specular"
+			"specular",
+			"SSAO"
 		};
 		changed |= ImGui::Combo("mode",&debugModeIndex,DEBUG_MODE_STR,DEBUG_MODE_SUM);
 		pcRay.debugMode = debugModeIndex;
@@ -1050,7 +1064,7 @@ void MiniVulkanRenderer::updateInstances()
 
 void MiniVulkanRenderer::rasterize(CommandBuffer& cmd,VkClearColorValue defaultClearColor)
 {
-	std::vector<VkClearValue>clearValues = std::vector<VkClearValue>(10);
+	std::vector<VkClearValue>clearValues = std::vector<VkClearValue>(11);
 
 	clearValues[0].color = defaultClearColor;
 	clearValues[1].depthStencil = { 1.0f,0 };
@@ -1062,6 +1076,7 @@ void MiniVulkanRenderer::rasterize(CommandBuffer& cmd,VkClearColorValue defaultC
 	clearValues[7].color = {0,0,0};
 	clearValues[8].color = {0,0,0};
 	clearValues[9].color = {0,0,0};
+	clearValues[10].color = {0,0,0};
 
 	shadowPipelineBuilder->draw(cmd);
 
@@ -1070,7 +1085,7 @@ void MiniVulkanRenderer::rasterize(CommandBuffer& cmd,VkClearColorValue defaultC
 	graphicsPipelineBuilder->draw(cmd);
 	cmd.endRenderPass();
 
-	ssaoPipelineBuilder->draw(cmd,graphicsPipelineBuilder->getDescriptorSet());
+	//ssaoPipelineBuilder->draw(cmd,graphicsPipelineBuilder->getDescriptorSet());
 
 		
 }
@@ -1463,6 +1478,7 @@ void MiniVulkanRenderer::createOffScreenFrameBuffer()
 	auto imageMetalRough		  = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
 	auto imageEmissive			  = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
 	auto imageSSAO				  = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
+	auto imageSSAOBlur            = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
 	auto imagePosViewSpace        = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
 	auto imageNormalViewSpace     = Image(*device,surfaceExtent,offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_STORAGE_BIT|VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT );
 
@@ -1474,12 +1490,9 @@ void MiniVulkanRenderer::createOffScreenFrameBuffer()
 	images.push_back(std::move(imageMetalRough));
 	images.push_back(std::move(imageEmissive));
 	images.push_back(std::move(imageSSAO));
+	images.push_back(std::move(imageSSAOBlur));
 	images.push_back(std::move(imagePosViewSpace));
 	images.push_back(std::move(imageNormalViewSpace));
-
-
-
-
 	
 	offscreenRenderTarget = std::make_unique<RenderTarget>(std::move(images));
 	auto& rasterRenderPass = graphicsPipelineBuilder->getRasterRenderPass();

@@ -152,6 +152,9 @@ public:
 		0,                   // instance id
 		10,                   // skyLightIntensity
 		0,                   // debugMode
+		1080,				 // width
+		768,                 // height
+		1				     // NeedSSAO
 
 
 	};
