@@ -429,14 +429,14 @@ void MiniVulkanRenderer::initImGUI()
 	ImVec4 AIMIRUCHA  = ImVec4(15.f / 255.f, 76.f / 255.f, 58.f / 255.f, 1.0f);
 	ImVec4 KAMENOZOKI = ImVec4(165.f / 255.f, 222.f / 255.f, 228.f / 255.f, 1.0f);
 
-	// set background color
-	style.Colors[ImGuiCol_WindowBg] = TETSU;
+	//// set background color
+	//style.Colors[ImGuiCol_WindowBg] = TETSU;
 
-	// set text color
-	style.Colors[ImGuiCol_Text]     = KAMENOZOKI;
+	//// set text color
+	//style.Colors[ImGuiCol_Text]     = KAMENOZOKI;
 
-	// set button background color 
-	style.Colors[ImGuiCol_Button]   = AIMIRUCHA;
+	//// set button background color 
+	//style.Colors[ImGuiCol_Button]   = AIMIRUCHA;
 
 
 	imguiDescPool = std::make_unique<DescriptorPool>(*device);
@@ -831,43 +831,7 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>&  clearValues)
 	changed |= ImGui::ColorEdit3("clearColor",(float*)(&(clearValues[0].color)));
 	changed |= ImGui::Checkbox("Ray Tracer mode",&useRaytracing);
 	
-	if(ImGui::CollapsingHeader("Light",ImGuiTreeNodeFlags_DefaultOpen ))
-	{
-
-		int index = 0;
-		for(auto& Light:lights)
-		{
-
-			ImGui::Text("Light %d",index);
-			changed |= ImGui::SliderFloat3("Position", &Light.position.x, -20.f, 20.f);
-			changed |= ImGui::SliderFloat("Intensity", &Light.intensity, 0.f , 150.f);
-			int type = static_cast<int>(Light.type);
-			changed |= ImGui::RadioButton("Point", &type, 0);
-			ImGui::SameLine();
-			changed |= ImGui::RadioButton("Infinite", &type,1);
-			Light.type = static_cast<LightType>(type);
-
-			index ++;
-		}
-
-
-		ImGui::Text("Skylight");
-		changed |= ImGui::SliderFloat("SkylightIntensity", &pcRay.skyLightIntensity, 0.f , 300.f);
-		pcRaster.skyLightIntensity = pcRay.skyLightIntensity;
-
-
-
-		//auto& pc = pcRaster;
-		//changed |= ImGui::RadioButton("Point", &pc.lightType, 0);
-		//ImGui::SameLine();
-		//changed |= ImGui::RadioButton("Infinite", &pc.lightType,1);
-
-		//changed |= ImGui::SliderFloat3("Position", &pc.lightPosition.x, -20.f, 20.f);
-		//changed |= ImGui::SliderFloat("Intensity", &pc.lightIntensity, 0.f , 150.f);
-		//ImGui::Text("Skylight");
-		//changed |= ImGui::SliderFloat("SkylightIntensity", &pcRay.skyLightIntensity, 0.f , 300.f);
-		//pcRaster.skyLightIntensity = pcRay.skyLightIntensity;
-	}
+	
 	if(ImGui::CollapsingHeader("Rendering",ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		changed |= ImGui::SliderInt("Max Frames", &maxFrames, 1, MAX_FRAMES_LIMIT);
@@ -923,10 +887,94 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>&  clearValues)
 	
 	ImGui::End();
 
+	changed |= uiLights();
+
 
 
 	if(changed)
 		resetFrame();
+}
+
+bool MiniVulkanRenderer::uiLights()
+{
+
+	bool changed = false;
+	static bool init = true;
+
+	if(init == true)
+	{
+		ImGui::SetNextWindowPos(ImVec2(900,100));
+		ImGui::SetNextWindowSize(ImVec2(500,1000));
+		init = false;
+
+	}
+
+	//ImGui::ShowDemoWindow();
+
+	//ImGui::SetNextWindowSize(ImVec2(700,0));
+
+	ImGui::Begin("Light Setting");
+
+
+	bool addChecked = ImGui::Button("add");
+
+	if(addChecked)
+	{
+		lights.push_back(getRandomLight());
+	}
+
+	for(int i = 0; i < lights.size();i++)
+	{
+			ImGui::PushID(i);
+
+			if(ImGui::CollapsingHeader(("Light" + std::to_string(i)).c_str(),ImGuiTreeNodeFlags_None ))
+			{
+				auto& light = lights[i];
+
+				auto pos = light.getPosition();
+				changed |= ImGui::SliderFloat3("Position" , &pos.x, -20.f, 20.f);
+				light.setPosition(pos);
+
+				auto intensity = light.getIntensity();
+				changed |= ImGui::SliderFloat("Intensity", &intensity, 0.f , 150.f);
+				light.setIntensity(intensity);
+
+				int type = light.getType();
+				changed |= ImGui::RadioButton("Point", &type, 0);
+				ImGui::SameLine();
+
+				changed |= ImGui::RadioButton("Infinite", &type,1);
+				light.setType( static_cast<LightType>(type));
+
+				auto color = light.getColor();
+				changed |= ImGui::ColorEdit3("Color", &color.x);
+				light.setColor(color);
+
+				if(ImGui::Button("remove"))
+				{
+					lights.erase(lights.begin() + i);
+					changed = true;
+				}
+					
+				
+			}
+			ImGui::PopID();
+
+	}
+
+
+	if(ImGui::CollapsingHeader("Skylight",ImGuiTreeNodeFlags_DefaultOpen ))
+	{
+		ImGui::Text("Skylight");
+		changed |= ImGui::SliderFloat("SkylightIntensity", &pcRay.skyLightIntensity, 0.f , 300.f);
+		pcRaster.skyLightIntensity = pcRay.skyLightIntensity;
+	}
+	
+
+	ImGui::End();
+
+	return changed;
+
 }
 
 void MiniVulkanRenderer::loop()
@@ -936,7 +984,6 @@ void MiniVulkanRenderer::loop()
 	clearValues[0].color = defaultClearColor;
 	clearValues[1].depthStencil = { 1.0f,0 };
 	clearValues[2].depthStencil = { 1.0f,0 };
-
 
 
 	while(!window->shouldClose()){

@@ -25,7 +25,7 @@ namespace mini
 
 
 		void draw(CommandBuffer& cmd);
-		void update(CommandBuffer& cmd, Camera& camera, VkExtent2D surfaceExtent, std::vector<Light>& lights);
+		void update(CommandBuffer& cmd, Camera& camera, VkExtent2D surfaceExtent,const std::vector<Light>& lights);
 
 		void updateUniformBuffer(CommandBuffer& cmd, Camera& camera, VkExtent2D surfaceExtent);
 

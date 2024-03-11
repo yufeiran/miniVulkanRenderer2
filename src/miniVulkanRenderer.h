@@ -107,6 +107,8 @@ public:
 	// ui---------------------
 	void renderUI(std::vector<VkClearValue>& clearValues);
 
+	bool uiLights();
+
 	//post -----------------
 	void initPostRender();
 	void updatePostDescriptorSet();
@@ -180,7 +182,6 @@ public:
 
 	std::vector<Light> lights = {
 		{LightType::LIGHT_TYPE_DIRECTIONAL, {0.f, 6.f, 2.f}, {0.f, -1.f, 0.f}, {1.f, 1.f, 1.f}, 2.5f,true}
-		//{LightType::LIGHT_TYPE_DIRECTIONAL, {0.f, 6.f, 2.f}, {0.f, -1.f, 0.f}, {1.f, 1.f, 1.f}, 2.5f}
 		
 	};
 

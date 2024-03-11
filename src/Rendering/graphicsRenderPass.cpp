@@ -42,27 +42,7 @@ GeometryRenderPass::GeometryRenderPass(Device& device,
 	rasterPipelineLayout = std::make_unique<PipelineLayout>(device, descSetLayouts, pushConstants);
 
 
-	graphicsPipeline = std::make_unique<GraphicsPipeline>(rasterShaderModules, *rasterPipelineLayout, device, extent);
-
-
-	auto colorBlendAttachment = graphicsPipeline->colorBlendAttachment;
-	std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachments;
-
-	colorBlendAttachments.push_back(colorBlendAttachment); // position
-	colorBlendAttachments.push_back(colorBlendAttachment); // normal
-	colorBlendAttachments.push_back(colorBlendAttachment); // albedo
-	colorBlendAttachments.push_back(colorBlendAttachment); // metallicRoughness
-	colorBlendAttachments.push_back(colorBlendAttachment); // emissive
-	colorBlendAttachments.push_back(colorBlendAttachment); // positionInView
-	colorBlendAttachments.push_back(colorBlendAttachment); // normalInView
-
-
-	graphicsPipeline->colorBlending.attachmentCount = static_cast<uint32_t>(colorBlendAttachments.size());
-	graphicsPipeline->colorBlending.pAttachments = colorBlendAttachments.data();
-
-	graphicsPipeline->setSubpassIndex(subpassIndex);
-
-	graphicsPipeline->build(renderPass);
+	rebuild(extent, subpassIndex);
 }
 
 mini::GeometryRenderPass::~GeometryRenderPass()
@@ -100,12 +80,27 @@ void GeometryRenderPass::draw(CommandBuffer& cmd, std::vector<VkDescriptorSet> d
 
 	}
 
-
 }
 
 void GeometryRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
 {
 	graphicsPipeline = std::make_unique<GraphicsPipeline>(rasterShaderModules, *rasterPipelineLayout, device, surfaceExtent);
+
+	auto colorBlendAttachment = graphicsPipeline->colorBlendAttachment;
+	std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachments;
+
+	colorBlendAttachments.push_back(colorBlendAttachment); // position
+	colorBlendAttachments.push_back(colorBlendAttachment); // normal
+	colorBlendAttachments.push_back(colorBlendAttachment); // albedo
+	colorBlendAttachments.push_back(colorBlendAttachment); // metallicRoughness
+	colorBlendAttachments.push_back(colorBlendAttachment); // emissive
+	colorBlendAttachments.push_back(colorBlendAttachment); // positionInView
+	colorBlendAttachments.push_back(colorBlendAttachment); // normalInView
+
+	graphicsPipeline->colorBlending.attachmentCount = static_cast<uint32_t>(colorBlendAttachments.size());
+	graphicsPipeline->colorBlending.pAttachments = colorBlendAttachments.data();
+
+
 	graphicsPipeline->setSubpassIndex(subpassIndex);
 	extent = surfaceExtent;
 	graphicsPipeline->build(renderPass);
@@ -406,7 +401,10 @@ void LightingRenderPass::draw(CommandBuffer& cmd, std::vector<VkDescriptorSet> d
 
 void LightingRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
 {
-
+	graphicsPipeline = std::make_unique<GraphicsPipeline>(shaderModules, *pipelineLayout, device, surfaceExtent);
+	graphicsPipeline->setSubpassIndex(subpassIndex);
+	extent = surfaceExtent;
+	graphicsPipeline->build(renderPass);
 }
 
 SSAORenderPass::SSAORenderPass(Device&                               device, 
@@ -473,7 +471,10 @@ void SSAORenderPass::draw(CommandBuffer& cmd,const std::vector<VkDescriptorSet> 
 
 void SSAORenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
 {
-
+	graphicsPipeline = std::make_unique<GraphicsPipeline>(shaderModules, *pipelineLayout, device, surfaceExtent);
+	graphicsPipeline->setSubpassIndex(subpassIndex);
+	extent = surfaceExtent;
+	graphicsPipeline->build(renderPass);
 }
 
 
@@ -541,5 +542,8 @@ void SSAOBlurRenderPass::draw(CommandBuffer& cmd, const std::vector<VkDescriptor
 
 void SSAOBlurRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
 {
-
+	graphicsPipeline = std::make_unique<GraphicsPipeline>(shaderModules, *pipelineLayout, device, surfaceExtent);
+	graphicsPipeline->setSubpassIndex(subpassIndex);
+	extent = surfaceExtent;
+	graphicsPipeline->build(renderPass);
 }

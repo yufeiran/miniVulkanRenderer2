@@ -20,6 +20,7 @@ layout(buffer_reference, scalar) buffer MatIndices { int i[]; };
 
 layout(binding = eObjDescs, scalar) buffer ObjDesc_ { ObjDesc i[]; } objDesc;
 layout(binding = eTextures) uniform sampler2D[] textureSamplers;
+layout(binding = eCubeMap) uniform samplerCube cubeMapTexture;
 layout(binding = eDirShadowMap) uniform sampler2D shadowmap;
 layout(binding = ePointShadowMap) uniform samplerCube pointShadowMapTexture;
 layout(binding = eLight,std140) uniform _LightUniforms {LightUniforms lightsUni;};
@@ -271,6 +272,7 @@ void main() {
         
         LightDesc light = lightsUni.lights[i];
         lightIntensity = light.intensity;
+        vec3 lightColor = light.color.rgb;
         vec3 lightPos = light.position.xyz;
         if(light.type == 0) // point light
         {
@@ -287,20 +289,20 @@ void main() {
 
         vec3 lightIntensitys = vec3(lightIntensity);
 
-        vec3 Li = calcLight(state, viewDir, L, lightIntensitys, lightPdf);
+        vec3 Li =  lightColor * calcLight(state, viewDir, L, lightIntensitys, lightPdf);
 
         float isShadowed = 0.0;
-        if(light.type == 0)
+
+        if(i == lightsUni.dirShadowIndex)
         {
-            
-            isShadowed = shadowCalculationPoint(state.position,light);
-            
-        }
-        else if(light.type == 1) // directional light
-        {
+
             vec4 fragPosLightSpace = light.dirLightSpaceMatrix * vec4(state.position, 1.0);
             float bias = 0.005;
             isShadowed = shadowCalculationDir(fragPosLightSpace,bias);
+        }
+        else if( i == lightsUni.pointShadowIndex)
+        {
+            isShadowed = shadowCalculationPoint(state.position,light);
         }
 
 
@@ -309,42 +311,46 @@ void main() {
 
     }
 
-    // vec3 L = vec3(0); // vector to light
-    // float lightIntensity = 0.0;
-    // float lightDistance = 100000.0;
-    // float lightPdf = 1.0;
+    int indSamples = 8;
+    BsdfSampleRec indirectBsdf;;
+    uint seed = 10000;
+    vec3 sampleColor = vec3(0);
+    for(int i = 0; i < indSamples; i++)
+    {
+        indirectBsdf.f = PbrSample(state, viewDir, state.ffnormal, indirectBsdf.L, indirectBsdf.pdf, seed);
 
-    
-    // lightIntensity = lightsUni.lights[0].intensity;
-    // vec3 lightPos = lightsUni.lights[0].position.xyz;
-    // if(lightsUni.lights[0].type == 0)
-    // {
-    //     vec3  lDir     = lightPos - state.position;
-    //     float d        = length(lDir);
-    //     lightIntensity = lightIntensity / (d *d);
-    //         //(LIGHT_QUADRATIC * d * d + LIGHT_LINEAR * d + LIGHT_CONSTANT + 0.0001);
-    //     L              = normalize(-lDir);   
-    // }
-    // else 
-    // { 
-    //     L = normalize(-lightPos);
-    // }
+        vec3 sampleLight = texture(cubeMapTexture, indirectBsdf.L).rgb;
+        vec3 indirectSample = indirectBsdf.f * sampleLight * pcRaster.skyLightIntensity / 10.0 * abs(dot(state.ffnormal, indirectBsdf.L)) / indirectBsdf.pdf;
 
-    // vec3 lightIntensitys = vec3(lightIntensity);
+        if(any(isnan(indirectSample)))
+        {
+            indirectSample += vec3(0.0);
+        }
+        else
+        {
+            sampleColor += indirectSample;
+        }
 
-    // vec3 Li = calcLight(state, viewDir, L, lightIntensitys, lightPdf);
-
-
-
-    // color += Li;
-
-    color += state.mat.emission;
-    vec3 ambient = vec3(0.001) * pcRaster.skyLightIntensity * state.mat.albedo;
+    }
+    sampleColor /= float(indSamples);
     if(pcRaster.needSSAO == 1)
     {
-        ambient *= state.mat.ao;
+        sampleColor *= state.mat.ao;
     }
-    color += ambient;
+
+
+    color += sampleColor;
+
+
+   
+
+    color += state.mat.emission;
+    // vec3 ambient = vec3(0.001) * pcRaster.skyLightIntensity * state.mat.albedo;
+    // if(pcRaster.needSSAO == 1)
+    // {
+    //     ambient *= state.mat.ao;
+    // }
+    // color += ambient;
 
     color = DebugInfo(state, color);
 

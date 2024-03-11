@@ -88,19 +88,22 @@ namespace mini
 			return isShadowCaster;
 		}
 
+
+	private:
 		LightType type;
 		glm::vec3 position;
 		glm::vec3 direction;
 		glm::vec3 color;
 		float intensity;
 		bool isShadowCaster;
-	private:
-
 
 
 	};
 
-	 LightUniforms inline createLightUniforms(std::vector<Light> lights)
+	Light getRandomLight();
+
+
+	 LightUniforms inline createLightUniforms(const std::vector<Light>& lights)
 	{
 		LightUniforms lightUniforms = {};
 		lightUniforms.lightCount = lights.size();

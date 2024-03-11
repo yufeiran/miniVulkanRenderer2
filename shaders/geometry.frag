@@ -88,7 +88,7 @@ void main() {
         
     gPosition = inWorldPos;
     gNormal   = state.normal ;
-    gAlbedoSpce = vec4(state.mat.albedo, state.mat.alpha);
+    gAlbedoSpce = SRGBtoLINEAR(vec4(state.mat.albedo, state.mat.alpha));
     gMetalRough = vec4(state.mat.metallic, state.mat.roughness, 0.0, 0.0);
     gEmissive = SRGBtoLINEAR(vec4(state.mat.emission, 1.0));
 

@@ -368,18 +368,28 @@ void GraphicsPipelineBuilder::draw(CommandBuffer& cmd)
 
 	cmd.nextSubpass();
 
-	ssaoRenderPass->draw(cmd,{descSet,ssaoDescSet});
+	if(pcRaster.needSSAO==true)
+	{
+		ssaoRenderPass->draw(cmd,{descSet,ssaoDescSet});
 
-	cmd.nextSubpass();
+		cmd.nextSubpass();
 
-	ssaoBlurRenderPass->draw(cmd,{ssaoBlurDescSet});
+		ssaoBlurRenderPass->draw(cmd,{ssaoBlurDescSet});
 
-	cmd.nextSubpass();
+		cmd.nextSubpass();
+	}
+	else{
+		cmd.nextSubpass();
+		cmd.nextSubpass();
+		
+	}
+
+
 
 	lightingRenderPass->draw(cmd, {descSet,gBufferDescSet});
 }
 
-void GraphicsPipelineBuilder::update(CommandBuffer& cmd, Camera& camera, VkExtent2D surfaceExtent, std::vector<Light>& lights)
+void GraphicsPipelineBuilder::update(CommandBuffer& cmd, Camera& camera, VkExtent2D surfaceExtent,const std::vector<Light>& lights)
 {
 	updateUniformBuffer(cmd, camera, surfaceExtent);
 	updateLightUniformsBuffer(cmd, lights);
