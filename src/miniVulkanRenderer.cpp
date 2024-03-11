@@ -1,11 +1,13 @@
 
 
-
+#include <glm/gtx/matrix_decompose.hpp>
 #include "miniVulkanRenderer.h"
 #include <chrono>
 #include "Vulkan/shaderInfo.h"
 #include "ResourceManagement/ResourceManager.h"
 #include "Vulkan/sampler.h"
+#include <glm/gtx/euler_angles.hpp>
+
 
 
 
@@ -275,6 +277,8 @@ MiniVulkanRenderer::MiniVulkanRenderer()
 void MiniVulkanRenderer::init(int width, int height)
 {
 
+	srand(time(0));
+
 	LogLogo();
 	Log("init start");
 	LogTimerStart("init");
@@ -313,6 +317,7 @@ void MiniVulkanRenderer::init(int width, int height)
 	device = std::make_unique<Device>(gpu, surface, deviceExtension);
 
 	canRaytracing = device->enableRayTracing();
+
 
 	LogSpace();
 
@@ -888,6 +893,7 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>&  clearValues)
 	ImGui::End();
 
 	changed |= uiLights();
+	changed |= uiInstance();
 
 
 
@@ -903,7 +909,7 @@ bool MiniVulkanRenderer::uiLights()
 
 	if(init == true)
 	{
-		ImGui::SetNextWindowPos(ImVec2(900,100));
+		ImGui::SetNextWindowPos(ImVec2(900,50));
 		ImGui::SetNextWindowSize(ImVec2(500,1000));
 		init = false;
 
@@ -975,6 +981,85 @@ bool MiniVulkanRenderer::uiLights()
 
 	return changed;
 
+}
+
+bool MiniVulkanRenderer::uiInstance()
+{
+	bool changed = false;
+	static bool init = true;
+
+	if(init == true)
+	{
+		ImGui::SetNextWindowPos(ImVec2(50,500));
+		ImGui::SetNextWindowSize(ImVec2(800,500));
+		init = false;
+
+	}
+
+	ImGui::Begin("Instance");
+
+	auto& instance = resourceManager->getInstances();
+	for(int i = 0; i < instance.size(); i++)
+	{
+		ImGui::PushID(i);
+		auto& inst = instance[i];
+		if(ImGui::CollapsingHeader((std::to_string(i) + "_" + inst.name).c_str(),ImGuiTreeNodeFlags_None ))
+		{
+			
+			
+			glm::mat4& transform = inst.transform;
+			glm::vec3 scale;
+			glm::quat rotation;
+			glm::vec3 translation;
+			glm::vec3 skew;
+			glm::vec4 perspective;
+			glm::decompose(transform,scale,rotation,translation,skew,perspective);
+
+			glm::mat4 rotationMat =  glm::mat4_cast(rotation);
+			glm::vec3 eular =  glm::eulerAngles(rotation);
+
+			//Log("pitch "+ std::to_string(glm::degrees(glm::pitch(rotation))) + 
+			//	" yaw " + std::to_string(glm::degrees(glm::yaw(rotation))) + 
+			//	" roll " + std::to_string(glm::degrees(glm::roll(rotation))));
+
+			changed |= ImGui::SliderFloat3("Translation", &translation.x, -20.f, 20.f);
+
+			changed |= ImGui::SliderFloat3("Scale", &scale.x, 0.1f, 10.f);
+
+
+
+			changed |= ImGui::SliderAngle("rotateX",&eular.x);
+			changed |= ImGui::SliderAngle("rotateY",&eular.y);
+			changed |= ImGui::SliderAngle("rotateZ",&eular.z);
+
+
+
+
+
+			glm::mat4 scaleMat = glm::scale(glm::mat4(1.0f),scale);
+
+
+			//glm::mat4 rotationMatX = glm::rotate(glm::mat4(1.0f),eular.x,glm::vec3(1,0,0));
+			//glm::mat4 rotationMatY = glm::rotate(glm::mat4(1.0f),eular.y,glm::vec3(0,1,0));
+			//glm::mat4 rotationMatZ = glm::rotate(glm::mat4(1.0f),eular.z,glm::vec3(0,0,1));
+
+			//rotationMat = rotationMatX * rotationMatY * rotationMatZ;
+
+			rotationMat = glm::eulerAngleXYZ(eular.x,eular.y,eular.z);
+			
+			glm::mat4 translationMat = glm::translate(glm::mat4(1.0f),translation);
+
+			transform = translationMat * rotationMat * scaleMat;
+
+			
+		}
+		ImGui::PopID();
+	
+	}
+
+	ImGui::End();
+
+	return changed;
 }
 
 void MiniVulkanRenderer::loop()
@@ -1089,22 +1174,34 @@ void MiniVulkanRenderer::loop()
 auto start = std::chrono::system_clock::now();
 void MiniVulkanRenderer::updateInstances()
 {
-	auto now =std::chrono::system_clock::now();
-	std::chrono::duration<float> diff = now - start;
-	start = now;
-	auto bunnyId                      = resourceManager->getInstanceId("bunny");
-	if(bunnyId == -1)
+
+	int lightId =resourceManager->getInstanceId("LightCube");
+
+	auto& instances = resourceManager->getInstances();
+
+	auto& lightInstance = instances[lightId];
+
+	auto& light = lights[0];
+
+	lightInstance.transform = glm::translate(glm::mat4(1.0f),light.getPosition());
+
+
+
+	if(useRaytracing == false)
 	{
 		return;
 	}
-	auto & instances                  = resourceManager->getInstances();
-	const float deltaAngle            =  6.28318530718f;
-	const float offset                = diff.count() * 0.5;
-	auto& transform                   = instances[bunnyId].transform;
-	transform =  glm::rotate(transform,offset * deltaAngle,{0,1,0});
+	auto now =std::chrono::system_clock::now();
+	std::chrono::duration<float> diff = now - start;
+	start = now;
 
-	VkAccelerationStructureInstanceKHR& tinst = tlas[bunnyId];
-	tinst.transform                           = toTransformMatrixKHR(transform);
+
+	for(int i = 0; i < instances.size();i++)
+	{
+		auto& inst = instances[i];
+		VkAccelerationStructureInstanceKHR& tinst = tlas[i];
+		tinst.transform                           = toTransformMatrixKHR(inst.transform);
+	}
 
 	rayTracingBuilder->buildTlas(tlas, rtFlags, true);
 }
@@ -1477,7 +1574,13 @@ void MiniVulkanRenderer::handleSizeChange()
 
 	
 	createOffScreenFrameBuffer();
-	updateRtDescriptorSet();
+
+	if(canRaytracing == true )
+	{
+		updateRtDescriptorSet();
+	}
+
+
 	updatePostDescriptorSet();
 
 	graphicsPipelineBuilder->rebuild(extent);

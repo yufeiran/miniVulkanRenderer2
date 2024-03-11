@@ -103,7 +103,7 @@ struct LightDesc
 	float farPlane;
 };
 
-#define MAX_LIGHTS 16
+#define MAX_LIGHTS 99
 struct LightUniforms
 {
 	int       lightCount;
@@ -148,6 +148,8 @@ struct PushConstantRaster
 	int   screenWidth;
 	int   screenHeight;
 	int   needSSAO;   // 0: no 1:yes
+	int   objType;    // 0:normal 1: light
+	int   lightIndex; // light index
 };
 
 struct PushConstantRay

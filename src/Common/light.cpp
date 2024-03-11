@@ -11,7 +11,7 @@ double random(double min, double max)
 
 Light mini::getRandomLight()
 {
-    srand(time(0));
+
 
     float randomRange = 10;
     

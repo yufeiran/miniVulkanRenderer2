@@ -109,6 +109,8 @@ public:
 
 	bool uiLights();
 
+	bool uiInstance();
+
 	//post -----------------
 	void initPostRender();
 	void updatePostDescriptorSet();
@@ -156,9 +158,9 @@ public:
 		0,                   // debugMode
 		1080,				 // width
 		768,                 // height
-		1				     // NeedSSAO
-
-
+		1,				     // NeedSSAO
+		0,                   // lightType 0:normal 1: light
+	    0                    // light index
 	};
 
 	PushConstantRay pcRay{
@@ -181,7 +183,7 @@ public:
 	};
 
 	std::vector<Light> lights = {
-		{LightType::LIGHT_TYPE_DIRECTIONAL, {0.f, 6.f, 2.f}, {0.f, -1.f, 0.f}, {1.f, 1.f, 1.f}, 2.5f,true}
+		{LightType::LIGHT_TYPE_DIRECTIONAL, {0.f, 20.f, 2.f}, {0.f, -1.f, 0.f}, {1.f, 1.f, 1.f}, 2.5f,true}
 		
 	};
 

@@ -32,7 +32,7 @@ GeometryRenderPass::GeometryRenderPass(Device& device,
 	VkPushConstantRange pushConstant = {};
 	pushConstant.offset = 0;
 	pushConstant.size = sizeof(PushConstantRaster);
-	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 	pushConstants.push_back(pushConstant);
 
 
@@ -67,18 +67,7 @@ void GeometryRenderPass::draw(CommandBuffer& cmd, std::vector<VkDescriptorSet> d
 
 	cmd.bindDescriptorSet(descSet);
 
-	for (const ObjInstance& inst : resourceManager.instances)
-	{
-		auto& model = resourceManager.objModel[inst.objIndex];
-		pcRaster.objIndex = inst.objIndex;
-		pcRaster.modelMatrix = inst.transform;
-		cmd.pushConstant(pcRaster, static_cast<VkShaderStageFlagBits>(VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT));
-
-		cmd.bindVertexBuffer(*model->vertexBuffer);
-		cmd.bindIndexBuffer(*model->indexBuffer);
-		vkCmdDrawIndexed(cmd.getHandle(), model->nbIndices, 1, 0, 0, 0);
-
-	}
+	resourceManager.draw(cmd,pcRaster);
 
 }
 
@@ -122,7 +111,7 @@ SkyLightRenderPass::SkyLightRenderPass(Device& device,
 	VkPushConstantRange pushConstant = {};
 	pushConstant.offset = 0;
 	pushConstant.size = sizeof(PushConstantRaster);
-	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT  | VK_SHADER_STAGE_GEOMETRY_BIT| VK_SHADER_STAGE_FRAGMENT_BIT;
 	pushConstants.push_back(pushConstant);
 
 
@@ -165,7 +154,7 @@ void SkyLightRenderPass::draw(CommandBuffer& cmd, std::vector<VkDescriptorSet> d
 
 	cmd.bindDescriptorSet(descSet);
 
-	cmd.pushConstant(pcRaster, static_cast<VkShaderStageFlagBits>(VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT));
+	cmd.pushConstant(pcRaster, static_cast<VkShaderStageFlagBits>(VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT));
 
 
 	cmd.bindVertexBuffer(skyLightCube.getVertexBuffer());
@@ -203,7 +192,7 @@ DirShadowMapRenderPass::DirShadowMapRenderPass(Device& device,
 	VkPushConstantRange pushConstant = {};
 	pushConstant.offset = 0;
 	pushConstant.size = sizeof(PushConstantRaster);
-	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT  | VK_SHADER_STAGE_FRAGMENT_BIT;
 	pushConstants.push_back(pushConstant);
 
 
@@ -242,18 +231,7 @@ void DirShadowMapRenderPass::draw(CommandBuffer& cmd, std::vector<VkDescriptorSe
 
 	cmd.bindDescriptorSet(descSet);
 
-	for (const ObjInstance& inst : resourceManager.instances)
-	{
-		auto& model = resourceManager.objModel[inst.objIndex];
-		pcRaster.objIndex = inst.objIndex;
-		pcRaster.modelMatrix = inst.transform;
-		cmd.pushConstant(pcRaster, static_cast<VkShaderStageFlagBits>(VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT));
-
-		cmd.bindVertexBuffer(*model->vertexBuffer);
-		cmd.bindIndexBuffer(*model->indexBuffer);
-		vkCmdDrawIndexed(cmd.getHandle(), model->nbIndices, 1, 0, 0, 0);
-
-	}
+	resourceManager.draw(cmd,pcRaster);
 }
 
 void DirShadowMapRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
@@ -318,18 +296,7 @@ void PointShadowMapRenderPass::draw(CommandBuffer& cmd, std::vector<VkDescriptor
 
 	cmd.bindDescriptorSet(descSet);
 
-	for (const ObjInstance& inst : resourceManager.instances)
-	{
-		auto& model = resourceManager.objModel[inst.objIndex];
-		pcRaster.objIndex = inst.objIndex;
-		pcRaster.modelMatrix = inst.transform;
-		cmd.pushConstant(pcRaster, static_cast<VkShaderStageFlagBits>(VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT));
-
-		cmd.bindVertexBuffer(*model->vertexBuffer);
-		cmd.bindIndexBuffer(*model->indexBuffer);
-		vkCmdDrawIndexed(cmd.getHandle(), model->nbIndices, 1, 0, 0, 0);
-
-	}
+	resourceManager.draw(cmd,pcRaster);
 }
 
 void PointShadowMapRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
@@ -351,7 +318,7 @@ LightingRenderPass::LightingRenderPass(Device& device, ResourceManager& resource
 	VkPushConstantRange pushConstant = {};
 	pushConstant.offset = 0;
 	pushConstant.size = sizeof(PushConstantRaster);
-	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT  | VK_SHADER_STAGE_GEOMETRY_BIT| VK_SHADER_STAGE_FRAGMENT_BIT;
 	pushConstants.push_back(pushConstant);
 
 
@@ -388,7 +355,7 @@ void LightingRenderPass::draw(CommandBuffer& cmd, std::vector<VkDescriptorSet> d
 	cmd.bindDescriptorSet(descSet);
 
 
-	vkCmdPushConstants(cmd.getHandle(), pipelineLayout->getHandle(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstantPost), &pcRaster);
+	vkCmdPushConstants(cmd.getHandle(), pipelineLayout->getHandle(), VK_SHADER_STAGE_VERTEX_BIT  | VK_SHADER_STAGE_GEOMETRY_BIT| VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstantPost), &pcRaster);
 	cmd.bindVertexBuffer(postQuad.getVertexBuffer());
 
 	cmd.setViewPortAndScissor(extent);
@@ -424,7 +391,7 @@ SSAORenderPass::SSAORenderPass(Device&                               device,
 	VkPushConstantRange pushConstant = {};
 	pushConstant.offset = 0;
 	pushConstant.size = sizeof(PushConstantRaster);
-	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT  | VK_SHADER_STAGE_GEOMETRY_BIT| VK_SHADER_STAGE_FRAGMENT_BIT;
 	pushConstants.push_back(pushConstant);
 
 
@@ -460,7 +427,7 @@ void SSAORenderPass::draw(CommandBuffer& cmd,const std::vector<VkDescriptorSet> 
 	cmd.bindDescriptorSet(descSet);
 
 
-	vkCmdPushConstants(cmd.getHandle(), pipelineLayout->getHandle(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstantPost), &pcRaster);
+	vkCmdPushConstants(cmd.getHandle(), pipelineLayout->getHandle(), VK_SHADER_STAGE_VERTEX_BIT  | VK_SHADER_STAGE_GEOMETRY_BIT| VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstantPost), &pcRaster);
 	cmd.bindVertexBuffer(postQuad.getVertexBuffer());
 
 	cmd.setViewPortAndScissor(extent);
@@ -496,7 +463,7 @@ SSAOBlurRenderPass::SSAOBlurRenderPass(Device& device,
 	VkPushConstantRange pushConstant = {};
 	pushConstant.offset = 0;
 	pushConstant.size = sizeof(PushConstantRaster);
-	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT  | VK_SHADER_STAGE_GEOMETRY_BIT| VK_SHADER_STAGE_FRAGMENT_BIT;
 	pushConstants.push_back(pushConstant);
 
 
@@ -531,7 +498,7 @@ void SSAOBlurRenderPass::draw(CommandBuffer& cmd, const std::vector<VkDescriptor
 	cmd.bindDescriptorSet(descSet);
 
 
-	vkCmdPushConstants(cmd.getHandle(), pipelineLayout->getHandle(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstantPost), &pcRaster);
+	vkCmdPushConstants(cmd.getHandle(), pipelineLayout->getHandle(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstantPost), &pcRaster);
 	cmd.bindVertexBuffer(postQuad.getVertexBuffer());
 
 	cmd.setViewPortAndScissor(extent);

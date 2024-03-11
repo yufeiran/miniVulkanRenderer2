@@ -40,6 +40,8 @@ public:
 	ResourceManager(Device&device);
 	~ResourceManager();
 
+	void draw(CommandBuffer& cmd,PushConstantRaster& pcRaster);
+
 	void loadObjModel(std::string name,std::string path,glm::mat4 transform = glm::mat4(1), bool flipTexture=false);
 
 	void loadScene(const std::string& filename, glm::mat4 transform = glm::mat4(1), bool flipTexture = false);

@@ -311,7 +311,7 @@ void main() {
 
     }
 
-    int indSamples = 8;
+    int indSamples = 4;
     BsdfSampleRec indirectBsdf;;
     uint seed = 10000;
     vec3 sampleColor = vec3(0);

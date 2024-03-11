@@ -24,12 +24,35 @@ ResourceManager::ResourceManager(Device& device):
 	cmdPool = std::make_unique<CommandPool>(device);
 	defaultSampler = std::make_unique<Sampler>(device);
 	repeatSampler  = std::make_unique<Sampler>(device,VK_SAMPLER_ADDRESS_MODE_REPEAT);
+
+	glm::mat4 objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{0,0,0});
+	objMat = glm::scale(objMat,{0.1,0.1,0.1});
+	loadScene( "../../assets/box/box.gltf",objMat);
+
+
 }
 
 ResourceManager::~ResourceManager()
 {
 	textures.clear();
 	
+}
+
+void ResourceManager::draw(CommandBuffer& cmd,PushConstantRaster& pcRaster)
+{
+	for (const ObjInstance& inst : instances)
+	{
+		auto& model = objModel[inst.objIndex];
+		pcRaster.objIndex = inst.objIndex;
+		pcRaster.modelMatrix = inst.transform;
+		cmd.pushConstant(pcRaster, static_cast<VkShaderStageFlagBits>(VK_SHADER_STAGE_VERTEX_BIT|VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT));
+
+		cmd.bindVertexBuffer(*model->vertexBuffer);
+		cmd.bindIndexBuffer(*model->indexBuffer);
+		vkCmdDrawIndexed(cmd.getHandle(), model->nbIndices, 1, 0, 0, 0);
+
+	}
 }
 
 void initMaterial(GltfShadeMaterial& mat)

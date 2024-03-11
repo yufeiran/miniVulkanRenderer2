@@ -62,7 +62,7 @@ void main()
     mat3 TBN       = mat3(tangent, bitangent, normalInView);
 
     float occlusion = 0.0;
-    const int kernelSize = 32;
+    const int kernelSize = 16;
     const float radius = 0.5;
     const float bias = 0.025;
     for(int i = 0; i < kernelSize; ++i)
