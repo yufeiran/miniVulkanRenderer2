@@ -202,6 +202,9 @@ vec3 PathTrace(Ray r)
             else 
             { 
                 L = normalize(-lightPos);
+                vec3  lDir     = lightPos - state.position;
+                float d        = length(lDir);
+                lightDistance  = d;
             }
 
             // Direction Light
@@ -232,7 +235,7 @@ vec3 PathTrace(Ray r)
                             state.position,     // ray origin
                             0.01,          // ray min range
                             -L,            // ray direction
-                            lightDistance,         // ray max range
+                            lightDistance - 0.5,         // ray max range
                             1             // payload layout(location = 1)
                 );
 

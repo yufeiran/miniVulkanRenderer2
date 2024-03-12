@@ -30,8 +30,15 @@ struct ObjModel
 struct ObjInstance
 {
 	glm::mat4  transform;    // Obj matrix of the instance
+
+	glm::vec3  translation;  // Translation of the instance
+	glm::vec3  scale;        // Scale of the instance
+	glm::vec3  rotation;     // Rotation of the instance
+
 	uint32_t   objIndex{0};  // Model index reference
 	std::string name;
+	void updateFactorBytransform();
+	void updateTransformByFactor();
 };
 
 class ResourceManager

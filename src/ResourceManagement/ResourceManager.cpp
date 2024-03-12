@@ -1,5 +1,7 @@
 
 #include <omp.h>
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
 #include "ResourceManagement/ResourceManager.h"
 #include "Vulkan/device.h"
@@ -46,6 +48,15 @@ void ResourceManager::draw(CommandBuffer& cmd,PushConstantRaster& pcRaster)
 		auto& model = objModel[inst.objIndex];
 		pcRaster.objIndex = inst.objIndex;
 		pcRaster.modelMatrix = inst.transform;
+		if(inst.name == "LightCube")
+		{
+			pcRaster.objType = 1;
+			pcRaster.lightIndex = 0;
+		}
+		else {
+			pcRaster.objType = 0;
+		}
+
 		cmd.pushConstant(pcRaster, static_cast<VkShaderStageFlagBits>(VK_SHADER_STAGE_VERTEX_BIT|VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT));
 
 		cmd.bindVertexBuffer(*model->vertexBuffer);
@@ -439,6 +450,7 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 			instance.transform = transform * node.worldMatrix ;
 			instance.objIndex  = gltfToGobalMeshMap[node.primMesh];
 			instance.name = gltfLoader.primMeshes[node.primMesh].name;
+			instance.updateFactorBytransform();
 		
 			instances.push_back(instance);
 			nowCount++;
@@ -559,6 +571,35 @@ int32_t ResourceManager::getInstanceId(const std::string name)
 		id++;
 	}
 	return -1;
+}
+
+void ObjInstance::updateFactorBytransform()
+{
+	
+
+	glm::vec3 scale;
+	glm::quat rotation;
+	glm::vec3 translation;
+	glm::vec3 skew;
+	glm::vec4 perspective;
+	glm::decompose(transform,scale,rotation,translation,skew,perspective);
+
+	glm::mat4 rotationMat =  glm::mat4_cast(rotation);
+	glm::vec3 eular =  glm::eulerAngles(rotation);
+
+	this->scale = scale;
+	this->rotation = eular;
+	this->translation = translation;
+
+}
+
+void ObjInstance::updateTransformByFactor()
+{
+	glm::mat4 scaleMat = glm::scale(glm::mat4(1.0f),scale);
+	glm::mat4 rotationMat = glm::eulerAngleXYZ(rotation.x,rotation.y,rotation.z);
+	glm::mat4 translationMat = glm::translate(glm::mat4(1.0f),translation);
+
+	transform = translationMat * rotationMat * scaleMat;
 }
 
 }

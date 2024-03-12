@@ -63,7 +63,10 @@ layout(location = 4) out vec4 gEmissive;
 layout(location = 5) out vec3 gPositionViewSpace;
 layout(location = 6) out vec3 gNormalViewSpace;
 
-
+vec3 toneMap(vec3 color)
+{
+    return color / (color + vec3(1.0));
+}
 
 void main() {
     // Material of the object 
@@ -73,6 +76,8 @@ void main() {
 
     int               matIndex = matIndices.i[gl_PrimitiveID];
     GltfShadeMaterial mat      = materials.m[matIndex];
+
+
 
     State state;
     state.position = inWorldPos;
@@ -84,13 +89,22 @@ void main() {
     int objIndex = pcRaster.objIndex;
 
     GetMaterialsAndTextures(state,objIndex);
+
+    state.mat.emission = SRGBtoLINEAR(vec4(state.mat.emission, 1.0)).rgb;
+
+    if(pcRaster.objType == 1)
+    {
+        LightDesc light = lightsUni.lights[pcRaster.lightIndex];
+        
+        state.mat.emission = light.color.xyz * light.intensity;
+    }
     
         
     gPosition = inWorldPos;
     gNormal   = state.normal ;
     gAlbedoSpce = SRGBtoLINEAR(vec4(state.mat.albedo, state.mat.alpha));
     gMetalRough = vec4(state.mat.metallic, state.mat.roughness, 0.0, 0.0);
-    gEmissive = SRGBtoLINEAR(vec4(state.mat.emission, 1.0));
+    gEmissive = vec4(state.mat.emission, 1.0);
 
     gPositionViewSpace = inViewPos;
     gNormalViewSpace   = normalize(inViewNormal);

@@ -233,6 +233,33 @@ namespace mini
 
 	};
 
+	class PBBRenderPass :public GraphicsRenderPass
+	{
+	public:
+		PBBRenderPass(Device& device,
+						ResourceManager& resourceManager,
+						const RenderPass& renderPass,
+						VkExtent2D extent,
+						std::shared_ptr<DescriptorSetLayout> descSetLayout,
+						std::shared_ptr<DescriptorSetLayout> gBufferDescSetLayout,
+						PushConstantRaster& pcRaster,
+						int subpassIndex = 0
+				);
+		~PBBRenderPass();
+
+		void update();
+		void draw(CommandBuffer& cmd,const std::vector<VkDescriptorSet> descSet);
+
+		void rebuild(VkExtent2D surfaceExtent, int subpassIndex = 0);
+	private:
+		PostQuad postQuad;
+		const RenderPass& renderPass;
+		PushConstantRaster& pcRaster;
+		std::vector<std::unique_ptr<ShaderModule>> shaderModules;
+		std::unique_ptr<PipelineLayout>            pipelineLayout;
+
+	};
+
 
 
 

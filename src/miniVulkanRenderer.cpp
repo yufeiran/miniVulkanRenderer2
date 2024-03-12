@@ -21,7 +21,7 @@ using namespace std::chrono;
 
 void MiniVulkanRenderer::load()
 {
-	int testCase = 0;
+	int testCase = 2;
 	switch(testCase)
 	{
 	case 0:
@@ -219,9 +219,11 @@ void MiniVulkanRenderer::loadSponza()
 	glm::mat4 objMat = glm::mat4(1.0f);
 	objMat = glm::mat4(1.0f);
 	//objMat = glm::translate(objMat,{-10,-1,0});
-	resourceManager->loadScene("D://yufeiran/model/AMD/Deferred/Deferred.gltf",objMat);
+	//resourceManager->loadScene("D://yufeiran/model/AMD/Deferred/Deferred.gltf",objMat);
+
+	//resourceManager->loadScene("D://yufeiran/model/AMD/Deferred/Deferred.gltf",objMat);
 	
-	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",objMat);
+	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",objMat);
 
 	//resourceManager->loadScene("../../assets/lightScene.gltf");
 }
@@ -1007,7 +1009,7 @@ bool MiniVulkanRenderer::uiInstance()
 		{
 			
 			
-			glm::mat4& transform = inst.transform;
+		/*	glm::mat4& transform = inst.transform;
 			glm::vec3 scale;
 			glm::quat rotation;
 			glm::vec3 translation;
@@ -1016,40 +1018,42 @@ bool MiniVulkanRenderer::uiInstance()
 			glm::decompose(transform,scale,rotation,translation,skew,perspective);
 
 			glm::mat4 rotationMat =  glm::mat4_cast(rotation);
-			glm::vec3 eular =  glm::eulerAngles(rotation);
+			glm::vec3 eular =  glm::eulerAngles(rotation);*/
 
 			//Log("pitch "+ std::to_string(glm::degrees(glm::pitch(rotation))) + 
 			//	" yaw " + std::to_string(glm::degrees(glm::yaw(rotation))) + 
 			//	" roll " + std::to_string(glm::degrees(glm::roll(rotation))));
 
-			changed |= ImGui::SliderFloat3("Translation", &translation.x, -20.f, 20.f);
+			changed |= ImGui::SliderFloat3("Translation", &inst.translation.x, -20.f, 20.f);
 
-			changed |= ImGui::SliderFloat3("Scale", &scale.x, 0.1f, 10.f);
-
-
-
-			changed |= ImGui::SliderAngle("rotateX",&eular.x);
-			changed |= ImGui::SliderAngle("rotateY",&eular.y);
-			changed |= ImGui::SliderAngle("rotateZ",&eular.z);
+			changed |= ImGui::SliderFloat3("Scale", &inst.scale.x, 0.1f, 10.f);
 
 
 
+			changed |= ImGui::SliderAngle("rotateX",&inst.rotation.x);
+			changed |= ImGui::SliderAngle("rotateY",&inst.rotation.y);
+			changed |= ImGui::SliderAngle("rotateZ",&inst.rotation.z);
+
+			inst.updateTransformByFactor();
 
 
-			glm::mat4 scaleMat = glm::scale(glm::mat4(1.0f),scale);
 
 
-			//glm::mat4 rotationMatX = glm::rotate(glm::mat4(1.0f),eular.x,glm::vec3(1,0,0));
-			//glm::mat4 rotationMatY = glm::rotate(glm::mat4(1.0f),eular.y,glm::vec3(0,1,0));
-			//glm::mat4 rotationMatZ = glm::rotate(glm::mat4(1.0f),eular.z,glm::vec3(0,0,1));
 
-			//rotationMat = rotationMatX * rotationMatY * rotationMatZ;
+			//glm::mat4 scaleMat = glm::scale(glm::mat4(1.0f),scale);
 
-			rotationMat = glm::eulerAngleXYZ(eular.x,eular.y,eular.z);
-			
-			glm::mat4 translationMat = glm::translate(glm::mat4(1.0f),translation);
 
-			transform = translationMat * rotationMat * scaleMat;
+			////glm::mat4 rotationMatX = glm::rotate(glm::mat4(1.0f),eular.x,glm::vec3(1,0,0));
+			////glm::mat4 rotationMatY = glm::rotate(glm::mat4(1.0f),eular.y,glm::vec3(0,1,0));
+			////glm::mat4 rotationMatZ = glm::rotate(glm::mat4(1.0f),eular.z,glm::vec3(0,0,1));
+
+			////rotationMat = rotationMatX * rotationMatY * rotationMatZ;
+
+			//rotationMat = glm::eulerAngleXYZ(eular.x,eular.y,eular.z);
+			//
+			//glm::mat4 translationMat = glm::translate(glm::mat4(1.0f),translation);
+
+			//transform = translationMat * rotationMat * scaleMat;
 
 			
 		}
@@ -1176,14 +1180,19 @@ void MiniVulkanRenderer::updateInstances()
 {
 
 	int lightId =resourceManager->getInstanceId("LightCube");
-
 	auto& instances = resourceManager->getInstances();
+	if(lightId!= -1)
+	{
+		
 
-	auto& lightInstance = instances[lightId];
+		auto& lightInstance = instances[lightId];
 
-	auto& light = lights[0];
+		auto& light = lights[0];
 
-	lightInstance.transform = glm::translate(glm::mat4(1.0f),light.getPosition());
+		lightInstance.transform = glm::translate(glm::mat4(1.0f),light.getPosition());
+	}
+
+
 
 
 

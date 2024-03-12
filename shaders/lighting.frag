@@ -311,46 +311,46 @@ void main() {
 
     }
 
-    int indSamples = 4;
-    BsdfSampleRec indirectBsdf;;
-    uint seed = 10000;
-    vec3 sampleColor = vec3(0);
-    for(int i = 0; i < indSamples; i++)
-    {
-        indirectBsdf.f = PbrSample(state, viewDir, state.ffnormal, indirectBsdf.L, indirectBsdf.pdf, seed);
+    // int indSamples = 4;
+    // BsdfSampleRec indirectBsdf;;
+    // uint seed = 10000;
+    // vec3 sampleColor = vec3(0);
+    // for(int i = 0; i < indSamples; i++)
+    // {
+    //     indirectBsdf.f = PbrSample(state, viewDir, state.ffnormal, indirectBsdf.L, indirectBsdf.pdf, seed);
 
-        vec3 sampleLight = texture(cubeMapTexture, indirectBsdf.L).rgb;
-        vec3 indirectSample = indirectBsdf.f * sampleLight * pcRaster.skyLightIntensity / 10.0 * abs(dot(state.ffnormal, indirectBsdf.L)) / indirectBsdf.pdf;
+    //     vec3 sampleLight = texture(cubeMapTexture, indirectBsdf.L).rgb;
+    //     vec3 indirectSample = indirectBsdf.f * sampleLight * pcRaster.skyLightIntensity / 10.0 * abs(dot(state.ffnormal, indirectBsdf.L)) / indirectBsdf.pdf;
 
-        if(any(isnan(indirectSample)))
-        {
-            indirectSample += vec3(0.0);
-        }
-        else
-        {
-            sampleColor += indirectSample;
-        }
+    //     if(any(isnan(indirectSample)))
+    //     {
+    //         indirectSample += vec3(0.0);
+    //     }
+    //     else
+    //     {
+    //         sampleColor += indirectSample;
+    //     }
 
-    }
-    sampleColor /= float(indSamples);
-    if(pcRaster.needSSAO == 1)
-    {
-        sampleColor *= state.mat.ao;
-    }
+    // }
+    // sampleColor /= float(indSamples);
+    // if(pcRaster.needSSAO == 1)
+    // {
+    //     sampleColor *= state.mat.ao;
+    // }
 
 
-    color += sampleColor;
+    // color += sampleColor;
 
 
    
 
     color += state.mat.emission;
-    // vec3 ambient = vec3(0.001) * pcRaster.skyLightIntensity * state.mat.albedo;
-    // if(pcRaster.needSSAO == 1)
-    // {
-    //     ambient *= state.mat.ao;
-    // }
-    // color += ambient;
+    vec3 ambient = vec3(0.001) * pcRaster.skyLightIntensity * state.mat.albedo;
+    if(pcRaster.needSSAO == 1)
+    {
+        ambient *= state.mat.ao;
+    }
+    color += ambient;
 
     color = DebugInfo(state, color);
 

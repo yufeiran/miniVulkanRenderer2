@@ -36,11 +36,15 @@ void main()
     const float gamma = 2.2;
 
     vec3 color;
-    color = texture(offscreenColor,TexCoords).rgb;
+    color = texture(offscreenColor,TexCoords).xyz;
 
+
+    vec3 colorExposure = vec3(color.r * pcPost.exposure, color.g * pcPost.exposure, color.b * pcPost.exposure);
 
     // exposure tone mapping
-    vec3 mapped = vec3(1.0) - exp(-color * pcPost.exposure);
+    vec3 mapped = vec3(1.0) - exp(-colorExposure);
+
+    
 
     mapped = pow(mapped, vec3(1.0 / gamma));
 
