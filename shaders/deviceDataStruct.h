@@ -30,6 +30,12 @@ START_ENUM(SceneBindings)
 	eSSAOSamples	 = 7
 END_ENUM();
 
+START_ENUM(PBBloomBindings)
+	epbbloomInput = 0,
+	epbInputSize = 1
+END_ENUM();
+
+
 START_ENUM(RtBindings)
 	eTlas     = 0,  // Top-level acceleration structure
 	eOutImage = 1
@@ -171,6 +177,10 @@ struct PushConstantPost
 {
 	float exposure;
 	int   debugShadowMap;
+	int   debugBloom;
+	float pbbloomRadius;
+	float pbbloomIntensity;
+	int   pbbloomMode; // 0:off 1:on
 };
 
 #define MATERIAL_METALLICROUGHNESS 0

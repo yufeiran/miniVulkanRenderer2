@@ -48,6 +48,7 @@
 #include "Rendering/graphicsPipelineBuilder.h"
 #include "Rendering/shadowPipelineBuilder.h"
 #include "Rendering/ssaoPipelineBuilder.h"
+#include "Rendering/pbbloomPipelineBuilder.h"
 
 
 
@@ -180,6 +181,10 @@ public:
 	PushConstantPost pcPost{
 		1,   // exposure
 		0,   // debugShadowMap
+		0,   // debugBloom
+		0.01, // pbbloomRadius;
+	    0.1, // pbbloomIntensity;
+	    0 // 0:off 1:on
 	};
 
 	std::vector<Light> lights = {
@@ -231,9 +236,12 @@ private:
 
 	std::unique_ptr<GraphicsPipelineBuilder> graphicsPipelineBuilder;
 
+
 	std::unique_ptr<ShadowPipelineBuilder>   shadowPipelineBuilder;
 
 	std::unique_ptr<SSAOPipelineBuilder>     ssaoPipelineBuilder;
+
+	std::unique_ptr<PBBloomPipelineBuilder>  pbbloomPipelineBuilder;
 
 
 

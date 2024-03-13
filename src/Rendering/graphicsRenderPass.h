@@ -233,19 +233,18 @@ namespace mini
 
 	};
 
-	class PBBRenderPass :public GraphicsRenderPass
+	class PBBDownSamplingRenderPass :public GraphicsRenderPass
 	{
 	public:
-		PBBRenderPass(Device& device,
+		PBBDownSamplingRenderPass(Device& device,
 						ResourceManager& resourceManager,
 						const RenderPass& renderPass,
 						VkExtent2D extent,
-						std::shared_ptr<DescriptorSetLayout> descSetLayout,
-						std::shared_ptr<DescriptorSetLayout> gBufferDescSetLayout,
-						PushConstantRaster& pcRaster,
+						std::shared_ptr<DescriptorSetLayout> pbbDescSetLayout,
+						PushConstantPost& pcPost,
 						int subpassIndex = 0
 				);
-		~PBBRenderPass();
+		~PBBDownSamplingRenderPass();
 
 		void update();
 		void draw(CommandBuffer& cmd,const std::vector<VkDescriptorSet> descSet);
@@ -254,10 +253,35 @@ namespace mini
 	private:
 		PostQuad postQuad;
 		const RenderPass& renderPass;
-		PushConstantRaster& pcRaster;
+		PushConstantPost& pcPost;
 		std::vector<std::unique_ptr<ShaderModule>> shaderModules;
 		std::unique_ptr<PipelineLayout>            pipelineLayout;
 
+	};
+
+	class PBBUpSamplingRenderPass :public GraphicsRenderPass
+	{
+	public:
+		PBBUpSamplingRenderPass(Device& device,
+						ResourceManager& resourceManager,
+						const RenderPass& renderPass,
+						VkExtent2D extent,
+						std::shared_ptr<DescriptorSetLayout> pbbDescSetLayout,
+						PushConstantPost& pcPost,
+						int subpassIndex = 0
+				);
+		~PBBUpSamplingRenderPass();
+
+		void update();
+		void draw(CommandBuffer& cmd,const std::vector<VkDescriptorSet> descSet);
+
+		void rebuild(VkExtent2D surfaceExtent, int subpassIndex = 0);
+	private:
+		PostQuad postQuad;
+		const RenderPass& renderPass;
+		PushConstantPost& pcPost;
+		std::vector<std::unique_ptr<ShaderModule>> shaderModules;
+		std::unique_ptr<PipelineLayout>            pipelineLayout;
 	};
 
 

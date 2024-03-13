@@ -4,8 +4,11 @@
  * PBR
  * PathTrace
  * SubPass
+ * SSAO
+ * Physical Based Bloom
  ## 2. Screenshot
 * Raster
+![PBBloom](assets/screenshot/physical_based_bloom.png)
 ![raster](assets/screenshot/shadowMappingPoint_raster.png)
 * RayTracing
 ![raytracing](assets/screenshot/shadowMappingPoint_raytracing.png)

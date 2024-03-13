@@ -63,6 +63,7 @@ public:
 
 	Sampler& getDefaultSampler() { return *defaultSampler; }
 	Sampler& getRepeatSampler() { return *repeatSampler; }
+	Sampler& getClampToEdgeSampler() { return *clampToEdgeSampler; }
 
 	const std::vector<std::unique_ptr<ObjModel>>&  getModels() const{return objModel;}
 	std::vector<ObjInstance>&     getInstances() {return instances;}
@@ -77,6 +78,7 @@ public:
 	std::vector<std::unique_ptr<ImageView>>   imageViews;
 	std::unique_ptr<Sampler>                  defaultSampler;
 	std::unique_ptr<Sampler>                  repeatSampler;
+	std::unique_ptr<Sampler>                  clampToEdgeSampler;
 
 	std::unique_ptr<Image>                    cubeMap;
 	std::unique_ptr<ImageView>                cubeMapView;

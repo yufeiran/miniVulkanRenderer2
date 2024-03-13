@@ -21,7 +21,7 @@ using namespace std::chrono;
 
 void MiniVulkanRenderer::load()
 {
-	int testCase = 2;
+	int testCase = 0;
 	switch(testCase)
 	{
 	case 0:
@@ -221,9 +221,9 @@ void MiniVulkanRenderer::loadSponza()
 	//objMat = glm::translate(objMat,{-10,-1,0});
 	//resourceManager->loadScene("D://yufeiran/model/AMD/Deferred/Deferred.gltf",objMat);
 
-	//resourceManager->loadScene("D://yufeiran/model/AMD/Deferred/Deferred.gltf",objMat);
+	resourceManager->loadScene("D://yufeiran/model/AMD/PBR/PBR.gltf",objMat);
 	
-	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",objMat);
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",objMat);
 
 	//resourceManager->loadScene("../../assets/lightScene.gltf");
 }
@@ -381,6 +381,14 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	ssaoPipelineBuilder = std::make_unique<SSAOPipelineBuilder>(*device,*resourceManager,window->getExtent(),graphicsPipelineBuilder->getDescriptorSetLayout(),
 		*offscreenRenderTarget,offscreenColorFormat,pcRaster);
+
+	pbbloomPipelineBuilder = std::make_unique<PBBloomPipelineBuilder>(*device,
+		*resourceManager,
+		window->getExtent(),
+		*offscreenRenderTarget,
+		offscreenColorFormat,
+		pcPost, 5);
+
 
 	auto& shadowMapRenderTarget = shadowPipelineBuilder->getDirRenderTarget();
 	auto& PointShadowMapRenderPass = shadowPipelineBuilder->getPointRenderTarget();
@@ -886,9 +894,21 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>&  clearValues)
 	if(ImGui::CollapsingHeader("Post",ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		ImGui::SliderFloat("exposure",&pcPost.exposure,0, 10);
+
 		static bool debugShadowMap = pcPost.debugShadowMap;
 		ImGui::Checkbox("debugShadowMap",&debugShadowMap);
 		pcPost.debugShadowMap = debugShadowMap;
+
+		static bool debugBloom = pcPost.debugBloom;
+		ImGui::Checkbox("debugBloom",&debugBloom);
+		pcPost.debugBloom = debugBloom;
+
+		ImGui::SliderFloat("bloomRadius",&pcPost.pbbloomRadius,0, 0.02);
+		ImGui::SliderFloat("bloomIntensity",&pcPost.pbbloomIntensity,0, 0.3);
+		static bool bloomMode = pcPost.pbbloomMode;
+		ImGui::Checkbox("bloom",&bloomMode);
+		pcPost.pbbloomMode = bloomMode;
+
 	}
 
 	
@@ -990,17 +1010,27 @@ bool MiniVulkanRenderer::uiInstance()
 	bool changed = false;
 	static bool init = true;
 
+	static bool open = false;
+
+	auto& instance = resourceManager->getInstances();
+
 	if(init == true)
 	{
 		ImGui::SetNextWindowPos(ImVec2(50,500));
 		ImGui::SetNextWindowSize(ImVec2(800,500));
+
 		init = false;
+		if(instance.size() < 10)
+		{
+			open = true;
+		
+		}
 
 	}
 
-	ImGui::Begin("Instance");
+	ImGui::Begin("Instance",&open);
 
-	auto& instance = resourceManager->getInstances();
+
 	for(int i = 0; i < instance.size(); i++)
 	{
 		ImGui::PushID(i);
@@ -1144,6 +1174,8 @@ void MiniVulkanRenderer::loop()
 
 		// Offscreen render pass
 		{
+			pbbloomPipelineBuilder->draw(cmd);
+
 			cmd.beginRenderPass(*postRenderPass, frameBuffer,clearValues);
 			cmd.bindPipeline(*postPipeline);
 
@@ -1237,6 +1269,8 @@ void MiniVulkanRenderer::rasterize(CommandBuffer& cmd,VkClearColorValue defaultC
 	cmd.beginRenderPass(rasterRenderPass, *offscreenFramebuffer,clearValues);
 	graphicsPipelineBuilder->draw(cmd);
 	cmd.endRenderPass();
+
+
 
 	//ssaoPipelineBuilder->draw(cmd,graphicsPipelineBuilder->getDescriptorSet());
 
@@ -1595,6 +1629,10 @@ void MiniVulkanRenderer::handleSizeChange()
 	graphicsPipelineBuilder->rebuild(extent);
 	graphicsPipelineBuilder->updateDescriptorSet(shadowPipelineBuilder->getDirRenderTarget(),shadowPipelineBuilder->getPointRenderTarget(),*offscreenRenderTarget);
 
+	pbbloomPipelineBuilder->rebuild(extent,*offscreenRenderTarget,5);
+
+	updatePostDescriptorSet();
+
 
 
 	//rasterPipeline.reset();
@@ -1710,6 +1748,7 @@ void MiniVulkanRenderer::initPostRender()
 
 	postDescSetBind.addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
 	postDescSetBind.addBinding(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
+	postDescSetBind.addBinding(3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
 
 
 
@@ -1730,6 +1769,8 @@ void MiniVulkanRenderer::initPostRender()
 		depthAttachment.finalLayout   = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
 		attachments.push_back(depthAttachment);
+
+
 	}
 
 	std::vector<LoadStoreInfo> loadStoreInfos;
@@ -1745,6 +1786,8 @@ void MiniVulkanRenderer::initPostRender()
 		depthLoadStoreInfo.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	
 		loadStoreInfos.push_back(depthLoadStoreInfo);
+
+
 	}
 
 	postRenderPass = std::make_unique<RenderPass>(*device,attachments,loadStoreInfos);
@@ -1794,7 +1837,15 @@ void MiniVulkanRenderer::initPostRender()
 	postSamplerLayoutBinding.pImmutableSamplers = nullptr;
 	postSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-	std::vector<VkDescriptorSetLayoutBinding>postLayoutBindings{postSamplerLayoutBinding,postSamplerShadowMapLayoutBinding};
+	VkDescriptorSetLayoutBinding postSamplerBloomLayoutBinding{};
+	postSamplerBloomLayoutBinding.binding = 3;
+	postSamplerBloomLayoutBinding.descriptorCount = 1;
+	postSamplerBloomLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	postSamplerBloomLayoutBinding.pImmutableSamplers = nullptr;
+	postSamplerBloomLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+
+	std::vector<VkDescriptorSetLayoutBinding>postLayoutBindings{postSamplerLayoutBinding,postSamplerShadowMapLayoutBinding,postSamplerBloomLayoutBinding};
 
 	postDescriptorSetLayouts.push_back(std::make_unique<DescriptorSetLayout>(*device,postLayoutBindings));
 
@@ -1823,6 +1874,17 @@ void MiniVulkanRenderer::updatePostDescriptorSet()
 	shadowMapInfo.sampler     = resourceManager->getDefaultSampler().getHandle();
 
 	writes.push_back(postDescSetBind.makeWrite(postDescriptorSet,2,&shadowMapInfo));
+
+	
+
+	VkDescriptorImageInfo imageBloomInfo{};
+	imageBloomInfo.imageLayout =    VK_IMAGE_LAYOUT_GENERAL;
+	imageBloomInfo.imageView=pbbloomPipelineBuilder->getRenderTargets()[0]->getImageViewByIndex(0).getHandle();
+	imageBloomInfo.sampler = postRenderImageSampler->getHandle();
+
+	writes.push_back(postDescSetBind.makeWrite(postDescriptorSet, 3, &imageBloomInfo));
+
+	
 
 	vkUpdateDescriptorSets(device->getHandle(), writes.size(), writes.data(), 0, nullptr);
 

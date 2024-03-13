@@ -22,18 +22,18 @@ class DescriptorSetLayout;
 class DescriptorPool;
 
 
-
-class pbbloomPipelineBuilder
+class PBBloomPipelineBuilder
 {
 public:
-	pbbloomPipelineBuilder(Device& device, ResourceManager& resourceManager,
+	PBBloomPipelineBuilder(Device& device, ResourceManager& resourceManager,
 		VkExtent2D extent,
-		std::shared_ptr<DescriptorSetLayout> descSetLayout,
 		RenderTarget                          &gBufferRenderTarget,
 		VkFormat offscreenColorFormat,
-		PushConstantRaster& pcRaster,
+		PushConstantPost& pcPost,
 		int N);
-	~pbbloomPipelineBuilder();
+	~PBBloomPipelineBuilder();
+
+	void rebuild(VkExtent2D extent,RenderTarget& gBufferRenderTarget,int N);
 
 	void createDescriptorSetLayout();
 	
@@ -41,9 +41,15 @@ public:
 	void updateDescriptorSet();
 
 
-	void draw(CommandBuffer& cmd,const VkDescriptorSet& descSet);
+	void draw(CommandBuffer& cmd);
 
 	void createRenderTarget();
+
+	void createBloomSizeBuffers();
+
+	void calculateBloomSizes();
+
+	std::vector<std::unique_ptr<RenderTarget>> & getRenderTargets() { return renderTargets; }
 
 private:
 	VkExtent2D							  extent;
@@ -51,36 +57,38 @@ private:
 
 	VkFormat                              offscreenColorFormat;
 
-
 	Device&                               device;		
 	ResourceManager&                      resourceManager;
-	DescriptorSetBindings                 descSetBindings;
-	std::shared_ptr<DescriptorSetLayout>  descSetLayout;
-	std::unique_ptr<DescriptorPool>       descPool;
-	VkDescriptorSet                       descSet;
+	RenderTarget                          *gBufferRenderTarget;
+
+	PushConstantPost&                     pcPost; 
 
 
-	std::unique_ptr<PipelineLayout>       pipelineLayout;
-	std::unique_ptr<RenderPass>           renderPass;
+	std::vector<std::unique_ptr<PipelineLayout>>       pipelineLayouts;
+	std::vector<std::unique_ptr<RenderPass>>           downSamplingRenderPasses;
+	std::vector<std::unique_ptr<RenderPass>>           upSamplingRenderPasses;
 
-	std::unique_ptr<SSAORenderPass>       pbbRenderPass;
-
-
-	PushConstantRaster&                   pcRaster;
-
-	std::unique_ptr<RenderTarget>         renderTarget;
-	std::unique_ptr<FrameBuffer>          framebuffer;
+	std::vector<std::unique_ptr<PBBDownSamplingRenderPass>>       pbbDownSamplingRenderPasses;
+	std::vector<std::unique_ptr<PBBUpSamplingRenderPass>>         pbbUpSamplingRenderPasses;
 
 
+	std::vector<std::unique_ptr<FrameBuffer>>          downSamplingFramebuffers;
+	std::vector<std::unique_ptr<FrameBuffer>>          upSamplingFramebuffers;
 
-	DescriptorSetBindings                 pbbDescSetBindings;
-	std::shared_ptr<DescriptorSetLayout>  pbbDescSetLayout;
-	std::unique_ptr<DescriptorPool>       pbbDescPool;
-	VkDescriptorSet                       pbbDescSet;
+	std::vector<std::unique_ptr<RenderTarget>>         renderTargets;
 
 
 
-	RenderTarget                          &gBufferRenderTarget;
+	DescriptorSetBindings                              descSetBindings;
+	std::shared_ptr<DescriptorSetLayout>               descSetLayout;
+	std::unique_ptr<DescriptorPool>                    descPool;
+	std::vector<VkDescriptorSet>                       downSamplingDescSets;
+	std::vector<VkDescriptorSet>                       upSamplingDescSets;
+	
+	std::vector<glm::vec2>							   bloomInputTextureSizes;
+
+	std::vector<std::unique_ptr<Buffer>>               bloomSizeBuffers;
+
 
 };
 

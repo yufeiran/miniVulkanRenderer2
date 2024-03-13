@@ -24,6 +24,8 @@ layout(binding = 1) uniform sampler2D offscreenColor;
 
 layout(binding = 2) uniform sampler2D shadowmap;
 
+layout(binding = 3) uniform sampler2D bloomBlur;
+
 layout( push_constant ) uniform _PushConstantPost
 {
     PushConstantPost pcPost;
@@ -37,6 +39,9 @@ void main()
 
     vec3 color;
     color = texture(offscreenColor,TexCoords).xyz;
+
+    vec3 bloomColor = texture(bloomBlur, TexCoords).xyz;
+    color = mix(color, bloomColor, pcPost.pbbloomIntensity);
 
 
     vec3 colorExposure = vec3(color.r * pcPost.exposure, color.g * pcPost.exposure, color.b * pcPost.exposure);
@@ -52,5 +57,7 @@ void main()
 
     if(pcPost.debugShadowMap == 1)
         FragColor = vec4(vec3(texture(shadowmap,TexCoords).r,texture(shadowmap,TexCoords).r,texture(shadowmap,TexCoords).r),1.0);
+    if(pcPost.debugBloom == 1)
+        FragColor = vec4(bloomColor,1.0);
 
 }

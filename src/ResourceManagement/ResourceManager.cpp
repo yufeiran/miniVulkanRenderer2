@@ -26,6 +26,7 @@ ResourceManager::ResourceManager(Device& device):
 	cmdPool = std::make_unique<CommandPool>(device);
 	defaultSampler = std::make_unique<Sampler>(device);
 	repeatSampler  = std::make_unique<Sampler>(device,VK_SAMPLER_ADDRESS_MODE_REPEAT);
+	clampToEdgeSampler = std::make_unique<Sampler>(device,VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
 
 	glm::mat4 objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat,{0,0,0});
