@@ -1,10 +1,12 @@
 #pragma once
 #include "Common/common.h"
+#include "Common/light.h"
 #include "Vulkan/texture.h"
 #include "../shaders/deviceDataStruct.h"
 #include "Vulkan/sampler.h"
 #include "Vulkan/commandPool.h"
 #include "ResourceManagement/gltfLoader.h"
+
 
 namespace mini
 {
@@ -26,6 +28,12 @@ struct ObjModel
 	std::unique_ptr<Buffer>  matIndexBuffer;
 };
 
+enum InstanceType
+{
+	INSTANCE_TYPE_NORMAL = 0,
+	INSTANCE_TYPE_LIGHT_CUBE = 1
+
+};
 
 struct ObjInstance
 {
@@ -37,6 +45,11 @@ struct ObjInstance
 
 	uint32_t   objIndex{0};  // Model index reference
 	std::string name;
+	InstanceType type {INSTANCE_TYPE_NORMAL};
+	int 	    lightIndex{-1};
+
+	
+
 	void updateFactorBytransform();
 	void updateTransformByFactor();
 };
@@ -49,6 +62,13 @@ public:
 
 	void draw(CommandBuffer& cmd,PushConstantRaster& pcRaster);
 
+	void loadLightCube();
+
+	//return instance ID
+	int  addACopyInstance(int objId, glm::mat4 transform = glm::mat4(1));
+
+	int  addLightCubeInstance(Light& l,int lightId);
+
 	void loadObjModel(std::string name,std::string path,glm::mat4 transform = glm::mat4(1), bool flipTexture=false);
 
 	void loadScene(const std::string& filename, glm::mat4 transform = glm::mat4(1), bool flipTexture = false);
@@ -60,6 +80,8 @@ public:
 	void createTextureImages(const std::vector<std::string>& textures, const std::string &modelPath, bool flipTexture = false);
 
 	int32_t getInstanceId(const std::string name);
+
+	int getLightCubeObjId();
 
 	Sampler& getDefaultSampler() { return *defaultSampler; }
 	Sampler& getRepeatSampler() { return *repeatSampler; }
@@ -88,6 +110,8 @@ public:
 
 private:
 	std::map<std::string, uint32_t> modelMap;
+
+	int lightCubeObjIndex = -1;
 
 
 	Device& device;

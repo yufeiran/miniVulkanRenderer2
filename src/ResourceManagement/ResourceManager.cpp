@@ -28,12 +28,7 @@ ResourceManager::ResourceManager(Device& device):
 	repeatSampler  = std::make_unique<Sampler>(device,VK_SAMPLER_ADDRESS_MODE_REPEAT);
 	clampToEdgeSampler = std::make_unique<Sampler>(device,VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
 
-	glm::mat4 objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat,{0,0,0});
-	objMat = glm::scale(objMat,{0.1,0.1,0.1});
-	loadScene( "../../assets/box/box.gltf",objMat);
-
-
+	loadLightCube();
 }
 
 ResourceManager::~ResourceManager()
@@ -65,6 +60,46 @@ void ResourceManager::draw(CommandBuffer& cmd,PushConstantRaster& pcRaster)
 		vkCmdDrawIndexed(cmd.getHandle(), model->nbIndices, 1, 0, 0, 0);
 
 	}
+}
+
+void ResourceManager::loadLightCube()
+{
+	glm::mat4 objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat,{0,0,0});
+	objMat = glm::scale(objMat,{0.1,0.1,0.1});
+	loadScene( "../../assets/box/box.gltf",objMat);
+	lightCubeObjIndex = objModel.size()-1;
+	instances.erase(instances.end()-1);
+}
+
+
+
+int ResourceManager::addACopyInstance(int objId, glm::mat4 transform)
+{
+	ObjInstance instance;
+	instance.transform = transform;
+	instance.objIndex  = objId;
+	instance.updateFactorBytransform();
+	instances.push_back(instance);
+
+
+	return instances.size() - 1;
+}
+
+int ResourceManager::addLightCubeInstance(Light& l,int lightId)
+{
+	glm::mat4 transform = glm::mat4(1.0f);
+	transform = glm::translate(transform,l.getPosition());
+	transform = glm::scale(transform,{0.1,0.1,0.1});
+	int lightObjId = getLightCubeObjId();
+	
+	int instanceId = addACopyInstance(lightObjId,transform);
+	auto& lightInstance = instances[instanceId];
+	lightInstance.lightIndex = lightId;
+	lightInstance.type = INSTANCE_TYPE_LIGHT_CUBE;
+	lightInstance.name = "LightCube";
+	return instanceId;
+
 }
 
 void initMaterial(GltfShadeMaterial& mat)
@@ -572,6 +607,12 @@ int32_t ResourceManager::getInstanceId(const std::string name)
 		id++;
 	}
 	return -1;
+}
+
+int ResourceManager::getLightCubeObjId()
+{
+
+	return lightCubeObjIndex;
 }
 
 void ObjInstance::updateFactorBytransform()

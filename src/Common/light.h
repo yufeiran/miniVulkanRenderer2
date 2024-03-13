@@ -10,6 +10,8 @@ namespace mini
 	const int SHADOW_WIDTH = 4096;
 	const int SHADOW_HEIGHT = 4096;
 
+	class ResourceManager;
+
 
 	enum LightType
 	{
@@ -27,66 +29,22 @@ namespace mini
 
 		}
 
-		inline void setShadowCaster(bool isShadowCaster)
-		{
-			this->isShadowCaster = isShadowCaster;
-		}
+		inline void setShadowCaster(bool isShadowCaster){this->isShadowCaster = isShadowCaster;}
+		inline void setType(LightType type){this->type = type;}
+		inline void setPosition(glm::vec3 position){this->position = position;}
+		inline void setDirection(glm::vec3 direction){this->direction = direction;}
+		inline void setColor(glm::vec3 color){this->color = color;}
+		inline void setIntensity(float intensity){this->intensity = intensity;}
+		inline void setInstanceId(int instanceId){this->instanceId = instanceId;}
+		
 
-		inline void setType(LightType type)
-		{
-			this->type = type;
-		}
-
-		inline void setPosition(glm::vec3 position)
-		{
-			this->position = position;
-		}
-
-		inline void setDirection(glm::vec3 direction)
-		{
-			this->direction = direction;
-		}
-
-		inline void setColor(glm::vec3 color)
-		{
-			this->color = color;
-		}
-
-		inline void setIntensity(float intensity)
-		{
-			this->intensity = intensity;
-		}
-
-
-		inline LightType getType() const
-		{
-			return type;
-		}
-
-		inline glm::vec3 getPosition() const
-		{
-			return position;
-		}
-
-		inline glm::vec3 getDirection() const
-		{
-			return direction;
-		}
-
-		inline glm::vec3 getColor() const
-		{
-			return color;
-		}
-
-		inline float getIntensity() const
-		{
-			return intensity;
-		}
-
-		inline bool getShadowCaster() const
-		{
-			return isShadowCaster;
-		}
+		inline LightType getType() const{return type;}
+		inline glm::vec3 getPosition() const{return position;}
+		inline glm::vec3 getDirection() const{return direction;}
+		inline glm::vec3 getColor() const{return color;}
+		inline float getIntensity() const{return intensity;}
+		inline bool getShadowCaster() const{return isShadowCaster;}
+		inline int  getInstanceId() const{return instanceId;}
 
 
 	private:
@@ -95,12 +53,15 @@ namespace mini
 		glm::vec3 direction;
 		glm::vec3 color;
 		float intensity;
+		int instanceId = -1;
 		bool isShadowCaster;
 
 
 	};
 
-	Light getRandomLight();
+	void addRandomLight(std::vector<Light>& lights, ResourceManager& resManager);
+
+	void addLight(std::vector<Light>& lights, ResourceManager& resManager,LightType lightType, glm::vec3 position, glm::vec3 direction, glm::vec3 color, float intensity, bool isShadowCaster = false );
 
 
 	 LightUniforms inline createLightUniforms(const std::vector<Light>& lights)

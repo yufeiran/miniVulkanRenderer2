@@ -188,7 +188,7 @@ public:
 	};
 
 	std::vector<Light> lights = {
-		{LightType::LIGHT_TYPE_DIRECTIONAL, {0.f, 20.f, 2.f}, {0.f, -1.f, 0.f}, {1.f, 1.f, 1.f}, 2.5f,true}
+		
 		
 	};
 
