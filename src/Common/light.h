@@ -62,7 +62,7 @@ namespace mini
 	void addRandomLight(std::vector<Light>& lights, ResourceManager& resManager);
 
 	void addLight(std::vector<Light>& lights, ResourceManager& resManager,LightType lightType, glm::vec3 position, glm::vec3 direction, glm::vec3 color, float intensity, bool isShadowCaster = false );
-
+	void delLight(std::vector<Light>& lights, ResourceManager& resManager, int index);
 
 	 LightUniforms inline createLightUniforms(const std::vector<Light>& lights)
 	{

@@ -44,10 +44,10 @@ void ResourceManager::draw(CommandBuffer& cmd,PushConstantRaster& pcRaster)
 		auto& model = objModel[inst.objIndex];
 		pcRaster.objIndex = inst.objIndex;
 		pcRaster.modelMatrix = inst.transform;
-		if(inst.name == "LightCube")
+		if(inst.type == InstanceType::INSTANCE_TYPE_LIGHT_CUBE)
 		{
 			pcRaster.objType = 1;
-			pcRaster.lightIndex = 0;
+			pcRaster.lightIndex = inst.lightIndex;
 		}
 		else {
 			pcRaster.objType = 0;
@@ -66,7 +66,7 @@ void ResourceManager::loadLightCube()
 {
 	glm::mat4 objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat,{0,0,0});
-	objMat = glm::scale(objMat,{0.1,0.1,0.1});
+	objMat = glm::scale(objMat,{0.2,0.2,0.2});
 	loadScene( "../../assets/box/box.gltf",objMat);
 	lightCubeObjIndex = objModel.size()-1;
 	instances.erase(instances.end()-1);

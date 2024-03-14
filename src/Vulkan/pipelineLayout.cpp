@@ -25,7 +25,7 @@ PipelineLayout::PipelineLayout(Device& device, std::vector<std::shared_ptr<Descr
 	if (vkCreatePipelineLayout(device.getHandle(), &pipelineLayoutInfo, nullptr, &handle) != VK_SUCCESS) {
 		throw Error("Failed to crate pipeline layout");
 	}
-	Log("Pipeline layout created!");
+	//Log("Pipeline layout created!");
 }
 
 mini::PipelineLayout::PipelineLayout(Device& device, VkPipelineLayoutCreateInfo& createInfo):device(device)
@@ -33,7 +33,7 @@ mini::PipelineLayout::PipelineLayout(Device& device, VkPipelineLayoutCreateInfo&
 	if (vkCreatePipelineLayout(device.getHandle(), &createInfo, nullptr, &handle) != VK_SUCCESS) {
 		throw Error("Failed to crate pipeline layout");
 	}
-	Log("Pipeline layout created!");
+	//Log("Pipeline layout created!");
 }
 
 mini::PipelineLayout::~PipelineLayout()

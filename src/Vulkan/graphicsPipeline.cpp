@@ -78,6 +78,7 @@ GraphicsPipeline::GraphicsPipeline(std::vector<std::unique_ptr<ShaderModule>>& s
 	rasterizer.depthBiasConstantFactor = 0.0f;
 	rasterizer.depthBiasClamp = 0.0f;
 	rasterizer.depthBiasSlopeFactor = 0.0f;
+	rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
 
 	multisampling={};
 	multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
@@ -161,7 +162,7 @@ void GraphicsPipeline::build(const RenderPass& renderPass)
 	if (vkCreateGraphicsPipelines(device.getHandle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &handle) != VK_SUCCESS) {
 		throw Error("Failed to create graphic pipeline!");
 	}
-	Log("GraphicPipeline created!");
+	//Log("GraphicPipeline created!");
 
 }
 

@@ -195,7 +195,7 @@ vec3 PathTrace(Ray r)
                 vec3  lDir     = lightPos - state.position;
                 float d        = length(lDir);
                 lightIntensity = lightIntensity / (d *d);
-                lightDistance  = d;
+                lightDistance  = 1.0/ (LIGHT_QUADRATIC * d * d + LIGHT_LINEAR * d + LIGHT_CONSTANT + 0.0001) *  lightIntensity;
                     //(LIGHT_QUADRATIC * d * d + LIGHT_LINEAR * d + LIGHT_CONSTANT + 0.0001);
                 L              = normalize(-lDir);   
             }

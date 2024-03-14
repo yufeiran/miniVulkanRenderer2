@@ -9,8 +9,10 @@
 
 #extension GL_ARB_shader_clock : enable
 
-#include "deviceDataStruct.h"
 #include "wavefront.glsl"
+#include "deviceDataStruct.h"
+#include "globals.glsl"
+
 
 
 layout(buffer_reference, scalar) buffer Vertices {Vertex v[]; };
@@ -252,7 +254,7 @@ void main() {
     dielectricSpecular *=  dielectricSpecular;
 
     state.mat.f0 = mix(vec3(dielectricSpecular), state.mat.albedo, state.mat.metallic);
-
+    state.mat.f0 = state.mat.albedo;
     
 
 
@@ -278,7 +280,7 @@ void main() {
         {
             vec3  lDir     = lightPos - state.position;
             float d        = length(lDir);
-            lightIntensity = lightIntensity / (d *d);
+            lightIntensity = 1.0/ (LIGHT_QUADRATIC * d * d + LIGHT_LINEAR * d + LIGHT_CONSTANT + 0.0001) * lightIntensity;
                 //(LIGHT_QUADRATIC * d * d + LIGHT_LINEAR * d + LIGHT_CONSTANT + 0.0001);
             L              = normalize(-lDir);   
         }

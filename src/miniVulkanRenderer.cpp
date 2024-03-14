@@ -21,7 +21,7 @@ using namespace std::chrono;
 
 void MiniVulkanRenderer::load()
 {
-	int testCase = 0;
+	int testCase = 2;
 	switch (testCase)
 	{
 	case 0:
@@ -567,6 +567,7 @@ void MiniVulkanRenderer::createTopLevelAS()
 
 
 	const auto& instances = resourceManager->getInstances();
+	tlas.clear();
 	tlas.reserve(instances.size());
 
 	for (const ObjInstance& instance : instances)
@@ -629,6 +630,15 @@ void MiniVulkanRenderer::createRtDescriptorSet()
 
 void MiniVulkanRenderer::updateRtDescriptorSet()
 {
+
+	VkAccelerationStructureKHR                         tlas = rayTracingBuilder->getAccelerationStructure();
+	VkWriteDescriptorSetAccelerationStructureKHR       descASInfo{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR };
+	descASInfo.accelerationStructureCount = 1;
+	descASInfo.pAccelerationStructures = &tlas;
+	//VkDescriptorImageInfo imageInfo{ {},offscreenRenderTarget->getImageViewByIndex(0).getHandle(),VK_IMAGE_LAYOUT_GENERAL };
+
+
+
 	// update output buffer
 	const auto& offscreenColorImageView = offscreenRenderTarget->getImageViewByIndex(0);
 	VkDescriptorImageInfo imageInfo{};
@@ -637,6 +647,12 @@ void MiniVulkanRenderer::updateRtDescriptorSet()
 	imageInfo.sampler = postRenderImageSampler->getHandle();
 	VkWriteDescriptorSet writeDescriptorSets = rtDescSetBindings.makeWrite(rtDescSet, RtBindings::eOutImage, &imageInfo);
 	vkUpdateDescriptorSets(device->getHandle(), 1, &writeDescriptorSets, 0, nullptr);
+
+		std::vector<VkWriteDescriptorSet> writes;
+	writes.emplace_back(rtDescSetBindings.makeWrite(rtDescSet, RtBindings::eTlas, &descASInfo));
+	writes.emplace_back(rtDescSetBindings.makeWrite(rtDescSet, RtBindings::eOutImage, &imageInfo));
+
+	vkUpdateDescriptorSets(device->getHandle(), static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
 
 }
 
@@ -835,7 +851,7 @@ void MiniVulkanRenderer::raytrace(CommandBuffer& cmd, const glm::vec4& clearColo
 	vkCmdTraceRaysKHR(cmd.getHandle(), &rgenRegion, &missRegion, &hitRegion, &callRegion, surfaceExtent.width, surfaceExtent.height, 1);
 }
 
-void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>& clearValues)
+void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>& clearValues, VkExtent2D screenSize, bool sizeChange,bool &lightSizeChange)
 {
 	static ImGuiTreeNodeFlags_ isLightHeaderOpen = ImGuiTreeNodeFlags_DefaultOpen;
 	static ImGuiTreeNodeFlags_ isRenderingHeaderOpen = ImGuiTreeNodeFlags_DefaultOpen;
@@ -918,8 +934,8 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>& clearValues)
 
 	ImGui::End();
 
-	changed |= uiLights();
-	changed |= uiInstance();
+	changed |= uiLights(screenSize,sizeChange,lightSizeChange);
+	changed |= uiInstance(screenSize,sizeChange);
 
 
 
@@ -927,16 +943,23 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>& clearValues)
 		resetFrame();
 }
 
-bool MiniVulkanRenderer::uiLights()
+bool MiniVulkanRenderer::uiLights(VkExtent2D screenSize, bool sizeChange,bool &lightSizeChange)
 {
 
 	bool changed = false;
 	static bool init = true;
 
+	int windowWidth = 500;
+	int windowHeight = 1000;
+
+	lightSizeChange = false;
+
+	init = sizeChange;
+
 	if (init == true)
 	{
-		ImGui::SetNextWindowPos(ImVec2(900, 50));
-		ImGui::SetNextWindowSize(ImVec2(500, 1000));
+		ImGui::SetNextWindowPos(ImVec2(screenSize.width - windowWidth - 50, 50));
+		ImGui::SetNextWindowSize(ImVec2(windowWidth, windowHeight));
 		init = false;
 
 	}
@@ -954,6 +977,7 @@ bool MiniVulkanRenderer::uiLights()
 	{
 
 		addRandomLight(lights, *resourceManager);
+		lightSizeChange = true;
 	}
 
 	for (int i = 0; i < lights.size(); i++)
@@ -978,7 +1002,7 @@ bool MiniVulkanRenderer::uiLights()
 
 
 			auto intensity = light.getIntensity();
-			changed |= ImGui::SliderFloat("Intensity", &intensity, 0.f, 150.f);
+			changed |= ImGui::SliderFloat("Intensity", &intensity, 0.f, 10.f);
 			light.setIntensity(intensity);
 
 			int type = light.getType();
@@ -994,7 +1018,8 @@ bool MiniVulkanRenderer::uiLights()
 
 			if (ImGui::Button("remove"))
 			{
-				lights.erase(lights.begin() + i);
+				delLight(lights,*resourceManager,i);
+				lightSizeChange = true;
 				changed = true;
 			}
 
@@ -1015,14 +1040,20 @@ bool MiniVulkanRenderer::uiLights()
 
 	ImGui::End();
 
+
 	return changed;
 
 }
 
-bool MiniVulkanRenderer::uiInstance()
+bool MiniVulkanRenderer::uiInstance(VkExtent2D screenSize, bool sizeChange)
 {
 	bool changed = false;
 	static bool init = true;
+
+	init = sizeChange;
+
+	int windowWidth = 800;
+	int windowHeight = 400;
 
 	static bool open = false;
 
@@ -1030,8 +1061,8 @@ bool MiniVulkanRenderer::uiInstance()
 
 	if (init == true)
 	{
-		ImGui::SetNextWindowPos(ImVec2(50, 500));
-		ImGui::SetNextWindowSize(ImVec2(800, 500));
+		ImGui::SetNextWindowPos(ImVec2(20, screenSize.height - windowHeight - 50));
+		ImGui::SetNextWindowSize(ImVec2(windowWidth, windowHeight));
 
 		init = false;
 		if (instance.size() < 10)
@@ -1130,6 +1161,9 @@ void MiniVulkanRenderer::loop()
 	clearValues[1].depthStencil = { 1.0f,0 };
 	clearValues[2].depthStencil = { 1.0f,0 };
 
+	static bool sizeChange = true;
+	static bool lightSizeChange = true;
+
 
 	while (!window->shouldClose()) {
 		calFps();
@@ -1137,13 +1171,24 @@ void MiniVulkanRenderer::loop()
 
 
 		updateInstances();
+		if(lightSizeChange)
+		{
+			createTopLevelAS();
+			updateRtDescriptorSet();
+			lightSizeChange = false;
+			continue;
+		
+		}
 
 		auto result = renderContext->beginFrame();
 		if (result == VK_ERROR_OUT_OF_DATE_KHR)
 		{
 			handleSizeChange();
+			sizeChange = true;
 			continue;
 		}
+
+
 
 		pcRaster.screenHeight = window->getExtent().height;
 		pcRaster.screenWidth = window->getExtent().width;
@@ -1160,7 +1205,7 @@ void MiniVulkanRenderer::loop()
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		{
-			renderUI(clearValues);
+			renderUI(clearValues,window->getExtent(),sizeChange,lightSizeChange);
 		}
 
 
@@ -1172,7 +1217,6 @@ void MiniVulkanRenderer::loop()
 
 
 		graphicsPipelineBuilder->update(cmd, camera, surfaceExtent, lights);
-
 
 
 		// Raster render pass
@@ -1227,6 +1271,9 @@ void MiniVulkanRenderer::loop()
 		cmd.end();
 		renderContext->submit(device->getGraphicQueue(), &cmd);
 		renderContext->endFrame();
+
+		sizeChange = false;
+
 
 	}
 	device->waitIdle();
@@ -1822,6 +1869,8 @@ void MiniVulkanRenderer::initPostRender()
 	surfaceExtent = renderContext->getSurfaceExtent();
 	auto swapChainFormat = renderContext->getFormat();
 	postPipeline = std::make_unique<GraphicsPipeline>(postShaderModules, *postPipelineLayout, *device, surfaceExtent);
+
+	postPipeline->rasterizer.cullMode = VK_CULL_MODE_NONE;
 
 	postPipeline->build(*postRenderPass);
 

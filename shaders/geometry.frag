@@ -10,9 +10,10 @@
 #extension GL_ARB_shader_clock : enable
 
 
-#include "deviceDataStruct.h"
 #include "globals.glsl"
 #include "wavefront.glsl"
+
+#include "deviceDataStruct.h"
 
 layout(buffer_reference, scalar) buffer Vertices {Vertex v[]; };
 layout(buffer_reference, scalar) buffer Indices {uint i[]; };
@@ -96,7 +97,7 @@ void main() {
     {
         LightDesc light = lightsUni.lights[pcRaster.lightIndex];
         
-        state.mat.emission = light.color.xyz * light.intensity;
+        state.mat.emission = light.color.xyz * max(light.intensity,1.0);
     }
     
         

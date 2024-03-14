@@ -51,3 +51,38 @@ void mini::addLight(std::vector<Light>& lights, ResourceManager& resManager,Ligh
     
     lights.push_back(l);
 }
+
+
+void mini::delLight(std::vector<Light>& lights, ResourceManager& resManager, int lightId)
+{
+    if (lightId < 0 || lightId >= lights.size())
+	{
+    		return;
+    }   
+    auto& light = lights[lightId];
+    
+    int lightInstanceId = light.getInstanceId();
+    lights.erase(lights.begin() + lightId);
+
+
+    auto& instances = resManager.getInstances();
+    instances.erase(instances.begin() + lightInstanceId);
+
+    // update instanceId
+    for(int i = 0; i < lights.size(); i++)
+    {
+        int instanceId = lights[i].getInstanceId();
+        if(instanceId > lightInstanceId)
+		{
+        	lights[i].setInstanceId(instanceId - 1);
+        }
+        auto& nowLightINstance = instances[lights[i].getInstanceId()];
+        nowLightINstance.lightIndex = i;
+
+    }
+
+    
+
+
+    
+}

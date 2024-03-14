@@ -8,6 +8,7 @@
  * Physical Based Bloom
  ## 2. Screenshot
 * Raster
+![mulitLight](assets/screenshot/multLights.png)
 ![PBBloom](assets/screenshot/physical_based_bloom.png)
 ![raster](assets/screenshot/shadowMappingPoint_raster.png)
 * RayTracing

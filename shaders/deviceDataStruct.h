@@ -183,6 +183,8 @@ struct PushConstantPost
 	int   pbbloomMode; // 0:off 1:on
 };
 
+
+
 #define MATERIAL_METALLICROUGHNESS 0
 #define MATERIAL_SPECULARGLOSSINESS 1
 #define ALPHA_OPAQUE 0

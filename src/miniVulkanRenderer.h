@@ -82,7 +82,7 @@ public:
 
 	void loadFeatures();
 
-	void init(int width = 1440, int height = 1080);
+	void init(int width = 1600, int height = 1080);
 
 	void initImGUI();
 
@@ -106,11 +106,11 @@ public:
 	void rasterize(CommandBuffer& cmd,VkClearColorValue defaultClearColor);
 
 	// ui---------------------
-	void renderUI(std::vector<VkClearValue>& clearValues);
+	void renderUI(std::vector<VkClearValue>& clearValues,VkExtent2D screenSize, bool sizeChange ,bool &lightSizeChange);
 
-	bool uiLights();
+	bool uiLights(VkExtent2D screenSize, bool sizeChange ,bool &lightSizeChange);
 
-	bool uiInstance();
+	bool uiInstance(VkExtent2D screenSize, bool sizeChange = false);
 
 	//post -----------------
 	void initPostRender();
@@ -182,8 +182,8 @@ public:
 		1,   // exposure
 		0,   // debugShadowMap
 		0,   // debugBloom
-		0.01, // pbbloomRadius;
-	    0.1, // pbbloomIntensity;
+		0.004, // pbbloomRadius;
+	    0.01, // pbbloomIntensity;
 	    0 // 0:off 1:on
 	};
 

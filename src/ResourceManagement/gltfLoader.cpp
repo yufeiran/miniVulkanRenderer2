@@ -28,7 +28,7 @@ void GltfLoader::loadScene(const std::string& filename, glm::mat4 transform)
 
 	tinygltf::TinyGLTF tcontext;
 	std::string        warn, error;
-	Log("Loading file:" + filename);
+	//Log("Loading file:" + filename);
 
 	bool fileLoadOK = false;
 

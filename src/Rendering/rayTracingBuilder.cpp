@@ -152,7 +152,14 @@ void RayTracingBuilder::buildTlas(const std::vector<VkAccelerationStructureInsta
 								  bool                                                   motion)
 {
 	// Cannot call buildTlas twice except to update.
-	assert(tlas.accel == VK_NULL_HANDLE || update);
+	if(tlas.accel != VK_NULL_HANDLE && update == false)
+	{
+		vkDestroyAccelerationStructureKHR(device.getHandle(), tlas.accel , nullptr);
+		if(tlas.buffer!=nullptr)
+		tlas.buffer->~Buffer();
+		tlas.accel = VK_NULL_HANDLE;
+
+	}
 	uint32_t conutInstance = static_cast<uint32_t>(instances.size());
 
 	// Command buffer to create the TLAS 

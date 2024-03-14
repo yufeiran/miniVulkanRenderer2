@@ -329,12 +329,7 @@ LightingRenderPass::LightingRenderPass(Device& device, ResourceManager& resource
 	pipelineLayout = std::make_unique<PipelineLayout>(device, descSetLayouts, pushConstants);
 
 
-	graphicsPipeline = std::make_unique<GraphicsPipeline>(shaderModules, *pipelineLayout, device, extent);
-
-
-	graphicsPipeline->setSubpassIndex(subpassIndex);
-
-	graphicsPipeline->build(renderPass);
+	rebuild(extent,subpassIndex);
 }
 
 LightingRenderPass::~LightingRenderPass()
@@ -369,6 +364,7 @@ void LightingRenderPass::draw(CommandBuffer& cmd, std::vector<VkDescriptorSet> d
 void LightingRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
 {
 	graphicsPipeline = std::make_unique<GraphicsPipeline>(shaderModules, *pipelineLayout, device, surfaceExtent);
+	graphicsPipeline->rasterizer.cullMode = VK_CULL_MODE_NONE;
 	graphicsPipeline->setSubpassIndex(subpassIndex);
 	extent = surfaceExtent;
 	graphicsPipeline->build(renderPass);
@@ -402,12 +398,7 @@ SSAORenderPass::SSAORenderPass(Device&                               device,
 	pipelineLayout = std::make_unique<PipelineLayout>(device, descSetLayouts, pushConstants);
 
 
-	graphicsPipeline = std::make_unique<GraphicsPipeline>(shaderModules, *pipelineLayout, device, extent);
-
-
-	graphicsPipeline->setSubpassIndex(subpassIndex);
-
-	graphicsPipeline->build(renderPass);
+	rebuild(extent, subpassIndex);
 }
 
 SSAORenderPass::~SSAORenderPass()
@@ -440,6 +431,7 @@ void SSAORenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
 {
 	graphicsPipeline = std::make_unique<GraphicsPipeline>(shaderModules, *pipelineLayout, device, surfaceExtent);
 	graphicsPipeline->setSubpassIndex(subpassIndex);
+	graphicsPipeline->rasterizer.cullMode = VK_CULL_MODE_NONE;
 	extent = surfaceExtent;
 	graphicsPipeline->build(renderPass);
 }
@@ -473,12 +465,7 @@ SSAOBlurRenderPass::SSAOBlurRenderPass(Device& device,
 	pipelineLayout = std::make_unique<PipelineLayout>(device, descSetLayouts, pushConstants);
 
 
-	graphicsPipeline = std::make_unique<GraphicsPipeline>(shaderModules, *pipelineLayout, device, extent);
-
-
-	graphicsPipeline->setSubpassIndex(subpassIndex);
-
-	graphicsPipeline->build(renderPass);
+	rebuild(extent, subpassIndex);
 
 }
 
@@ -511,6 +498,7 @@ void SSAOBlurRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
 {
 	graphicsPipeline = std::make_unique<GraphicsPipeline>(shaderModules, *pipelineLayout, device, surfaceExtent);
 	graphicsPipeline->setSubpassIndex(subpassIndex);
+	graphicsPipeline->rasterizer.cullMode = VK_CULL_MODE_NONE;
 	extent = surfaceExtent;
 	graphicsPipeline->build(renderPass);
 }
@@ -539,13 +527,7 @@ PBBDownSamplingRenderPass::PBBDownSamplingRenderPass(Device& device,
 
 	pipelineLayout = std::make_unique<PipelineLayout>(device, descSetLayouts, pushConstants);
 
-
-	graphicsPipeline = std::make_unique<GraphicsPipeline>(shaderModules, *pipelineLayout, device, extent);
-
-
-	graphicsPipeline->setSubpassIndex(subpassIndex);
-
-	graphicsPipeline->build(renderPass);
+	rebuild(extent, subpassIndex);
 
 }
 
@@ -576,6 +558,13 @@ void mini::PBBDownSamplingRenderPass::draw(CommandBuffer& cmd, const std::vector
 
 void mini::PBBDownSamplingRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
 {
+	
+	graphicsPipeline = std::make_unique<GraphicsPipeline>(shaderModules, *pipelineLayout, device, extent);
+
+	graphicsPipeline->rasterizer.cullMode = VK_CULL_MODE_NONE;
+	graphicsPipeline->setSubpassIndex(subpassIndex);
+
+	graphicsPipeline->build(renderPass);
 }
 
 mini::PBBUpSamplingRenderPass::PBBUpSamplingRenderPass(
@@ -603,11 +592,7 @@ mini::PBBUpSamplingRenderPass::PBBUpSamplingRenderPass(
 
 	pipelineLayout = std::make_unique<PipelineLayout>(device, descSetLayouts, pushConstants);
 
-	graphicsPipeline = std::make_unique<GraphicsPipeline>(shaderModules, *pipelineLayout, device, extent);
-
-	graphicsPipeline->setSubpassIndex(subpassIndex);
-
-	graphicsPipeline->build(renderPass);
+	rebuild(extent, subpassIndex);
 }
 
 mini::PBBUpSamplingRenderPass::~PBBUpSamplingRenderPass()
@@ -636,4 +621,12 @@ void mini::PBBUpSamplingRenderPass::draw(CommandBuffer& cmd, const std::vector<V
 
 void mini::PBBUpSamplingRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
 {
+	graphicsPipeline = std::make_unique<GraphicsPipeline>(shaderModules, *pipelineLayout, device, extent);
+
+	graphicsPipeline->setSubpassIndex(subpassIndex);
+
+	graphicsPipeline->rasterizer.cullMode = VK_CULL_MODE_NONE;
+
+
+	graphicsPipeline->build(renderPass);
 }
