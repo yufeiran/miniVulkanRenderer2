@@ -46,3 +46,4 @@ spv/vertexShader.vert.spv
 *.spv
 *.spv
 .$pass.drawio.bkp
+*.dtmp

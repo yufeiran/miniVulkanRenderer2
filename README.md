@@ -15,8 +15,25 @@
 ![raytracing](assets/screenshot/shadowMappingPoint_raytracing.png)
 
 
+### 2.1 rasterization
 
- ### 2.1 RayTracing
+#### Overall Process 
+![rasterProcess](assets/screenshot/raster_process.png)
+#### detail features
+
+* ShadowMapPass
+![shadowMap](assets/screenshot/shadowMap.png)
+
+* SkyBoxPass
+![skyBOxPass](assets/screenshot/skylightPass.png)
+
+ <details> 
+<summary>rasterization features is still on building</summary>
+
+![sponaz](assets/screenshot/raster.png)
+ </details> 
+
+ ### 2.2 RayTracing
 * Demo
 ![demo](assets/screenshot/sceneDemo.png)
 
@@ -43,19 +60,6 @@
 
  </details> 
 
-### 2.2 rasterization
-
-* ShadowMapPass
-![shadowMap](assets/screenshot/shadowMap.png)
-
-* SkyBoxPass
-![skyBOxPass](assets/screenshot/skylightPass.png)
-
- <details> 
-<summary>rasterization features is still on building</summary>
-
-![sponaz](assets/screenshot/raster.png)
- </details> 
  
 ## 3. ThirdParty
 * imgui

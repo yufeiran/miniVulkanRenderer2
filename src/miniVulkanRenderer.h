@@ -184,7 +184,7 @@ public:
 		0,   // debugBloom
 		0.004, // pbbloomRadius;
 	    0.01, // pbbloomIntensity;
-	    0 // 0:off 1:on
+	    1 // 0:off 1:on
 	};
 
 	std::vector<Light> lights = {
