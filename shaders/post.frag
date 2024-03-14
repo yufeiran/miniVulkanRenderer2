@@ -39,9 +39,14 @@ void main()
 
     vec3 color;
     color = texture(offscreenColor,TexCoords).xyz;
-
     vec3 bloomColor = texture(bloomBlur, TexCoords).xyz;
-    color = mix(color, bloomColor, pcPost.pbbloomIntensity);
+    if(pcPost.pbbloomMode == 1)
+    {
+
+        color = mix(color, bloomColor, pcPost.pbbloomIntensity);
+
+    }
+
 
 
     vec3 colorExposure = vec3(color.r * pcPost.exposure, color.g * pcPost.exposure, color.b * pcPost.exposure);

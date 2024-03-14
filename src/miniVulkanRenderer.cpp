@@ -427,7 +427,7 @@ void MiniVulkanRenderer::init(int width, int height)
 	window->showWindow();
 
 
-	addLight(lights,*resourceManager,LIGHT_TYPE_DIRECTIONAL,{0.f, 20.f, 2.f}, {0.f, -1.f, 0.f}, {1.f, 1.f, 1.f}, 2.5f,true);
+	addLight(lights, *resourceManager, LIGHT_TYPE_DIRECTIONAL, { 0.f, 20.f, 2.f }, { 0.f, -1.f, 0.f }, { 1.f, 1.f, 1.f }, 2.5f, true);
 
 	LogTimerEnd("init");
 }
@@ -563,7 +563,7 @@ void MiniVulkanRenderer::createBottomLevelAS()
 
 void MiniVulkanRenderer::createTopLevelAS()
 {
-	Log("start createTLAS");
+	//Log("start createTLAS");
 
 
 	const auto& instances = resourceManager->getInstances();
@@ -648,7 +648,7 @@ void MiniVulkanRenderer::updateRtDescriptorSet()
 	VkWriteDescriptorSet writeDescriptorSets = rtDescSetBindings.makeWrite(rtDescSet, RtBindings::eOutImage, &imageInfo);
 	vkUpdateDescriptorSets(device->getHandle(), 1, &writeDescriptorSets, 0, nullptr);
 
-		std::vector<VkWriteDescriptorSet> writes;
+	std::vector<VkWriteDescriptorSet> writes;
 	writes.emplace_back(rtDescSetBindings.makeWrite(rtDescSet, RtBindings::eTlas, &descASInfo));
 	writes.emplace_back(rtDescSetBindings.makeWrite(rtDescSet, RtBindings::eOutImage, &imageInfo));
 
@@ -851,7 +851,7 @@ void MiniVulkanRenderer::raytrace(CommandBuffer& cmd, const glm::vec4& clearColo
 	vkCmdTraceRaysKHR(cmd.getHandle(), &rgenRegion, &missRegion, &hitRegion, &callRegion, surfaceExtent.width, surfaceExtent.height, 1);
 }
 
-void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>& clearValues, VkExtent2D screenSize, bool sizeChange,bool &lightSizeChange)
+void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>& clearValues, VkExtent2D screenSize, bool sizeChange, bool& lightSizeChange)
 {
 	static ImGuiTreeNodeFlags_ isLightHeaderOpen = ImGuiTreeNodeFlags_DefaultOpen;
 	static ImGuiTreeNodeFlags_ isRenderingHeaderOpen = ImGuiTreeNodeFlags_DefaultOpen;
@@ -934,8 +934,8 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>& clearValues, VkExte
 
 	ImGui::End();
 
-	changed |= uiLights(screenSize,sizeChange,lightSizeChange);
-	changed |= uiInstance(screenSize,sizeChange);
+	changed |= uiLights(screenSize, sizeChange, lightSizeChange);
+	changed |= uiInstance(screenSize, sizeChange);
 
 
 
@@ -943,7 +943,7 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>& clearValues, VkExte
 		resetFrame();
 }
 
-bool MiniVulkanRenderer::uiLights(VkExtent2D screenSize, bool sizeChange,bool &lightSizeChange)
+bool MiniVulkanRenderer::uiLights(VkExtent2D screenSize, bool sizeChange, bool& lightSizeChange)
 {
 
 	bool changed = false;
@@ -1018,7 +1018,7 @@ bool MiniVulkanRenderer::uiLights(VkExtent2D screenSize, bool sizeChange,bool &l
 
 			if (ImGui::Button("remove"))
 			{
-				delLight(lights,*resourceManager,i);
+				delLight(lights, *resourceManager, i);
 				lightSizeChange = true;
 				changed = true;
 			}
@@ -1113,11 +1113,11 @@ bool MiniVulkanRenderer::uiInstance(VkExtent2D screenSize, bool sizeChange)
 			if (inst.type == INSTANCE_TYPE_LIGHT_CUBE)
 			{
 				int lightID = inst.lightIndex;
-				if(inst.lightIndex!=-1)
+				if (inst.lightIndex != -1)
 				{
 					lights[lightID].setPosition(inst.translation);
 				}
-				
+
 
 			}
 
@@ -1170,15 +1170,18 @@ void MiniVulkanRenderer::loop()
 		processIO();
 
 
-		updateInstances();
-		if(lightSizeChange)
+
+		if (lightSizeChange)
 		{
+			LogTimerStart("rebuild RT_TLAS");
 			createTopLevelAS();
 			updateRtDescriptorSet();
+			LogTimerEnd("rebuild RT_TLAS");
 			lightSizeChange = false;
 			continue;
-		
+
 		}
+		updateInstances();
 
 		auto result = renderContext->beginFrame();
 		if (result == VK_ERROR_OUT_OF_DATE_KHR)
@@ -1205,7 +1208,7 @@ void MiniVulkanRenderer::loop()
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		{
-			renderUI(clearValues,window->getExtent(),sizeChange,lightSizeChange);
+			renderUI(clearValues, window->getExtent(), sizeChange, lightSizeChange);
 		}
 
 
@@ -1406,6 +1409,8 @@ void MiniVulkanRenderer::keyControl()
 }
 
 bool isLeftMouseButtonPress = false;
+bool isRightMouseButtonPress = false;
+bool isMiddleMouseButtonPress = false;
 
 
 void MiniVulkanRenderer::mouseControl()
@@ -1447,6 +1452,11 @@ void MiniVulkanRenderer::mouseControl()
 		camera.changeDir(xoffset, yoffset);
 	}
 
+
+
+
+	lastX = xpos;
+	lastY = ypos;
 
 }
 
@@ -1563,9 +1573,9 @@ void MiniVulkanRenderer::mouseCallBack(GLFWwindow* window, double xpos, double y
 
 	//Log("xoffset:" + std::to_string(xoffset) + " yoffset:" + std::to_string(yoffset));
 
-	const double moveSensitivity = 2.1;
-	xoffset *= moveSensitivity;
-	yoffset *= moveSensitivity;
+	const double dirSensitivity = 2.1;
+	const double moveSensitivity = 0.003;
+
 
 	ImGuiIO& io = ImGui::GetIO();
 
@@ -1582,9 +1592,39 @@ void MiniVulkanRenderer::mouseCallBack(GLFWwindow* window, double xpos, double y
 		auto& camera = miniRenderer.getCamera();
 
 
-		camera.changeDir(xoffset, yoffset);
+		camera.changeDir(xoffset * dirSensitivity, yoffset * dirSensitivity);
 	}
 
+
+
+	if (ImGui::GetIO().WantCaptureMouse == false) {
+
+
+	}
+	auto midButtonState = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE);
+	if (isMiddleMouseButtonPress == true)
+	{
+
+		auto& camera = miniRenderer.getCamera();
+		camera.move(FRONT_DIR, yoffset * moveSensitivity);
+		camera.move(RIGHT_DIR, xoffset * moveSensitivity);
+	}
+	auto rightButtonState = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
+	if (isRightMouseButtonPress == true)
+	{
+		float offset = sqrt(xoffset * xoffset + yoffset * yoffset) * moveSensitivity;
+		auto& camera = miniRenderer.getCamera();
+		if (xoffset + yoffset > 0)
+		{
+			camera.move(UP_DIR, offset);
+		}
+		else
+		{
+			camera.move(DOWN_DIR, offset);
+		}
+
+
+	}
 
 
 }
@@ -1598,6 +1638,22 @@ void MiniVulkanRenderer::mouseButtonCallback(GLFWwindow* window, int button, int
 	else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
 	{
 		isLeftMouseButtonPress = false;
+	}
+	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+	{
+		isRightMouseButtonPress = true;
+	}
+	else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
+	{
+		isRightMouseButtonPress = false;
+	}
+	if (button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_PRESS)
+	{
+		isMiddleMouseButtonPress = true;
+	}
+	else if (button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_RELEASE)
+	{
+		isMiddleMouseButtonPress = false;
 	}
 }
 
