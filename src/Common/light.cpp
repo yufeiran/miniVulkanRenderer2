@@ -7,7 +7,7 @@ using namespace mini;
 
 double random(double min, double max)
 {
-	return (double)rand() / RAND_MAX * (max - min) + min;
+	return (double)rand() / (double)RAND_MAX * (max - min) + min;
 }
 
 void mini::addRandomLight(std::vector<Light>& lights, ResourceManager& resManager)
@@ -23,9 +23,13 @@ void mini::addRandomLight(std::vector<Light>& lights, ResourceManager& resManage
 
     vec3 randomColor = vec3(0.0f);
 
-    randomColor.x = random(0.0f, 1.0f);
-    randomColor.y = random(0.0f, 1.0f);
-    randomColor.z = random(0.0f, 1.0f);
+    while(randomColor.x + randomColor.y + randomColor.z < 1.5f)
+	{
+		randomColor.x = random(0.0f, 1.0f);
+		randomColor.y = random(0.0f, 1.0f);
+		randomColor.z = random(0.0f, 1.0f);
+	}
+
 
     vec3 randomDirection = vec3(0.0f);
 
@@ -35,7 +39,7 @@ void mini::addRandomLight(std::vector<Light>& lights, ResourceManager& resManage
 
     float randomIntensity = random(0.0f, 3.0f);
 
-    addLight(lights, resManager,LIGHT_TYPE_POINT, randomPos, randomColor,randomDirection, randomIntensity);
+    addLight(lights, resManager,LIGHT_TYPE_POINT, randomPos,randomDirection, randomColor, randomIntensity);
 
 
 

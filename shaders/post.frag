@@ -32,6 +32,28 @@ layout( push_constant ) uniform _PushConstantPost
 };
 
 
+vec3 getBloomColor(vec2 texCoords)
+{
+
+    vec3 bloomColor = vec3(0.0);
+    vec2 texelSize = 1.0 / textureSize(offscreenColor, 0);
+    for(int x = -1; x <= 1; ++x)
+    {
+        for(int y = -1; y <= 1; ++y)
+        {
+            vec2 offset = vec2(x, y) * texelSize;
+            bloomColor += texture(bloomBlur, texCoords + offset).rgb;
+
+
+        }
+    }
+    bloomColor /= 9.0;
+
+    
+
+
+    return bloomColor;
+}
 
 void main()
 {
@@ -39,7 +61,7 @@ void main()
 
     vec3 color;
     color = texture(offscreenColor,TexCoords).xyz;
-    vec3 bloomColor = texture(bloomBlur, TexCoords).xyz;
+    vec3 bloomColor = texture(bloomBlur, TexCoords).rgb;
     if(pcPost.pbbloomMode == 1)
     {
 

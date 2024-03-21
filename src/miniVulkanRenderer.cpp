@@ -883,7 +883,25 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>& clearValues, VkExte
 			pcRaster.needSSAO = 1;
 		}
 
+
 	}
+	if(ImGui::CollapsingHeader("Shadow", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		const int SHADOW_MODE_SUM = 3;
+		const char* SHADOW_MODE_STR[SHADOW_MODE_SUM] = {
+			"normal",
+			"PCF",
+			"PCSS"
+		};
+
+		changed |= ImGui::Combo("shadow mode", &pcRaster.shadowMode, SHADOW_MODE_STR, SHADOW_MODE_SUM);
+		if(pcRaster.shadowMode == 2)
+		{
+			changed |= ImGui::SliderFloat("shadow light size", &pcRaster.shadowLightSize, 1, 60);
+		}
+		
+	}
+
 	if (ImGui::CollapsingHeader("Debug", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		const int DEBUG_MODE_SUM = 12;
