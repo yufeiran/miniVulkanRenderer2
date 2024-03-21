@@ -293,6 +293,7 @@ void MiniVulkanRenderer::init(int width, int height)
 	window->setMouseCallBack(mouseCallBack);
 	window->setJoystickCallBack(joystickCallback);
 	window->setMouseButtonCallBack(mouseButtonCallback);
+	window->setMouseScrollCallBack(mouseScrollCallback);
 	window->setDropCallback(dropCallback);
 
 	LogSpace();
@@ -1673,6 +1674,15 @@ void MiniVulkanRenderer::mouseButtonCallback(GLFWwindow* window, int button, int
 	{
 		isMiddleMouseButtonPress = false;
 	}
+}
+
+void MiniVulkanRenderer::mouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	auto app = static_cast<MiniVulkanRenderer*>(glfwGetWindowUserPointer(window));
+	auto& camera = app->getCamera();
+
+	float moveSensitivity = 0.1;
+	camera.move(UP_DIR, yoffset * moveSensitivity);
 }
 
 void MiniVulkanRenderer::joystickCallback(int jid, int event)

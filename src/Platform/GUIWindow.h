@@ -35,6 +35,8 @@ public:
 
 	void setMouseButtonCallBack(GLFWmousebuttonfun callback);
 
+	void setMouseScrollCallBack(GLFWscrollfun callback);
+
 	void setJoystickCallBack(GLFWjoystickfun callback);
 
 	void setDropCallback(GLFWdropfun callback);

@@ -123,6 +123,11 @@ void GUIWindow::setMouseButtonCallBack(GLFWmousebuttonfun callback)
 	glfwSetMouseButtonCallback(handle,callback);
 }
 
+void GUIWindow::setMouseScrollCallBack(GLFWscrollfun callback)
+{
+	glfwSetScrollCallback(handle, callback);
+}
+
 void GUIWindow::setJoystickCallBack(GLFWjoystickfun callback)
 {
 	glfwSetJoystickCallback(callback);

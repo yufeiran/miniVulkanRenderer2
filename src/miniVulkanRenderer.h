@@ -138,6 +138,8 @@ public:
 
 	static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 
+	static void mouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+
 	static void joystickCallback(int jid, int event);
 
 	static void dropCallback(GLFWwindow* window, int count, const char** path);
