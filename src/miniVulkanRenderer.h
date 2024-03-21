@@ -161,7 +161,10 @@ public:
 		768,                 // height
 		1,				     // NeedSSAO
 		0,                   // lightType 0:normal 1: light
-	    0                    // light index
+	    0,                    // light index
+		2,                   // shadowMode  0:normal 1:pcf 2.PCSS
+		5                     // shadowLigheSize
+
 	};
 
 	PushConstantRay pcRay{

@@ -156,6 +156,8 @@ struct PushConstantRaster
 	int   needSSAO;   // 0: no 1:yes
 	int   objType;    // 0:normal 1: light
 	int   lightIndex; // light index
+	int   shadowMode; // 0:normal 1: PCF 2:PCSS
+	float shadowLightSize;
 };
 
 struct PushConstantRay
