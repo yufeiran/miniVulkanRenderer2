@@ -21,7 +21,7 @@ using namespace std::chrono;
 
 void MiniVulkanRenderer::load()
 {
-	int testCase = 2;
+	int testCase = 0;
 	switch (testCase)
 	{
 	case 0:
@@ -941,7 +941,7 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>& clearValues, VkExte
 		ImGui::Checkbox("debugBloom", &debugBloom);
 		pcPost.debugBloom = debugBloom;
 
-		ImGui::SliderFloat("bloomRadius", &pcPost.pbbloomRadius, 0, 0.02);
+		ImGui::SliderFloat("bloomRadius", &pcPost.pbbloomRadius, 0, 0.1);
 		ImGui::SliderFloat("bloomIntensity", &pcPost.pbbloomIntensity, 0, 0.3);
 		static bool bloomMode = pcPost.pbbloomMode;
 		ImGui::Checkbox("bloom", &bloomMode);

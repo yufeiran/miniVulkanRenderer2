@@ -104,7 +104,7 @@ void GetMaterialsAndTextures(inout State state,int instanceCustomIndex)
     if(material.emissiveTexture > -1)
     {
         state.mat.emission *= 
-            textureLod(textureSamplers[nonuniformEXT(material.emissiveTexture)], state.texCoord, 0).rgb;
+            SRGBtoLINEAR(textureLod(textureSamplers[nonuniformEXT(material.emissiveTexture)], state.texCoord, 0)).rgb;
     }
 
     // Basic material

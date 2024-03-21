@@ -185,7 +185,7 @@ public:
 		1,   // exposure
 		0,   // debugShadowMap
 		0,   // debugBloom
-		0.004, // pbbloomRadius;
+		0.020, // pbbloomRadius;
 	    0.01, // pbbloomIntensity;
 	    1 // 0:off 1:on
 	};
