@@ -43,6 +43,14 @@ public:
 
 	double getPitch() { return pitch; }
 
+	float getFarPlane() { return farPlane; }
+
+	float getNearPlane() { return nearPlane; }
+
+	void setFarPlane(float farPlane) { this->farPlane = farPlane; }
+
+	void setNearPlane(float nearPlane) { this->nearPlane = nearPlane; }
+
 private:
 	glm::vec3 cameraPos, cameraFront, cameraUp;
 	glm::vec3 cameraRight;
@@ -53,6 +61,9 @@ private:
 	float step; 
 	float changeDirSensitivity;
 	float fov;
+
+	float farPlane = 1000.0f;
+	float nearPlane = 0.1f;
 
 };
 

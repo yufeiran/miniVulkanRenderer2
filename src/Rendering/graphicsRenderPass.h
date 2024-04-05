@@ -195,7 +195,7 @@ namespace mini
 		~SSAORenderPass();
 
 		void update();
-		void draw(CommandBuffer& cmd,const std::vector<VkDescriptorSet> descSet);
+		void draw(CommandBuffer& cmd, const std::vector<VkDescriptorSet> descSet);
 
 		void rebuild(VkExtent2D surfaceExtent, int subpassIndex = 3);
 	private:
@@ -221,7 +221,7 @@ namespace mini
 		~SSAOBlurRenderPass();
 
 		void update();
-		void draw(CommandBuffer& cmd,const std::vector<VkDescriptorSet> descSet);
+		void draw(CommandBuffer& cmd, const std::vector<VkDescriptorSet> descSet);
 
 		void rebuild(VkExtent2D surfaceExtent, int subpassIndex = 3);
 	private:
@@ -233,21 +233,47 @@ namespace mini
 
 	};
 
+	class SSRRenderPass : public GraphicsRenderPass
+	{
+	public:
+		SSRRenderPass(Device& device,
+			ResourceManager& resourceManager,
+			const RenderPass& renderPass,
+			VkExtent2D extent,
+			std::shared_ptr<DescriptorSetLayout> descSetLayout,
+			std::shared_ptr<DescriptorSetLayout> ssrDescSetLayout,
+			PushConstantRaster& pcRaster,
+			int subpassIndex = 0
+		);
+		~SSRRenderPass();
+
+		void update();
+		void draw(CommandBuffer& cmd, const std::vector<VkDescriptorSet> descSet);
+
+		void rebuild(VkExtent2D surfaceExtent, int subpassIndex = 0);
+	private:
+		PostQuad postQuad;
+		const RenderPass& renderPass;
+		PushConstantRaster& pcRaster;
+		std::vector<std::unique_ptr<ShaderModule>> shaderModules;
+		std::unique_ptr<PipelineLayout>            pipelineLayout;
+	};
+
 	class PBBDownSamplingRenderPass :public GraphicsRenderPass
 	{
 	public:
 		PBBDownSamplingRenderPass(Device& device,
-						ResourceManager& resourceManager,
-						const RenderPass& renderPass,
-						VkExtent2D extent,
-						std::shared_ptr<DescriptorSetLayout> pbbDescSetLayout,
-						PushConstantPost& pcPost,
-						int subpassIndex = 0
-				);
+			ResourceManager& resourceManager,
+			const RenderPass& renderPass,
+			VkExtent2D extent,
+			std::shared_ptr<DescriptorSetLayout> pbbDescSetLayout,
+			PushConstantPost& pcPost,
+			int subpassIndex = 0
+		);
 		~PBBDownSamplingRenderPass();
 
 		void update();
-		void draw(CommandBuffer& cmd,const std::vector<VkDescriptorSet> descSet);
+		void draw(CommandBuffer& cmd, const std::vector<VkDescriptorSet> descSet);
 
 		void rebuild(VkExtent2D surfaceExtent, int subpassIndex = 0);
 	private:
@@ -263,17 +289,17 @@ namespace mini
 	{
 	public:
 		PBBUpSamplingRenderPass(Device& device,
-						ResourceManager& resourceManager,
-						const RenderPass& renderPass,
-						VkExtent2D extent,
-						std::shared_ptr<DescriptorSetLayout> pbbDescSetLayout,
-						PushConstantPost& pcPost,
-						int subpassIndex = 0
-				);
+			ResourceManager& resourceManager,
+			const RenderPass& renderPass,
+			VkExtent2D extent,
+			std::shared_ptr<DescriptorSetLayout> pbbDescSetLayout,
+			PushConstantPost& pcPost,
+			int subpassIndex = 0
+		);
 		~PBBUpSamplingRenderPass();
 
 		void update();
-		void draw(CommandBuffer& cmd,const std::vector<VkDescriptorSet> descSet);
+		void draw(CommandBuffer& cmd, const std::vector<VkDescriptorSet> descSet);
 
 		void rebuild(VkExtent2D surfaceExtent, int subpassIndex = 0);
 	private:

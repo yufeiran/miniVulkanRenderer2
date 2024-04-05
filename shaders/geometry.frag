@@ -91,6 +91,9 @@ void main() {
 
     GetMaterialsAndTextures(state,objIndex);
 
+    if(state.mat.alpha < 0.5)
+        discard;
+
     state.mat.emission = SRGBtoLINEAR(vec4(state.mat.emission, 1.0)).rgb;
 
     if(pcRaster.objType == 1)

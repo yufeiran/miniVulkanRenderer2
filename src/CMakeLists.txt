@@ -112,6 +112,8 @@ set(RENDERING_FILES
     ./Rendering/ssaoPipelineBuilder.cpp
     ./Rendering/pbbloomPipelineBuilder.h
     ./Rendering/pbbloomPipelineBuilder.cpp
+    ./Rendering/SSRPipelineBuilder.h
+    ./Rendering/SSRPipelineBuilder.cpp
 )
 
 set(RESOURCE_MANAGEMENT_FILES

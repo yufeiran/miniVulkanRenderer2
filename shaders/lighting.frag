@@ -262,10 +262,10 @@ vec3 DebugInfo(State state,vec3 color)
             outColor = vec3(1.0);
             return outColor;
         case eTangent:
-            outColor = vec3(1);
+            outColor = vec3(state.tangent.xyz + vec3(1)) * .5;
             return outColor;
         case eBitangent:
-            outColor = vec3(1);
+            outColor = vec3(state.bitangent.xyz + vec3(1)) * .5;
             return outColor;
         case eSpecular:
             outColor = vec3( 1.0);
@@ -299,7 +299,7 @@ void main() {
     state.position = fragPos;
     state.normal = subpassLoad(inputNormal).rgb;
     state.ffnormal = dot(state.normal, viewDir) >= 0.0 ? state.normal : -state.normal;
-    createCoordinateSystem(state.normal, state.tangent, state.bitangent);
+    createCoordinateSystem(state.ffnormal, state.tangent, state.bitangent);
 
     state.mat.albedo = subpassLoad(inputAlbedo).rgb;
     state.mat.metallic = subpassLoad(inputMetalRough).r;
@@ -310,7 +310,7 @@ void main() {
     float dielectricSpecular = (state.mat.ior - 1) / (state.mat.ior + 1);
     dielectricSpecular *=  dielectricSpecular;
 
-    state.mat.f0 = mix(vec3(dielectricSpecular), state.mat.albedo, state.mat.metallic);
+    //state.mat.f0 = mix(vec3(dielectricSpecular), state.mat.albedo, state.mat.metallic);
     state.mat.f0 = state.mat.albedo;
     
 
@@ -375,45 +375,45 @@ void main() {
     
     color += state.mat.emission;
 
-    int indSamples = 16;
-    BsdfSampleRec indirectBsdf;;
-    uint seed = 10000;
-    vec3 sampleColor = vec3(0);
-    for(int i = 0; i < indSamples; i++)
-    {
-        indirectBsdf.f = PbrSample(state, viewDir, state.ffnormal, indirectBsdf.L, indirectBsdf.pdf, seed);
+    // int indSamples = 16;
+    // BsdfSampleRec indirectBsdf;;
+    // uint seed = 10000;
+    // vec3 sampleColor = vec3(0);
+    // for(int i = 0; i < indSamples; i++)
+    // {
+    //     indirectBsdf.f = PbrSample(state, viewDir, state.ffnormal, indirectBsdf.L, indirectBsdf.pdf, seed);
 
-        vec3 sampleLight = texture(cubeMapTexture, -indirectBsdf.L).rgb;
-        vec3 indirectSample = indirectBsdf.f * sampleLight * pcRaster.skyLightIntensity / 10.0 * abs(dot(state.ffnormal, indirectBsdf.L)) / indirectBsdf.pdf;
+    //     vec3 sampleLight = texture(cubeMapTexture, -indirectBsdf.L).rgb;
+    //     vec3 indirectSample = indirectBsdf.f * sampleLight * pcRaster.skyLightIntensity / 10.0 * abs(dot(state.ffnormal, indirectBsdf.L)) / indirectBsdf.pdf;
 
-        if(any(isnan(indirectSample)))
-        {
-            indirectSample += vec3(0.0);
-        }
-        else
-        {
-            sampleColor += indirectSample;
-        }
+    //     if(any(isnan(indirectSample)))
+    //     {
+    //         indirectSample += vec3(0.0);
+    //     }
+    //     else
+    //     {
+    //         sampleColor += indirectSample;
+    //     }
 
-    }
-    sampleColor /= float(indSamples);
-    if(pcRaster.needSSAO == 1)
-    {
-        sampleColor *= state.mat.ao;
-    }
+    // }
+    // sampleColor /= float(indSamples);
+    // if(pcRaster.needSSAO == 1)
+    // {
+    //     sampleColor *= state.mat.ao;
+    // }
 
 
-    color += sampleColor;
+    // color += sampleColor;
 
 
    
 
-    // vec3 ambient = vec3(0.001) * pcRaster.skyLightIntensity * state.mat.albedo;
-    // if(pcRaster.needSSAO == 1)
-    // {
-    //     ambient *= state.mat.ao;
-    // }
-    // color += ambient;
+    vec3 ambient = vec3(0.001) * pcRaster.skyLightIntensity * state.mat.albedo;
+    if(pcRaster.needSSAO == 1)
+    {
+        ambient *= state.mat.ao;
+    }
+    color += ambient;
 
     color = DebugInfo(state, color);
 

@@ -100,6 +100,7 @@ public:
 	std::vector<std::unique_ptr<ImageView>>   imageViews;
 	std::unique_ptr<Sampler>                  defaultSampler;
 	std::unique_ptr<Sampler>                  repeatSampler;
+	std::unique_ptr<Sampler>                  mirroredRepeatSampler;
 	std::unique_ptr<Sampler>                  clampToEdgeSampler;
 
 	std::unique_ptr<Image>                    cubeMap;

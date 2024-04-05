@@ -21,7 +21,7 @@ using namespace std::chrono;
 
 void MiniVulkanRenderer::load()
 {
-	int testCase = 0;
+	int testCase = 2;
 	switch (testCase)
 	{
 	case 0:
@@ -221,9 +221,9 @@ void MiniVulkanRenderer::loadSponza()
 	//objMat = glm::translate(objMat,{-10,-1,0});
 	//resourceManager->loadScene("D://yufeiran/model/AMD/Deferred/Deferred.gltf",objMat);
 
-	resourceManager->loadScene("D://yufeiran/model/AMD/PBR/PBR.gltf", objMat);
+	//resourceManager->loadScene("D://yufeiran/model/AMD/PBR/PBR.gltf", objMat);
 
-	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",objMat);
+	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",objMat);
 
 	//resourceManager->loadScene("../../assets/lightScene.gltf");
 }
@@ -264,10 +264,15 @@ void MiniVulkanRenderer::loadShowCase()
 
 	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf", objMat);
 
+	
+
+
+
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat, { 0,-1,0 });
 	objMat = glm::scale(objMat, { 3,1,3 });
 	resourceManager->loadScene("../../assets/plane/plane1.gltf", objMat);
+	//resourceManager->loadScene("D://yufeiran/model/rocky_ground_with_moss/scene.gltf", objMat);
 }
 
 MiniVulkanRenderer::MiniVulkanRenderer()
@@ -381,6 +386,9 @@ void MiniVulkanRenderer::init(int width, int height)
 	shadowPipelineBuilder = std::make_unique<ShadowPipelineBuilder>(*device, *resourceManager, pcRaster, graphicsPipelineBuilder->getLightUniformsBuffer());
 
 	ssaoPipelineBuilder = std::make_unique<SSAOPipelineBuilder>(*device, *resourceManager, window->getExtent(), graphicsPipelineBuilder->getDescriptorSetLayout(),
+		*offscreenRenderTarget, offscreenColorFormat, pcRaster);
+
+	ssrPipelineBuilder = std::make_unique<SSRPipelineBuilder>(*device, *resourceManager, window->getExtent(), graphicsPipelineBuilder->getDescriptorSetLayout(),
 		*offscreenRenderTarget, offscreenColorFormat, pcRaster);
 
 	pbbloomPipelineBuilder = std::make_unique<PBBloomPipelineBuilder>(*device,
@@ -857,6 +865,8 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>& clearValues, VkExte
 	static ImGuiTreeNodeFlags_ isLightHeaderOpen = ImGuiTreeNodeFlags_DefaultOpen;
 	static ImGuiTreeNodeFlags_ isRenderingHeaderOpen = ImGuiTreeNodeFlags_DefaultOpen;
 
+	static bool debugSSR = false;
+
 	static int debugModeIndex = 0;
 
 	static bool needSSAO = true;
@@ -930,6 +940,25 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>& clearValues, VkExte
 		ImGui::Text("Camera pos:%.1f %.1f %.1f , yaw %.1f pitch %.1f ", camera.getPos()[0], camera.getPos()[1], camera.getPos()[2],
 			camera.getYaw(), camera.getPitch());
 	}
+	if(ImGui::CollapsingHeader("SSR", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		ImGui::Checkbox("debugSSR", &debugSSR);
+		pcPost.debugSSR = debugSSR;
+
+	    ImGui::SliderFloat("step", &pcRaster.ssrStep, 0.001, 1);
+
+		ImGui::SliderFloat("maxDistance", &pcRaster.ssrMaxDistance, 0, 100);
+
+		static int epsilonIndex = -2;
+		ImGui::SliderInt("epsilon", &epsilonIndex, -5, -1);
+		pcRaster.ssrEpsilon = pow(10, epsilonIndex);
+
+		ImGui::SliderFloat("attenuation", &pcRaster.ssrAttenuation, 0.01, 3);
+
+
+	
+	}
+
 	if (ImGui::CollapsingHeader("Post", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		ImGui::SliderFloat("exposure", &pcPost.exposure, 0, 10);
@@ -941,6 +970,8 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>& clearValues, VkExte
 		static bool debugBloom = pcPost.debugBloom;
 		ImGui::Checkbox("debugBloom", &debugBloom);
 		pcPost.debugBloom = debugBloom;
+
+
 
 		ImGui::SliderFloat("bloomRadius", &pcPost.pbbloomRadius, 0, 0.1);
 		ImGui::SliderFloat("bloomIntensity", &pcPost.pbbloomIntensity, 0, 0.3);
@@ -1072,7 +1103,7 @@ bool MiniVulkanRenderer::uiInstance(VkExtent2D screenSize, bool sizeChange)
 	init = sizeChange;
 
 	int windowWidth = 800;
-	int windowHeight = 400;
+	int windowHeight = 200;
 
 	static bool open = false;
 
@@ -1182,25 +1213,46 @@ void MiniVulkanRenderer::loop()
 
 	static bool sizeChange = true;
 	static bool lightSizeChange = true;
+	static bool changeToRaytracing = false;
+	static bool lastCanRaytracingMode = useRaytracing;
 
 
 	while (!window->shouldClose()) {
 		calFps();
 		processIO();
 
-
-
-		if (lightSizeChange)
+		if(useRaytracing!=lastCanRaytracingMode)
 		{
+			lastCanRaytracingMode = useRaytracing;
+			if(useRaytracing==true)
+			{
+				changeToRaytracing = true;
+			}
+		}
+
+
+
+		if (lightSizeChange || changeToRaytracing)
+		{
+			device->waitIdle();
 			LogTimerStart("rebuild RT_TLAS");
-			createTopLevelAS();
-			updateRtDescriptorSet();
+			if(useRaytracing)
+			{
+				createTopLevelAS();
+				updateRtDescriptorSet();
+				updateInstances();
+			}
+
+			
 			LogTimerEnd("rebuild RT_TLAS");
 			lightSizeChange = false;
+			changeToRaytracing = false;
 			continue;
 
 		}
+
 		updateInstances();
+		
 
 		auto result = renderContext->beginFrame();
 		if (result == VK_ERROR_OUT_OF_DATE_KHR)
@@ -1367,7 +1419,7 @@ void MiniVulkanRenderer::rasterize(CommandBuffer& cmd, VkClearColorValue default
 
 
 
-	//ssaoPipelineBuilder->draw(cmd,graphicsPipelineBuilder->getDescriptorSet());
+	ssrPipelineBuilder->draw(cmd,graphicsPipelineBuilder->getDescriptorSet());
 
 
 }
@@ -1678,6 +1730,14 @@ void MiniVulkanRenderer::mouseButtonCallback(GLFWwindow* window, int button, int
 
 void MiniVulkanRenderer::mouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
+	ImGuiIO& io = ImGui::GetIO();
+
+	if (io.WantCaptureMouse)
+	{
+		return;
+	}
+
+
 	auto app = static_cast<MiniVulkanRenderer*>(glfwGetWindowUserPointer(window));
 	auto& camera = app->getCamera();
 
@@ -1786,6 +1846,8 @@ void MiniVulkanRenderer::handleSizeChange()
 	graphicsPipelineBuilder->rebuild(extent);
 	graphicsPipelineBuilder->updateDescriptorSet(shadowPipelineBuilder->getDirRenderTarget(), shadowPipelineBuilder->getPointRenderTarget(), *offscreenRenderTarget);
 
+	ssrPipelineBuilder->rebuild(extent,*offscreenRenderTarget);
+
 	pbbloomPipelineBuilder->rebuild(extent, *offscreenRenderTarget, 5);
 
 	updatePostDescriptorSet();
@@ -1822,7 +1884,7 @@ void MiniVulkanRenderer::createOffScreenFrameBuffer()
 
 	auto depthFormat = imageColor.getDevice().getPhysicalDevice().findDepthFormat();
 	std::unique_ptr<Image> depthImage = std::make_unique<Image>(imageColor.getDevice(),
-		imageColor.getExtent(), depthFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT);
+		imageColor.getExtent(), depthFormat,VK_IMAGE_USAGE_SAMPLED_BIT| VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT);
 
 
 	// GBuffer
@@ -1906,7 +1968,7 @@ void MiniVulkanRenderer::initPostRender()
 	postDescSetBind.addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
 	postDescSetBind.addBinding(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
 	postDescSetBind.addBinding(3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
-
+	postDescSetBind.addBinding(4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);  // debug SSR
 
 
 	postDescriptorSetLayouts.push_back(std::move(postDescSetBind.createLayout(*device)));
@@ -2003,8 +2065,15 @@ void MiniVulkanRenderer::initPostRender()
 	postSamplerBloomLayoutBinding.pImmutableSamplers = nullptr;
 	postSamplerBloomLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
+	VkDescriptorSetLayoutBinding postSamplerSSRLayoutBinding{};
+	postSamplerSSRLayoutBinding.binding = 4;
+	postSamplerSSRLayoutBinding.descriptorCount = 1;
+	postSamplerSSRLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	postSamplerSSRLayoutBinding.pImmutableSamplers = nullptr;
+	postSamplerSSRLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-	std::vector<VkDescriptorSetLayoutBinding>postLayoutBindings{ postSamplerLayoutBinding,postSamplerShadowMapLayoutBinding,postSamplerBloomLayoutBinding };
+
+	std::vector<VkDescriptorSetLayoutBinding>postLayoutBindings{ postSamplerLayoutBinding,postSamplerShadowMapLayoutBinding,postSamplerBloomLayoutBinding,postSamplerSSRLayoutBinding };
 
 	postDescriptorSetLayouts.push_back(std::make_unique<DescriptorSetLayout>(*device, postLayoutBindings));
 
@@ -2042,6 +2111,13 @@ void MiniVulkanRenderer::updatePostDescriptorSet()
 	imageBloomInfo.sampler = postRenderImageSampler->getHandle();
 
 	writes.push_back(postDescSetBind.makeWrite(postDescriptorSet, 3, &imageBloomInfo));
+
+	VkDescriptorImageInfo imageSSRInfo{};
+	imageSSRInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+	imageSSRInfo.imageView = ssrPipelineBuilder->getRenderTarget().getImageViewByIndex(0).getHandle();
+	imageSSRInfo.sampler = postRenderImageSampler->getHandle();
+
+	writes.push_back(postDescSetBind.makeWrite(postDescriptorSet, 4, &imageSSRInfo));
 
 
 

@@ -49,6 +49,7 @@
 #include "Rendering/shadowPipelineBuilder.h"
 #include "Rendering/ssaoPipelineBuilder.h"
 #include "Rendering/pbbloomPipelineBuilder.h"
+#include "Rendering/SSRPipelineBuilder.h"
 
 
 
@@ -72,23 +73,10 @@ public:
 
 	void load();
 
-	void loadBugBox();
-
-	void loadTestGltf();
-
-	void loadShowCase();
-
-	void loadSponza();
-
-	void loadFeatures();
 
 	void init(int width = 1600, int height = 1080);
-
 	void initImGUI();
-
 	void createOffScreenFrameBuffer();
-
-
 	void initRayTracingRender();
 
 
@@ -125,23 +113,14 @@ public:
 	void updateInstances();
 
 	
-
 	void processIO();
-
 	void keyControl();
-
 	void mouseControl();
-
 	void joystickControl();
-
 	static void mouseCallBack(GLFWwindow* window, double xpos, double ypos);
-
 	static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
-
 	static void mouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
-
 	static void joystickCallback(int jid, int event);
-
 	static void dropCallback(GLFWwindow* window, int count, const char** path);
 
 	void cleanScene();
@@ -165,8 +144,11 @@ public:
 		0,                   // lightType 0:normal 1: light
 	    0,                    // light index
 		2,                   // shadowMode  0:normal 1:pcf 2.PCSS
-		5                     // shadowLigheSize
-
+		5,                     // shadowLigheSize
+		0.3,                  // ssrStep
+		10,                  // ssrMaxDistance
+		0.01,                 // ssrEpsilon
+		5 			      // ssrAttenuation
 	};
 
 	PushConstantRay pcRay{
@@ -187,6 +169,7 @@ public:
 		1,   // exposure
 		0,   // debugShadowMap
 		0,   // debugBloom
+		0,   // debugSSR
 		0.020, // pbbloomRadius;
 	    0.01, // pbbloomIntensity;
 	    1 // 0:off 1:on
@@ -246,6 +229,8 @@ private:
 
 	std::unique_ptr<SSAOPipelineBuilder>     ssaoPipelineBuilder;
 
+	std::unique_ptr<SSRPipelineBuilder>      ssrPipelineBuilder;
+
 	std::unique_ptr<PBBloomPipelineBuilder>  pbbloomPipelineBuilder;
 
 
@@ -286,6 +271,13 @@ private:
 	std::unique_ptr<Sampler>                           postRenderImageSampler;
 
 	Camera  camera;
+
+	void loadBugBox();
+	void loadTestGltf();
+	void loadShowCase();
+	void loadSponza();
+	void loadFeatures();
+
 
 
 };

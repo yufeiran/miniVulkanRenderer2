@@ -80,7 +80,7 @@ void GetMaterialsAndTextures(inout State state,int instanceCustomIndex)
 
 
     // Uv Transform
-    // state.texCoord = (vec4(state.texCoord.xy, 1, 1) * material.uvTransform).xy;
+    state.texCoord = (vec4(state.texCoord.xy, 1, 1) * material.uvTransform).xy;
     mat3 TBN = mat3(state.tangent, state.bitangent, state.normal);
 
     //apply normal map if this material have a nomal map
@@ -90,6 +90,7 @@ void GetMaterialsAndTextures(inout State state,int instanceCustomIndex)
         normalVector      = normalize(normalVector * 2.0 - 1.0);
         normalVector     *= vec3(material.normalTextureScale, material.normalTextureScale, 1.0);
         state.normal      = normalize(TBN * normalVector);
+
 
     }
 

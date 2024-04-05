@@ -11,6 +11,18 @@ struct KHR_materials_transmission
   int   texture{-1};
 };
 
+#define KHR_TEXTURE_TRANSFORM_EXTENSION_NAME "KHR_texture_transform"
+struct KHR_texture_transform
+{
+  glm::vec2 offset{0.f, 0.f};
+  float         rotation{0.f};
+  glm::vec2 scale{1.f};
+  int           texCoord{0};
+  glm::mat3 uvTransform{1};  // Computed transform of offset, rotation, scale
+};
+
+
+
 struct GltfMaterial
 {
 	int shadingModel{0}; // 0: metallic-roughness, 1: specular-glossiness
@@ -40,6 +52,8 @@ struct GltfMaterial
 
 	int        transmissionTexture{-1};
 	float      transmissionFactor{0};
+
+    KHR_texture_transform               textureTransform;
 
 	// Tiny Reference
 	const tinygltf::Material* tmaterial{nullptr};
@@ -138,7 +152,7 @@ public:
 	std::vector<glm::vec3>    positions;
 	std::vector<uint32_t>     indices;
 	std::vector<glm::vec3>    normals;
-	std::vector<glm::vec3>    tangents;
+	std::vector<glm::vec4>    tangents;
 	std::vector<glm::vec3>    bitangents;
 	std::vector<glm::vec2>    texcoords0;
 	std::vector<glm::vec2>    texcoords1;

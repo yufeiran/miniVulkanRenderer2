@@ -27,6 +27,7 @@ ResourceManager::ResourceManager(Device& device):
 	defaultSampler = std::make_unique<Sampler>(device);
 	repeatSampler  = std::make_unique<Sampler>(device,VK_SAMPLER_ADDRESS_MODE_REPEAT);
 	clampToEdgeSampler = std::make_unique<Sampler>(device,VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
+	mirroredRepeatSampler = std::make_unique<Sampler>(device,VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT);
 
 	loadLightCube();
 }
@@ -203,7 +204,8 @@ GltfShadeMaterial  toMaterial(GltfMaterial& gltfm)
 	m.pbrOcclusionTexture = gltfm.occlusionTexture;
 	m.pbrOcclusionTextureStrength = gltfm.occlusionTextureStrength;
 
-	m.uvTransform;
+	m.uvTransform = glm::mat4(gltfm.textureTransform.uvTransform);
+
 
 	m.unlit = 0;
 
@@ -359,7 +361,7 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 			v.tangent  = gltfLoader.tangents[i];
 			v.bitangent = gltfLoader.bitangents[i];
 			v.texCoord = gltfLoader.texcoords0[i];
-			
+
 			vertices.push_back(v);
 		}
 

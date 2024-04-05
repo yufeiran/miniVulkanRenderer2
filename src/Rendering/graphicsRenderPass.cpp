@@ -67,7 +67,7 @@ void GeometryRenderPass::draw(CommandBuffer& cmd, std::vector<VkDescriptorSet> d
 
 	cmd.bindDescriptorSet(descSet);
 
-	resourceManager.draw(cmd,pcRaster);
+	resourceManager.draw(cmd, pcRaster);
 
 }
 
@@ -111,7 +111,7 @@ SkyLightRenderPass::SkyLightRenderPass(Device& device,
 	VkPushConstantRange pushConstant = {};
 	pushConstant.offset = 0;
 	pushConstant.size = sizeof(PushConstantRaster);
-	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT  | VK_SHADER_STAGE_GEOMETRY_BIT| VK_SHADER_STAGE_FRAGMENT_BIT;
+	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 	pushConstants.push_back(pushConstant);
 
 
@@ -192,7 +192,7 @@ DirShadowMapRenderPass::DirShadowMapRenderPass(Device& device,
 	VkPushConstantRange pushConstant = {};
 	pushConstant.offset = 0;
 	pushConstant.size = sizeof(PushConstantRaster);
-	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT  | VK_SHADER_STAGE_FRAGMENT_BIT;
+	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 	pushConstants.push_back(pushConstant);
 
 
@@ -231,7 +231,7 @@ void DirShadowMapRenderPass::draw(CommandBuffer& cmd, std::vector<VkDescriptorSe
 
 	cmd.bindDescriptorSet(descSet);
 
-	resourceManager.draw(cmd,pcRaster);
+	resourceManager.draw(cmd, pcRaster);
 }
 
 void DirShadowMapRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
@@ -296,7 +296,7 @@ void PointShadowMapRenderPass::draw(CommandBuffer& cmd, std::vector<VkDescriptor
 
 	cmd.bindDescriptorSet(descSet);
 
-	resourceManager.draw(cmd,pcRaster);
+	resourceManager.draw(cmd, pcRaster);
 }
 
 void PointShadowMapRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
@@ -318,7 +318,7 @@ LightingRenderPass::LightingRenderPass(Device& device, ResourceManager& resource
 	VkPushConstantRange pushConstant = {};
 	pushConstant.offset = 0;
 	pushConstant.size = sizeof(PushConstantRaster);
-	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT  | VK_SHADER_STAGE_GEOMETRY_BIT| VK_SHADER_STAGE_FRAGMENT_BIT;
+	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 	pushConstants.push_back(pushConstant);
 
 
@@ -329,7 +329,7 @@ LightingRenderPass::LightingRenderPass(Device& device, ResourceManager& resource
 	pipelineLayout = std::make_unique<PipelineLayout>(device, descSetLayouts, pushConstants);
 
 
-	rebuild(extent,subpassIndex);
+	rebuild(extent, subpassIndex);
 }
 
 LightingRenderPass::~LightingRenderPass()
@@ -350,7 +350,7 @@ void LightingRenderPass::draw(CommandBuffer& cmd, std::vector<VkDescriptorSet> d
 	cmd.bindDescriptorSet(descSet);
 
 
-	vkCmdPushConstants(cmd.getHandle(), pipelineLayout->getHandle(), VK_SHADER_STAGE_VERTEX_BIT  | VK_SHADER_STAGE_GEOMETRY_BIT| VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstantRaster), &pcRaster);
+	vkCmdPushConstants(cmd.getHandle(), pipelineLayout->getHandle(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstantRaster), &pcRaster);
 	cmd.bindVertexBuffer(postQuad.getVertexBuffer());
 
 	cmd.setViewPortAndScissor(extent);
@@ -370,14 +370,14 @@ void LightingRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
 	graphicsPipeline->build(renderPass);
 }
 
-SSAORenderPass::SSAORenderPass(Device&                               device, 
-						  	   ResourceManager                       &resourceManager, 
-							   const RenderPass                      &renderPass,
-							   VkExtent2D                            extent,
-							   std::shared_ptr<DescriptorSetLayout>  descSetLayout,
-							   std::shared_ptr<DescriptorSetLayout>  ssaoDescSetLayout,
-							   PushConstantRaster                    &pcRaster, 
-	                           int                                   subpassIndex)
+SSAORenderPass::SSAORenderPass(Device& device,
+	ResourceManager& resourceManager,
+	const RenderPass& renderPass,
+	VkExtent2D                            extent,
+	std::shared_ptr<DescriptorSetLayout>  descSetLayout,
+	std::shared_ptr<DescriptorSetLayout>  ssaoDescSetLayout,
+	PushConstantRaster& pcRaster,
+	int                                   subpassIndex)
 	:GraphicsRenderPass(device, resourceManager, extent), renderPass(renderPass), pcRaster(pcRaster), postQuad(device)
 {
 	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/ssao.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
@@ -387,7 +387,7 @@ SSAORenderPass::SSAORenderPass(Device&                               device,
 	VkPushConstantRange pushConstant = {};
 	pushConstant.offset = 0;
 	pushConstant.size = sizeof(PushConstantRaster);
-	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT  | VK_SHADER_STAGE_GEOMETRY_BIT| VK_SHADER_STAGE_FRAGMENT_BIT;
+	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 	pushConstants.push_back(pushConstant);
 
 
@@ -411,14 +411,14 @@ void SSAORenderPass::update()
 
 }
 
-void SSAORenderPass::draw(CommandBuffer& cmd,const std::vector<VkDescriptorSet> descSet)
+void SSAORenderPass::draw(CommandBuffer& cmd, const std::vector<VkDescriptorSet> descSet)
 {
 	cmd.bindPipeline(*graphicsPipeline);
 
 	cmd.bindDescriptorSet(descSet);
 
 
-	vkCmdPushConstants(cmd.getHandle(), pipelineLayout->getHandle(), VK_SHADER_STAGE_VERTEX_BIT  | VK_SHADER_STAGE_GEOMETRY_BIT| VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstantPost), &pcRaster);
+	vkCmdPushConstants(cmd.getHandle(), pipelineLayout->getHandle(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstantPost), &pcRaster);
 	cmd.bindVertexBuffer(postQuad.getVertexBuffer());
 
 	cmd.setViewPortAndScissor(extent);
@@ -439,13 +439,13 @@ void SSAORenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
 
 
 
-SSAOBlurRenderPass::SSAOBlurRenderPass(Device& device, 
-	ResourceManager& resourceManager, 
-	const RenderPass& renderPass, 
-	VkExtent2D extent, 
+SSAOBlurRenderPass::SSAOBlurRenderPass(Device& device,
+	ResourceManager& resourceManager,
+	const RenderPass& renderPass,
+	VkExtent2D extent,
 	std::shared_ptr<DescriptorSetLayout> ssaoBlurDescSetLayout,
 	PushConstantRaster& pcRaster, int subpassIndex)
-:GraphicsRenderPass(device, resourceManager, extent), renderPass(renderPass), pcRaster(pcRaster), postQuad(device)
+	:GraphicsRenderPass(device, resourceManager, extent), renderPass(renderPass), pcRaster(pcRaster), postQuad(device)
 {
 	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/ssao.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
 	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/ssaoBlur.frag.spv", device, VK_SHADER_STAGE_FRAGMENT_BIT));
@@ -455,7 +455,7 @@ SSAOBlurRenderPass::SSAOBlurRenderPass(Device& device,
 	VkPushConstantRange pushConstant = {};
 	pushConstant.offset = 0;
 	pushConstant.size = sizeof(PushConstantRaster);
-	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT  | VK_SHADER_STAGE_GEOMETRY_BIT| VK_SHADER_STAGE_FRAGMENT_BIT;
+	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 	pushConstants.push_back(pushConstant);
 
 
@@ -503,10 +503,10 @@ void SSAOBlurRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
 	graphicsPipeline->build(renderPass);
 }
 
-PBBDownSamplingRenderPass::PBBDownSamplingRenderPass(Device& device, 
-	ResourceManager& resourceManager, 
-	const RenderPass& renderPass, 
-	VkExtent2D extent, 
+PBBDownSamplingRenderPass::PBBDownSamplingRenderPass(Device& device,
+	ResourceManager& resourceManager,
+	const RenderPass& renderPass,
+	VkExtent2D extent,
 	std::shared_ptr<DescriptorSetLayout> pbbDescSetLayout,
 	PushConstantPost& pcPost,
 	int subpassIndex)
@@ -519,7 +519,7 @@ PBBDownSamplingRenderPass::PBBDownSamplingRenderPass(Device& device,
 	VkPushConstantRange pushConstant = {};
 	pushConstant.offset = 0;
 	pushConstant.size = sizeof(PushConstantPost);
-	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT  | VK_SHADER_STAGE_GEOMETRY_BIT| VK_SHADER_STAGE_FRAGMENT_BIT;
+	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 	pushConstants.push_back(pushConstant);
 
 	std::vector<std::shared_ptr<DescriptorSetLayout>>  descSetLayouts;
@@ -558,7 +558,7 @@ void mini::PBBDownSamplingRenderPass::draw(CommandBuffer& cmd, const std::vector
 
 void mini::PBBDownSamplingRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
 {
-	
+
 	graphicsPipeline = std::make_unique<GraphicsPipeline>(shaderModules, *pipelineLayout, device, extent);
 
 	graphicsPipeline->rasterizer.cullMode = VK_CULL_MODE_NONE;
@@ -568,14 +568,14 @@ void mini::PBBDownSamplingRenderPass::rebuild(VkExtent2D surfaceExtent, int subp
 }
 
 mini::PBBUpSamplingRenderPass::PBBUpSamplingRenderPass(
-	Device& device, 
-	ResourceManager& resourceManager, 
-	const RenderPass& renderPass, 
+	Device& device,
+	ResourceManager& resourceManager,
+	const RenderPass& renderPass,
 	VkExtent2D extent,
 	std::shared_ptr<DescriptorSetLayout> pbbDescSetLayout,
-	PushConstantPost& pcPost, 
+	PushConstantPost& pcPost,
 	int subpassIndex)
-:GraphicsRenderPass(device, resourceManager, extent), renderPass(renderPass), pcPost(pcPost), postQuad(device)
+	:GraphicsRenderPass(device, resourceManager, extent), renderPass(renderPass), pcPost(pcPost), postQuad(device)
 {
 	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/post.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
 	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/pbbloomUpSampling.frag.spv", device, VK_SHADER_STAGE_FRAGMENT_BIT));
@@ -584,7 +584,7 @@ mini::PBBUpSamplingRenderPass::PBBUpSamplingRenderPass(
 	VkPushConstantRange pushConstant = {};
 	pushConstant.offset = 0;
 	pushConstant.size = sizeof(PushConstantPost);
-	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT  | VK_SHADER_STAGE_GEOMETRY_BIT| VK_SHADER_STAGE_FRAGMENT_BIT;
+	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 	pushConstants.push_back(pushConstant);
 
 	std::vector<std::shared_ptr<DescriptorSetLayout>>  descSetLayouts;
@@ -627,6 +627,67 @@ void mini::PBBUpSamplingRenderPass::rebuild(VkExtent2D surfaceExtent, int subpas
 
 	graphicsPipeline->rasterizer.cullMode = VK_CULL_MODE_NONE;
 
+
+	graphicsPipeline->build(renderPass);
+}
+
+mini::SSRRenderPass::SSRRenderPass(Device& device, ResourceManager& resourceManager, const RenderPass& renderPass, VkExtent2D extent, std::shared_ptr<DescriptorSetLayout> descSetLayout, std::shared_ptr<DescriptorSetLayout> ssrDescSetLayout, PushConstantRaster& pcRaster, int subpassIndex)
+	:GraphicsRenderPass(device, resourceManager, extent), renderPass(renderPass), pcRaster(pcRaster), postQuad(device)
+{
+	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/ssr.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/ssr.frag.spv", device, VK_SHADER_STAGE_FRAGMENT_BIT));
+
+	std::vector<VkPushConstantRange> pushConstants;
+	VkPushConstantRange pushConstant = {};
+	pushConstant.offset = 0;
+	pushConstant.size = sizeof(PushConstantRaster);
+	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+	pushConstants.push_back(pushConstant);
+
+	std::vector<std::shared_ptr<DescriptorSetLayout>>  descSetLayouts;
+	descSetLayouts.push_back(descSetLayout);
+	descSetLayouts.push_back(ssrDescSetLayout);
+
+	pipelineLayout = std::make_unique<PipelineLayout>(device, descSetLayouts, pushConstants);
+
+	rebuild(extent, subpassIndex);
+}
+
+mini::SSRRenderPass::~SSRRenderPass()
+{
+
+}
+
+void mini::SSRRenderPass::update()
+{
+
+}
+
+void mini::SSRRenderPass::draw(CommandBuffer& cmd, const std::vector<VkDescriptorSet> descSet)
+{
+	cmd.bindPipeline(*graphicsPipeline);
+
+	cmd.bindDescriptorSet(descSet);
+
+
+	vkCmdPushConstants(cmd.getHandle(), pipelineLayout->getHandle(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstantPost), &pcRaster);
+	cmd.bindVertexBuffer(postQuad.getVertexBuffer());
+
+	cmd.setViewPortAndScissor(extent);
+
+	cmd.draw(3, 1, 0, 0);
+	cmd.draw(3, 1, 1, 0);
+}
+
+void mini::SSRRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
+{
+	this->extent = surfaceExtent;
+
+	graphicsPipeline = std::make_unique<GraphicsPipeline>(shaderModules, *pipelineLayout, device, extent);
+
+	graphicsPipeline->setSubpassIndex(subpassIndex);
+
+	graphicsPipeline->rasterizer.cullMode = VK_CULL_MODE_NONE;
 
 	graphicsPipeline->build(renderPass);
 }

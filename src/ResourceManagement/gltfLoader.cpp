@@ -477,13 +477,13 @@ void GltfLoader::processMesh(const tinygltf::Model& tmodel, const tinygltf::Prim
 
 					if(gt.w == -1.0)
 					{
-						t = -t;
+						t = t;
 						b = -b;
 						
 					}
 
 					
-					tangents.push_back(t);
+					tangents.push_back(gt);
 					bitangents.push_back(b);
 
 
@@ -762,14 +762,14 @@ void GltfLoader::createTangents(GltfPrimMesh& resultMesh)
 				otangent = glm::vec3(n.z, 0, -n.x) / sqrtf(n.x * n.x + n.z * n.z);
 			else 
 				otangent = glm::vec3(0, -n.z, n.y) / sqrtf(n.y * n.y + n.z * n.z);
+			//otangent = glm::vec3(0, -n.z, n.y) / sqrtf(n.y * n.y + n.z * n.z);
 		}
 
 		// Calculate handedness
 		float handedness = (glm::dot(glm::cross(n, t), b) < 0.0f) ? 1.0f : -1.0f;
 
-		
-		
 
+		
 		glm::vec3 obitangent = glm::normalize(glm::cross(n, otangent) * handedness);
 
 		//if(handedness == -1.0f)
@@ -778,7 +778,7 @@ void GltfLoader::createTangents(GltfPrimMesh& resultMesh)
 		//	obitangent = -obitangent;
 		//}
 
-		tangents.emplace_back(otangent.x, otangent.y, otangent.z);
+		tangents.emplace_back(otangent.x, otangent.y, otangent.z,handedness);
 		bitangents.emplace_back(obitangent.x, obitangent.y, obitangent.z);
 
 	}

@@ -67,6 +67,16 @@ START_ENUM(SSAOBlurBindings)
     eSSAOInput = 0
 END_ENUM();
 
+START_ENUM(SSRBindings)
+	eSSRColor = 0,
+	eSSRDepth = 1,
+	eSSRNormal = 2,
+	eSSRPosition = 3
+END_ENUM();
+
+
+	
+
 START_ENUM(DebugMode)
 	eNoDebug   = 0,  //
 	eBaseColor = 1,  //
@@ -130,6 +140,8 @@ struct GlobalUniforms
 	mat4 proj;
 	mat4 viewInverse;
 	mat4 projInverse;
+	float farPlane;
+	float nearPlane;
 
 };
 
@@ -158,6 +170,10 @@ struct PushConstantRaster
 	int   lightIndex; // light index
 	int   shadowMode; // 0:normal 1: PCF 2:PCSS
 	float shadowLightSize;
+	float ssrStep;
+	float ssrMaxDistance;
+	float ssrEpsilon;
+	float ssrAttenuation;
 };
 
 struct PushConstantRay
@@ -180,6 +196,7 @@ struct PushConstantPost
 	float exposure;
 	int   debugShadowMap;
 	int   debugBloom;
+	int   debugSSR;
 	float pbbloomRadius;
 	float pbbloomIntensity;
 	int   pbbloomMode; // 0:off 1:on
@@ -265,6 +282,7 @@ struct GltfShadeMaterial
 	int   clearcoatRoughnessTexture;
 	vec4  sheen;
 	int   pad;
+
 };
 
 // for raytracing

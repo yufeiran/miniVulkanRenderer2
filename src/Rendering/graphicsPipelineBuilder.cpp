@@ -171,7 +171,7 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 
 		Attachment depthAttachment{ device.getPhysicalDevice().findDepthFormat(),VK_SAMPLE_COUNT_1_BIT,VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT };
 		depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		depthAttachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
 
 		attachments.push_back(depthAttachment);
 
@@ -243,7 +243,7 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 
 		LoadStoreInfo depthLoadStoreInfo{};
 		depthLoadStoreInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		depthLoadStoreInfo.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		depthLoadStoreInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 
 		loadStoreInfos.push_back(depthLoadStoreInfo);
 
@@ -716,7 +716,7 @@ void GraphicsPipelineBuilder::updateUniformBuffer(CommandBuffer& cmd, Camera& ca
 	const float aspectRatio = surfaceExtent.width / static_cast<float>(surfaceExtent.height);
 	GlobalUniforms hostUBO = {};
 	const auto& view = camera.getViewMat();
-	auto& proj = glm::perspective(glm::radians(45.0f), (float)surfaceExtent.width / (float)surfaceExtent.height, 0.1f, 1000.0f);
+	auto& proj = glm::perspective(glm::radians(45.0f), (float)surfaceExtent.width / (float)surfaceExtent.height, camera.getNearPlane(), camera.getFarPlane());
 	proj[1][1] *= -1;
 
 	hostUBO.viewProj = proj * view;
@@ -725,6 +725,8 @@ void GraphicsPipelineBuilder::updateUniformBuffer(CommandBuffer& cmd, Camera& ca
 	hostUBO.proj = proj;
 	hostUBO.viewInverse = glm::inverse(view);
 	hostUBO.projInverse = glm::inverse(proj);
+	hostUBO.farPlane = camera.getFarPlane();
+	hostUBO.nearPlane = camera.getNearPlane();
 
 	// UBO on the device, and what stages access it.
 	VkBuffer deviceUBO = globalsBuffer->getHandle();
