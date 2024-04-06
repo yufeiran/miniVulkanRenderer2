@@ -145,10 +145,10 @@ public:
 	    0,                    // light index
 		2,                   // shadowMode  0:normal 1:pcf 2.PCSS
 		5,                     // shadowLigheSize
-		0.3,                  // ssrStep
+		0.1,                  // ssrStep
 		10,                  // ssrMaxDistance
-		0.01,                 // ssrEpsilon
-		5 			      // ssrAttenuation
+		0.1,                 // ssrEpsilon
+		1 			      // ssrAttenuation
 	};
 
 	PushConstantRay pcRay{
@@ -172,7 +172,9 @@ public:
 		0,   // debugSSR
 		0.020, // pbbloomRadius;
 	    0.01, // pbbloomIntensity;
-	    1 // 0:off 1:on
+	    1, // 0:off 1:on
+		0.5,  // ssrIntensity
+		0   // raytraceMode
 	};
 
 	std::vector<Light> lights = {

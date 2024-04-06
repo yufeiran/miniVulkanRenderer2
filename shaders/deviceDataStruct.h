@@ -71,7 +71,8 @@ START_ENUM(SSRBindings)
 	eSSRColor = 0,
 	eSSRDepth = 1,
 	eSSRNormal = 2,
-	eSSRPosition = 3
+	eSSRPosition = 3,
+	eSSRMetalRough = 4
 END_ENUM();
 
 
@@ -174,6 +175,7 @@ struct PushConstantRaster
 	float ssrMaxDistance;
 	float ssrEpsilon;
 	float ssrAttenuation;
+	int   ssrUseBinarySearch;
 };
 
 struct PushConstantRay
@@ -200,6 +202,8 @@ struct PushConstantPost
 	float pbbloomRadius;
 	float pbbloomIntensity;
 	int   pbbloomMode; // 0:off 1:on
+	float ssrIntensity;
+	int   raytraceMode;
 };
 
 

@@ -21,7 +21,7 @@ using namespace std::chrono;
 
 void MiniVulkanRenderer::load()
 {
-	int testCase = 2;
+	int testCase = 0;
 	switch (testCase)
 	{
 	case 0:
@@ -221,9 +221,9 @@ void MiniVulkanRenderer::loadSponza()
 	//objMat = glm::translate(objMat,{-10,-1,0});
 	//resourceManager->loadScene("D://yufeiran/model/AMD/Deferred/Deferred.gltf",objMat);
 
-	//resourceManager->loadScene("D://yufeiran/model/AMD/PBR/PBR.gltf", objMat);
+	resourceManager->loadScene("D://yufeiran/model/AMD/PBR/PBR.gltf", objMat);
 
-	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",objMat);
+	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",objMat);
 
 	//resourceManager->loadScene("../../assets/lightScene.gltf");
 }
@@ -234,17 +234,19 @@ void MiniVulkanRenderer::loadShowCase()
 {
 	glm::mat4 objMat = glm::mat4(1.0f);
 	objMat = glm::mat4(1.0f);
-	objMat = glm::scale(objMat, { 0.01, 0.01, 0.01 });
+	//objMat = glm::scale(objMat, { 0.01, 0.01, 0.01 });
 
-	//objMat = glm::translate(objMat,{0,-3,0});
-	//resourceManager->loadScene("D://yufeiran/model/AMD/GI/GI.gltf",objMat);
+	objMat = glm::translate(objMat, { 0,0,3 });
+	objMat = glm::scale(objMat, { 50,50,50 });
+	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoomBox/glTF/BoomBox.gltf", objMat);
+	////resourceManager->loadScene("D://yufeiran/model/AMD/GI/GI.gltf",objMat);
 	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/GearboxAssy/glTF/GearboxAssy.gltf",objMat);
 	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/AntiqueCamera/glTF/AntiqueCamera.gltf",objMat);
 
-	objMat = glm::mat4(1.0f);
-	objMat = glm::scale(objMat, { 2, 2, 2 });
+	//objMat = glm::mat4(1.0f);
+	//objMat = glm::scale(objMat, { 2, 2, 2 });
 
-	objMat = glm::translate(objMat, { 0,1,1 });
+	//objMat = glm::translate(objMat, { 0,1,1 });
 	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BarramundiFish/glTF/BarramundiFish.gltf",objMat);
 
 	//objMat = glm::mat4(1.0f);
@@ -254,25 +256,34 @@ void MiniVulkanRenderer::loadShowCase()
 
 	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoomBox/glTF/BoomBox.gltf",objMat);
 
-	//resourceManager->loadScene("../../assets/lightScene.gltf");
+	////resourceManager->loadScene("../../assets/lightScene.gltf");
 
 
 
-	//	objMat = glm::mat4(1.0f);
-	//objMat = glm::translate(objMat,{0, 0, -5});
+	objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat, { 0, 0, 0 });
 	////resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/cube/glTF/cube.gltf", objMat);
 
 	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf", objMat);
 
-	
+
 
 
 
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat, { 0,-1,0 });
-	objMat = glm::scale(objMat, { 3,1,3 });
-	resourceManager->loadScene("../../assets/plane/plane1.gltf", objMat);
+	objMat = glm::scale(objMat, { 5,1,5 });
+	//resourceManager->loadScene("../../assets/texturePlane/texturePlane.gltf", objMat);
+
+	objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat, { 0,-1,0 });
+	objMat = glm::scale(objMat, { 1,1, 1 });
+	resourceManager->loadScene("../../assets/plane/plane.gltf", objMat);
+
 	//resourceManager->loadScene("D://yufeiran/model/rocky_ground_with_moss/scene.gltf", objMat);
+
+	objMat = glm::mat4(1.0f);
+	//resourceManager->loadScene("D://yufeiran/model/heitaSpace/heitaSpace.gltf", objMat);
 }
 
 MiniVulkanRenderer::MiniVulkanRenderer()
@@ -365,8 +376,17 @@ void MiniVulkanRenderer::init(int width, int height)
 	};
 
 
+	std::vector<std::string> HornstullsStrandCubeMapNames = {
+	"../../assets/skybox/HornstullsStrand/posx.jpg",
+	"../../assets/skybox/HornstullsStrand/negx.jpg",
+	"../../assets/skybox/HornstullsStrand/posy.jpg",
+	"../../assets/skybox/HornstullsStrand/negy.jpg",
+	"../../assets/skybox/HornstullsStrand/posz.jpg",
+	"../../assets/skybox/HornstullsStrand/negz.jpg"
+	};
 
-	resourceManager->loadCubemap(defaultCubeMapNames);
+
+	resourceManager->loadCubemap(HornstullsStrandCubeMapNames);
 
 
 
@@ -876,6 +896,7 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>& clearValues, VkExte
 	ImGui::Begin("Setting");
 	changed |= ImGui::ColorEdit3("clearColor", (float*)(&(clearValues[0].color)));
 	changed |= ImGui::Checkbox("Ray Tracer mode", &useRaytracing);
+	pcPost.raytraceMode = useRaytracing;
 
 
 	if (ImGui::CollapsingHeader("Rendering", ImGuiTreeNodeFlags_DefaultOpen))
@@ -896,7 +917,7 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>& clearValues, VkExte
 
 
 	}
-	if(ImGui::CollapsingHeader("Shadow", ImGuiTreeNodeFlags_DefaultOpen))
+	if (ImGui::CollapsingHeader("Shadow", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		const int SHADOW_MODE_SUM = 3;
 		const char* SHADOW_MODE_STR[SHADOW_MODE_SUM] = {
@@ -906,11 +927,11 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>& clearValues, VkExte
 		};
 
 		changed |= ImGui::Combo("shadow mode", &pcRaster.shadowMode, SHADOW_MODE_STR, SHADOW_MODE_SUM);
-		if(pcRaster.shadowMode == 2)
+		if (pcRaster.shadowMode == 2)
 		{
 			changed |= ImGui::SliderFloat("shadow light size", &pcRaster.shadowLightSize, 1, 60);
 		}
-		
+
 	}
 
 	if (ImGui::CollapsingHeader("Debug", ImGuiTreeNodeFlags_DefaultOpen))
@@ -940,23 +961,29 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>& clearValues, VkExte
 		ImGui::Text("Camera pos:%.1f %.1f %.1f , yaw %.1f pitch %.1f ", camera.getPos()[0], camera.getPos()[1], camera.getPos()[2],
 			camera.getYaw(), camera.getPitch());
 	}
-	if(ImGui::CollapsingHeader("SSR", ImGuiTreeNodeFlags_DefaultOpen))
+	if (ImGui::CollapsingHeader("SSR", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		ImGui::Checkbox("debugSSR", &debugSSR);
 		pcPost.debugSSR = debugSSR;
 
-	    ImGui::SliderFloat("step", &pcRaster.ssrStep, 0.001, 1);
+		ImGui::SliderFloat("step", &pcRaster.ssrStep, 0.001, 10);
 
 		ImGui::SliderFloat("maxDistance", &pcRaster.ssrMaxDistance, 0, 100);
 
-		static int epsilonIndex = -2;
+		static int epsilonIndex = -4;
 		ImGui::SliderInt("epsilon", &epsilonIndex, -5, -1);
 		pcRaster.ssrEpsilon = pow(10, epsilonIndex);
 
 		ImGui::SliderFloat("attenuation", &pcRaster.ssrAttenuation, 0.01, 3);
 
+		ImGui::SliderFloat("intensity", &pcPost.ssrIntensity, 0.01, 3);
 
-	
+		static bool useBinarySearch = pcRaster.ssrUseBinarySearch;
+		ImGui::Checkbox("useBinarySearch", &useBinarySearch);
+		pcRaster.ssrUseBinarySearch = useBinarySearch;
+
+
+
 	}
 
 	if (ImGui::CollapsingHeader("Post", ImGuiTreeNodeFlags_DefaultOpen))
@@ -1221,10 +1248,10 @@ void MiniVulkanRenderer::loop()
 		calFps();
 		processIO();
 
-		if(useRaytracing!=lastCanRaytracingMode)
+		if (useRaytracing != lastCanRaytracingMode)
 		{
 			lastCanRaytracingMode = useRaytracing;
-			if(useRaytracing==true)
+			if (useRaytracing == true)
 			{
 				changeToRaytracing = true;
 			}
@@ -1236,14 +1263,14 @@ void MiniVulkanRenderer::loop()
 		{
 			device->waitIdle();
 			LogTimerStart("rebuild RT_TLAS");
-			if(useRaytracing)
+			if (useRaytracing)
 			{
 				createTopLevelAS();
 				updateRtDescriptorSet();
 				updateInstances();
 			}
 
-			
+
 			LogTimerEnd("rebuild RT_TLAS");
 			lightSizeChange = false;
 			changeToRaytracing = false;
@@ -1252,7 +1279,7 @@ void MiniVulkanRenderer::loop()
 		}
 
 		updateInstances();
-		
+
 
 		auto result = renderContext->beginFrame();
 		if (result == VK_ERROR_OUT_OF_DATE_KHR)
@@ -1419,7 +1446,7 @@ void MiniVulkanRenderer::rasterize(CommandBuffer& cmd, VkClearColorValue default
 
 
 
-	ssrPipelineBuilder->draw(cmd,graphicsPipelineBuilder->getDescriptorSet());
+	ssrPipelineBuilder->draw(cmd, graphicsPipelineBuilder->getDescriptorSet());
 
 
 }
@@ -1846,7 +1873,7 @@ void MiniVulkanRenderer::handleSizeChange()
 	graphicsPipelineBuilder->rebuild(extent);
 	graphicsPipelineBuilder->updateDescriptorSet(shadowPipelineBuilder->getDirRenderTarget(), shadowPipelineBuilder->getPointRenderTarget(), *offscreenRenderTarget);
 
-	ssrPipelineBuilder->rebuild(extent,*offscreenRenderTarget);
+	ssrPipelineBuilder->rebuild(extent, *offscreenRenderTarget);
 
 	pbbloomPipelineBuilder->rebuild(extent, *offscreenRenderTarget, 5);
 
@@ -1884,7 +1911,7 @@ void MiniVulkanRenderer::createOffScreenFrameBuffer()
 
 	auto depthFormat = imageColor.getDevice().getPhysicalDevice().findDepthFormat();
 	std::unique_ptr<Image> depthImage = std::make_unique<Image>(imageColor.getDevice(),
-		imageColor.getExtent(), depthFormat,VK_IMAGE_USAGE_SAMPLED_BIT| VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT);
+		imageColor.getExtent(), depthFormat, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT);
 
 
 	// GBuffer
@@ -2114,7 +2141,7 @@ void MiniVulkanRenderer::updatePostDescriptorSet()
 
 	VkDescriptorImageInfo imageSSRInfo{};
 	imageSSRInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-	imageSSRInfo.imageView = ssrPipelineBuilder->getRenderTarget().getImageViewByIndex(0).getHandle();
+	imageSSRInfo.imageView = ssrPipelineBuilder->getRenderTarget().getImageViewByIndex(1).getHandle();
 	imageSSRInfo.sampler = postRenderImageSampler->getHandle();
 
 	writes.push_back(postDescSetBind.makeWrite(postDescriptorSet, 4, &imageSSRInfo));

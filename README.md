@@ -5,11 +5,14 @@
  * PathTrace
  * SubPass
  * SSAO
+ * SSR
  * Physical Based Bloom
  ## 2. Screenshot
 * Raster
-![mulitLight](assets/screenshot/multLights.png)
-![PBBloom](assets/screenshot/physical_based_bloom.png)
+
+![SSR1](assets/screenshot/ssr1.png)
+
+
 ![raster](assets/screenshot/shadowMappingPoint_raster.png)
 * RayTracing
 ![raytracing](assets/screenshot/shadowMappingPoint_raytracing.png)
@@ -21,11 +24,27 @@
 ![rasterProcess](assets/screenshot/raster_process.png)
 #### detail features
 
+* SSR
+
+|  ![SSR1](assets/screenshot/ssr1.png) | ![SSR0](assets/screenshot/ssr0.png) |
+| --- | --- |
+| result | SSR texture |
+
+[implement detail](https://yufeiran.com/ping-mu-kong-jian-fan-she-vulkanshi-xian/)
+
+* PBBloom
+![PBBloom](assets/screenshot/physical_based_bloom.png)
+
+* mulitLights
+![mulitLight](assets/screenshot/multLights.png)
+
 * ShadowMapPass
 ![shadowMap](assets/screenshot/shadowMap.png)
 
 * SkyBoxPass
 ![skyBOxPass](assets/screenshot/skylightPass.png)
+
+
 
  <details> 
 <summary>rasterization features is still on building</summary>

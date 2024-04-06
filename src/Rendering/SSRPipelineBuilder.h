@@ -69,7 +69,7 @@ private:
 	std::unique_ptr<RenderPass>		      blurRenderPass;
 
 	std::unique_ptr<SSRRenderPass>        ssrRenderPass;
-	std::unique_ptr<SSAOBlurRenderPass>   ssaoBlurRenderPass;
+	std::unique_ptr<SSRBlurRenderPass>    ssrBlurRenderPass;
 
 	PushConstantRaster&                   pcRaster;
 

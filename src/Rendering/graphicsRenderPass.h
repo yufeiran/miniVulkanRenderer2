@@ -233,6 +233,32 @@ namespace mini
 
 	};
 
+	class SSRBlurRenderPass :public GraphicsRenderPass
+	{
+	public:
+		SSRBlurRenderPass(Device& device,
+			ResourceManager& resourceManager,
+			const RenderPass& renderPass,
+			VkExtent2D extent,
+			std::shared_ptr<DescriptorSetLayout> ssaoBlurDescSetLayout,
+			PushConstantRaster& pcRaster,
+			int subpassIndex = 3
+		);
+		~SSRBlurRenderPass();
+
+		void update();
+		void draw(CommandBuffer& cmd, const std::vector<VkDescriptorSet> descSet);
+
+		void rebuild(VkExtent2D surfaceExtent, int subpassIndex = 3);
+	private:
+		PostQuad postQuad;
+		const RenderPass& renderPass;
+		PushConstantRaster& pcRaster;
+		std::vector<std::unique_ptr<ShaderModule>> shaderModules;
+		std::unique_ptr<PipelineLayout>            pipelineLayout;
+
+	};
+
 	class SSRRenderPass : public GraphicsRenderPass
 	{
 	public:

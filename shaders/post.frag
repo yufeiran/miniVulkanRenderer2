@@ -71,8 +71,14 @@ void main()
 
     }
 
+    vec3 ssrColor = texture(ssrSampler,TexCoords).rgb;
     if(pcPost.debugSSR == 1)
-        color = texture(ssrSampler,TexCoords).rgb;
+    {
+        color = ssrColor;
+    }
+    else if(pcPost.raytraceMode == 0){
+        color += ssrColor * pcPost.ssrIntensity;
+    }
 
 
 

@@ -110,7 +110,7 @@ mini::SSRPipelineBuilder::SSRPipelineBuilder(Device& device, ResourceManager& re
 	createDescriptorSetLayout();
 
 	ssrRenderPass = std::make_unique<SSRRenderPass>(device,resourceManager,*renderPass,extent,descSetLayout,ssrDescSetLayout, pcRaster,0);
-	ssaoBlurRenderPass = std::make_unique<SSAOBlurRenderPass>(device,resourceManager,*renderPass,extent,ssaoBlurDescSetLayout, pcRaster,1);
+	ssrBlurRenderPass = std::make_unique<SSRBlurRenderPass>(device,resourceManager,*renderPass,extent,ssaoBlurDescSetLayout, pcRaster,1);
 
 
 
@@ -138,6 +138,7 @@ void SSRPipelineBuilder::createDescriptorSetLayout()
 	ssrDescSetBindings.addBinding(SSRBindings::eSSRDepth, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
 	ssrDescSetBindings.addBinding(SSRBindings::eSSRNormal, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
 	ssrDescSetBindings.addBinding(SSRBindings::eSSRPosition, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
+	ssrDescSetBindings.addBinding(SSRBindings::eSSRMetalRough,VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
 
 	ssrDescSetLayout = ssrDescSetBindings.createLayout(device);
 	ssrDescPool = ssrDescSetBindings.createPool(device, 1);
@@ -177,12 +178,17 @@ void SSRPipelineBuilder::updateDescriptorSet()
 	gBufferPosInfo.imageView = gBufferRenderTarget->getImageViewByIndex(9).getHandle();
 	gBufferPosInfo.sampler = resourceManager.getRepeatSampler().getHandle();
 
+	VkDescriptorImageInfo gBufferMetalRoughInfo;
+	gBufferMetalRoughInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+	gBufferMetalRoughInfo.imageView = gBufferRenderTarget->getImageViewByIndex(5).getHandle();
+	gBufferMetalRoughInfo.sampler = resourceManager.getRepeatSampler().getHandle();
 
 
 	ssrWrites.emplace_back(ssrDescSetBindings.makeWrite(ssrDescSet, SSRBindings::eSSRColor, &gBufferColorInfo));
 	ssrWrites.emplace_back(ssrDescSetBindings.makeWrite(ssrDescSet, SSRBindings::eSSRDepth, &gBufferDpethInfo));
 	ssrWrites.emplace_back(ssrDescSetBindings.makeWrite(ssrDescSet, SSRBindings::eSSRNormal, &gBufferNormalInfo));
 	ssrWrites.emplace_back(ssrDescSetBindings.makeWrite(ssrDescSet, SSRBindings::eSSRPosition, &gBufferPosInfo));
+	ssrWrites.emplace_back(ssrDescSetBindings.makeWrite(ssrDescSet, SSRBindings::eSSRMetalRough, &gBufferMetalRoughInfo));
 
 
 
@@ -217,7 +223,7 @@ void SSRPipelineBuilder::draw(CommandBuffer& cmd,const VkDescriptorSet& descSet)
 
 	cmd.nextSubpass();
 
-	ssaoBlurRenderPass->draw(cmd,{ssaoBlurDescSet});
+	ssrBlurRenderPass->draw(cmd,{ssaoBlurDescSet});
 
 	cmd.endRenderPass();
 
@@ -305,7 +311,7 @@ void mini::SSRPipelineBuilder::rebuild(VkExtent2D extent, RenderTarget& gBufferR
 	createDescriptorSetLayout();
 
 	
-	ssaoBlurRenderPass->rebuild(extent, 1);
+	ssrBlurRenderPass->rebuild(extent, 1);
 	ssrRenderPass->rebuild(extent, 0);
 
 	updateDescriptorSet();

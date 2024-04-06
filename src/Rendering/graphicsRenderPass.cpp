@@ -691,3 +691,60 @@ void mini::SSRRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
 
 	graphicsPipeline->build(renderPass);
 }
+
+mini::SSRBlurRenderPass::SSRBlurRenderPass(Device& device, ResourceManager& resourceManager, const RenderPass& renderPass, VkExtent2D extent, std::shared_ptr<DescriptorSetLayout> ssaoBlurDescSetLayout, PushConstantRaster& pcRaster, int subpassIndex)
+:GraphicsRenderPass(device, resourceManager, extent), renderPass(renderPass), pcRaster(pcRaster), postQuad(device)
+{
+	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/ssao.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/ssrBlur.frag.spv", device, VK_SHADER_STAGE_FRAGMENT_BIT));
+
+
+	std::vector<VkPushConstantRange> pushConstants;
+	VkPushConstantRange pushConstant = {};
+	pushConstant.offset = 0;
+	pushConstant.size = sizeof(PushConstantRaster);
+	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+	pushConstants.push_back(pushConstant);
+
+
+	std::vector<std::shared_ptr<DescriptorSetLayout>>  descSetLayouts;
+	descSetLayouts.push_back(ssaoBlurDescSetLayout);
+
+	pipelineLayout = std::make_unique<PipelineLayout>(device, descSetLayouts, pushConstants);
+
+
+	rebuild(extent, subpassIndex);
+
+}
+mini::SSRBlurRenderPass::~SSRBlurRenderPass()
+{
+}
+
+void mini::SSRBlurRenderPass::update()
+{
+}
+
+void mini::SSRBlurRenderPass::draw(CommandBuffer& cmd, const std::vector<VkDescriptorSet> descSet)
+{
+	cmd.bindPipeline(*graphicsPipeline);
+
+	cmd.bindDescriptorSet(descSet);
+
+
+	vkCmdPushConstants(cmd.getHandle(), pipelineLayout->getHandle(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstantRaster), &pcRaster);
+	cmd.bindVertexBuffer(postQuad.getVertexBuffer());
+
+	cmd.setViewPortAndScissor(extent);
+
+	cmd.draw(3, 1, 0, 0);
+	cmd.draw(3, 1, 1, 0);
+}
+
+void mini::SSRBlurRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
+{
+	graphicsPipeline = std::make_unique<GraphicsPipeline>(shaderModules, *pipelineLayout, device, surfaceExtent);
+	graphicsPipeline->setSubpassIndex(subpassIndex);
+	graphicsPipeline->rasterizer.cullMode = VK_CULL_MODE_NONE;
+	extent = surfaceExtent;
+	graphicsPipeline->build(renderPass);
+}

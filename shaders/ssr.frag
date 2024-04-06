@@ -45,6 +45,7 @@ layout(set = 1, binding = eSSRColor) uniform sampler2D ssrColorSampler;
 layout(set = 1, binding = eSSRDepth)  uniform sampler2D ssrDepthSampler; 
 layout(set = 1, binding = eSSRNormal)  uniform sampler2D ssrNormalSampler; // in view space
 layout(set = 1, binding = eSSRPosition)  uniform sampler2D ssrPositionSampler; // in view space
+layout(set = 1, binding = eSSRMetalRough) uniform sampler2D ssrMetalRoughSampler;
 
 
 float gauss [] = float[]
@@ -107,7 +108,8 @@ void main()
     int sampleCoordY = int(mod((screenSize.y * TexCoords.y),4.0));
     float offset = dither[sampleCoordX][sampleCoordY];
 
-    vec3 albedo = color;
+    vec3 albedo = vec3(0,0,0);
+    //albedo = color;
     //albedo = mix(albedo, texture(cubeMapTexture, viewReflectDir).rgb, 0.2);
 
     float step = pcRaster.ssrStep;
@@ -120,6 +122,7 @@ void main()
     stepNum = int(pcRaster.ssrMaxDistance / step);
     
 
+    vec3 lastPos = fragPos;
     for(int i = 1; i < stepNum; i++)
     {
         // Ray Match
@@ -136,6 +139,8 @@ void main()
 
         vec2 uv = (rayPosInScreen.xy + vec2(1.0)) / 2.0;
 
+        
+
         if(uv.x >=  0.0 && uv.x <= 1 && uv.y >= 0.0 && uv.y <= 1.0)
         {
             float depth = texture(ssrDepthSampler, uv).r;
@@ -146,13 +151,74 @@ void main()
                 if(abs(d - depth ) < eps)
                 {
                     vec3 nowColor =  getGaussColor(uv);
+
                     float distance = step * i;
                     float weight = pow(e,-distance * pcRaster.ssrAttenuation);
                     albedo = mix(albedo, nowColor, weight);
+                    break;
                     //albedo = vec3(1,0,0);
                 }
-                break;
+
+                if(pcRaster.ssrUseBinarySearch == 1)
+                {
+                    
+                    //  binary search
+                    vec3 begin = lastPos;
+                    vec3 end = rayPos;
+                    vec3 currPos = (begin + end) / 2.0;
+
+                    int count = 0;
+
+                    while(true)
+                    {
+                        count++;
+                        d = currPos.z;
+                        vec4 tmp = uni.proj * vec4(currPos, 1.0);
+                        rayPosInScreen = tmp.xyz / tmp.w;
+
+                        uv = (rayPosInScreen.xy + vec2(1.0)) / 2.0;
+                        depth = texture(ssrDepthSampler, uv).r;
+
+                        if(abs(d - depth) < 0.3 * eps)
+                        {
+                            vec3 nowColor  = getGaussColor(uv);
+                            float distance = step * i;
+                            float weight = pow(e,-distance * pcRaster.ssrAttenuation);
+                            albedo = mix(albedo, nowColor, weight);
+                            break;
+                        }
+                        if(d > depth)
+                        {
+                            end = currPos;
+                        }
+                        else if(d < depth)
+                        {
+                            begin = currPos;
+                        }
+                        currPos = (begin + end) / 2.0;
+                        if(count > 5)
+                        {
+                            break;
+                        
+                        }
+
+                    }
+
+
+                }
+
+            
+
+
+
+
+                
             }
+            else {
+                lastPos = rayPos;
+            }
+
+
 
         }
 
@@ -161,6 +227,12 @@ void main()
 
     }
 
-    FragColor = vec4(albedo, 1.0);
+    float metal = texture(ssrMetalRoughSampler, TexCoords).r;
+    float rough = texture(ssrMetalRoughSampler, TexCoords).g;
+
+    vec3 finalColor = vec3(0,0,0);
+    finalColor = mix(finalColor, albedo, metal * rough);
+
+    FragColor = vec4(finalColor, 1.0);
 
 }
