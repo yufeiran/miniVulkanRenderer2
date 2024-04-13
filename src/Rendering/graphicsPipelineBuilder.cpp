@@ -91,8 +91,8 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 		subpassInfo.dependencies.push_back(ssaoToSSAOBlurDependency);
 
 		subpassInfos.push_back(subpassInfo);
-	
-	
+
+
 	}
 
 	// SSAO blur pass
@@ -321,12 +321,12 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(Device& device,
 
 
 
-	ssaoRenderPass = std::make_unique<SSAORenderPass>(device,resourceManager,*rasterRenderPass,surfaceExtent,descSetLayout,ssaoDescSetLayout, pcRaster,2);
+	ssaoRenderPass = std::make_unique<SSAORenderPass>(device, resourceManager, *rasterRenderPass, surfaceExtent, descSetLayout, ssaoDescSetLayout, pcRaster, 2);
 
-	ssaoBlurRenderPass = std::make_unique<SSAOBlurRenderPass>(device,resourceManager,*rasterRenderPass,surfaceExtent,ssaoBlurDescSetLayout, pcRaster,3);
+	ssaoBlurRenderPass = std::make_unique<SSAOBlurRenderPass>(device, resourceManager, *rasterRenderPass, surfaceExtent, ssaoBlurDescSetLayout, pcRaster, 3);
 
 
-	lightingRenderPass = std::make_unique<LightingRenderPass>(device, resourceManager, *rasterRenderPass, surfaceExtent, descSetLayout,gBufferDescSetLayout, pcRaster, 4);
+	lightingRenderPass = std::make_unique<LightingRenderPass>(device, resourceManager, *rasterRenderPass, surfaceExtent, descSetLayout, gBufferDescSetLayout, pcRaster, 4);
 
 
 
@@ -358,38 +358,38 @@ void GraphicsPipelineBuilder::rebuild(VkExtent2D surfaceExtent)
 void GraphicsPipelineBuilder::draw(CommandBuffer& cmd)
 {
 
-	skyLightRenderPass->draw(cmd, {descSet});
+	skyLightRenderPass->draw(cmd, { descSet });
 
 	cmd.nextSubpass();
 
 
-	geomRenderPass->draw(cmd, {descSet});
+	geomRenderPass->draw(cmd, { descSet });
 
 
 	cmd.nextSubpass();
 
-	if(pcRaster.needSSAO==true)
+	if (pcRaster.needSSAO == true)
 	{
-		ssaoRenderPass->draw(cmd,{descSet,ssaoDescSet});
+		ssaoRenderPass->draw(cmd, { descSet,ssaoDescSet });
 
 		cmd.nextSubpass();
 
-		ssaoBlurRenderPass->draw(cmd,{ssaoBlurDescSet});
+		ssaoBlurRenderPass->draw(cmd, { ssaoBlurDescSet });
 
 		cmd.nextSubpass();
 	}
-	else{
+	else {
 		cmd.nextSubpass();
 		cmd.nextSubpass();
-		
+
 	}
 
 
 
-	lightingRenderPass->draw(cmd, {descSet,gBufferDescSet});
+	lightingRenderPass->draw(cmd, { descSet,gBufferDescSet });
 }
 
-void GraphicsPipelineBuilder::update(CommandBuffer& cmd, Camera& camera, VkExtent2D surfaceExtent,const std::vector<Light>& lights)
+void GraphicsPipelineBuilder::update(CommandBuffer& cmd, Camera& camera, VkExtent2D surfaceExtent, const std::vector<Light>& lights)
 {
 	updateUniformBuffer(cmd, camera, surfaceExtent);
 	updateLightUniformsBuffer(cmd, lights);
@@ -492,13 +492,13 @@ void GraphicsPipelineBuilder::createSSAOBuffers()
 	// Sample kernel
 
 	std::vector<glm::vec3> ssaoKernel;
-	for(unsigned int i = 0; i < 64; ++i)
+	for (unsigned int i = 0; i < 64; ++i)
 	{
 		glm::vec3 sample(
-					randomFloats(generator) * 2.0 - 1.0,
-					randomFloats(generator) * 2.0 - 1.0,
-					randomFloats(generator)
-				);
+			randomFloats(generator) * 2.0 - 1.0,
+			randomFloats(generator) * 2.0 - 1.0,
+			randomFloats(generator)
+		);
 		sample = glm::normalize(sample);
 		sample *= randomFloats(generator);
 		float scale = float(i) / 64.0;
@@ -507,10 +507,10 @@ void GraphicsPipelineBuilder::createSSAOBuffers()
 		ssaoKernel.push_back(sample);
 	}
 
-	ssaoSamplesBuffer = std::make_unique<Buffer>(device, ssaoKernel, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT|VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
+	ssaoSamplesBuffer = std::make_unique<Buffer>(device, ssaoKernel, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
 
 	std::vector<glm::vec3> ssaoNoise;
-	for(unsigned int i = 0; i < 16; i++)
+	for (unsigned int i = 0; i < 16; i++)
 	{
 		glm::vec3 noise(
 			randomFloats(generator) * 2.0 - 1.0,
@@ -520,13 +520,14 @@ void GraphicsPipelineBuilder::createSSAOBuffers()
 	}
 
 	VkExtent2D extent = { 4, 4 };
-	ssaoNoiseImage = std::make_unique<Image>(device,extent,ssaoNoise.size() * sizeof(glm::vec3),ssaoNoise.data(),VK_FORMAT_R8G8B8A8_UNORM);
-	ssaoNoiseImageView = std::make_unique<ImageView>( *ssaoNoiseImage, VK_FORMAT_R8G8B8A8_UNORM);
+	ssaoNoiseImage = std::make_unique<Image>(device, extent, ssaoNoise.size() * sizeof(glm::vec3), ssaoNoise.data(), VK_FORMAT_R8G8B8A8_UNORM);
+	ssaoNoiseImageView = std::make_unique<ImageView>(*ssaoNoiseImage, VK_FORMAT_R8G8B8A8_UNORM);
 
 }
 
 
-void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& dirShadowRenderTarget, RenderTarget& pointShadowRenderTarget,RenderTarget& offscreenRenderTarget)
+void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& dirShadowRenderTarget, RenderTarget& pointShadowRenderTarget, RenderTarget& offscreenRenderTarget,
+	const ImageView& cubemapImageView)
 {
 	std::vector<VkWriteDescriptorSet> writes;
 
@@ -545,7 +546,11 @@ void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& dirShadowRenderT
 	}
 	writes.emplace_back(descSetBindings.makeWriteArray(descSet, SceneBindings::eTextures, diit.data()));
 
-	VkDescriptorImageInfo cubeMapInfo{ resourceManager.cubeMapTexture.descriptor };
+
+	VkDescriptorImageInfo cubeMapInfo;
+	cubeMapInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+	cubeMapInfo.imageView = cubemapImageView.getHandle();
+	cubeMapInfo.sampler = resourceManager.getDefaultSampler().getHandle();
 	writes.emplace_back(descSetBindings.makeWrite(descSet, SceneBindings::eCubeMap, &cubeMapInfo));
 
 
@@ -579,63 +584,63 @@ void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& dirShadowRenderT
 	// Position
 
 	descriptors[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	// Ö¸¶¨ Input attachment ×ÊÔ´ÊÓÍ¼
+	// Ö¸ï¿½ï¿½ Input attachment ï¿½ï¿½Ô´ï¿½ï¿½Í¼
 	descriptors[0].imageView = offscreenRenderTarget.getImageViewByIndex(2).getHandle();
 	descriptors[0].sampler = resourceManager.getDefaultSampler().getHandle();
 
 	// Normal
 	descriptors[1].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	// Ö¸¶¨ Input attachment ×ÊÔ´ÊÓÍ¼
+	// Ö¸ï¿½ï¿½ Input attachment ï¿½ï¿½Ô´ï¿½ï¿½Í¼
 	descriptors[1].imageView = offscreenRenderTarget.getImageViewByIndex(3).getHandle();;
 	descriptors[1].sampler = resourceManager.getDefaultSampler().getHandle();
 
 	// Albedo
 	descriptors[2].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	// Ö¸¶¨ Input attachment ×ÊÔ´ÊÓÍ¼
+	// Ö¸ï¿½ï¿½ Input attachment ï¿½ï¿½Ô´ï¿½ï¿½Í¼
 	descriptors[2].imageView = offscreenRenderTarget.getImageViewByIndex(4).getHandle();;
 	descriptors[2].sampler = resourceManager.getDefaultSampler().getHandle();
 
 	// MetalRough
 	descriptors[3].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	// Ö¸¶¨ Input attachment ×ÊÔ´ÊÓÍ¼
+	// Ö¸ï¿½ï¿½ Input attachment ï¿½ï¿½Ô´ï¿½ï¿½Í¼
 	descriptors[3].imageView = offscreenRenderTarget.getImageViewByIndex(5).getHandle();;
 	descriptors[3].sampler = resourceManager.getDefaultSampler().getHandle();
 
 	// emssion
 	descriptors[4].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	// Ö¸¶¨ Input attachment ×ÊÔ´ÊÓÍ¼
+	// Ö¸ï¿½ï¿½ Input attachment ï¿½ï¿½Ô´ï¿½ï¿½Í¼
 	descriptors[4].imageView = offscreenRenderTarget.getImageViewByIndex(6).getHandle();
 	descriptors[4].sampler = resourceManager.getDefaultSampler().getHandle();
 
 	// SSAO
 	descriptors[5].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	// Ö¸¶¨ Input attachment ×ÊÔ´ÊÓÍ¼
+	// Ö¸ï¿½ï¿½ Input attachment ï¿½ï¿½Ô´ï¿½ï¿½Í¼
 	descriptors[5].imageView = offscreenRenderTarget.getImageViewByIndex(7).getHandle();
 	descriptors[5].sampler = resourceManager.getDefaultSampler().getHandle();
 
 	// SSAO Blur 
 	descriptors[6].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	// Ö¸¶¨ Input attachment ×ÊÔ´ÊÓÍ¼
+	// Ö¸ï¿½ï¿½ Input attachment ï¿½ï¿½Ô´ï¿½ï¿½Í¼
 	descriptors[6].imageView = offscreenRenderTarget.getImageViewByIndex(8).getHandle();
 	descriptors[6].sampler = resourceManager.getDefaultSampler().getHandle();
 
 	// Position in view space
 
 	descriptors[7].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	// Ö¸¶¨ Input attachment ×ÊÔ´ÊÓÍ¼
+	// Ö¸ï¿½ï¿½ Input attachment ï¿½ï¿½Ô´ï¿½ï¿½Í¼
 	descriptors[7].imageView = offscreenRenderTarget.getImageViewByIndex(9).getHandle();
 	descriptors[7].sampler = resourceManager.getDefaultSampler().getHandle();
 
 	// Normal
 	descriptors[8].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	// Ö¸¶¨ Input attachment ×ÊÔ´ÊÓÍ¼
+	// Ö¸ï¿½ï¿½ Input attachment ï¿½ï¿½Ô´ï¿½ï¿½Í¼
 	descriptors[8].imageView = offscreenRenderTarget.getImageViewByIndex(10).getHandle();;
 	descriptors[8].sampler = resourceManager.getDefaultSampler().getHandle();
-	
+
 
 	// Depth
 	descriptors[9].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	// Ö¸¶¨ Input attachment ×ÊÔ´ÊÓÍ¼
+	// Ö¸ï¿½ï¿½ Input attachment ï¿½ï¿½Ô´ï¿½ï¿½Í¼
 	descriptors[9].imageView = offscreenRenderTarget.getImageViewByIndex(1).getHandle();;
 	descriptors[9].sampler = resourceManager.getDefaultSampler().getHandle();
 
@@ -644,7 +649,7 @@ void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& dirShadowRenderT
 
 	std::array<VkWriteDescriptorSet, GBufferCount> writeDescriptorSets{};
 
-	for(int i =0; i< GBufferCount;i++)
+	for (int i = 0; i < GBufferCount; i++)
 	{
 		writeDescriptorSets[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		writeDescriptorSets[i].dstSet = gBufferDescSet;
@@ -655,7 +660,7 @@ void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& dirShadowRenderT
 	}
 
 
-	// ½«×ÊÔ´°ó¶¨µ½ÃèÊö·û¼¯
+	// ï¿½ï¿½ï¿½ï¿½Ô´ï¿½ó¶¨µï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	vkUpdateDescriptorSets(device.getHandle(), writeDescriptorSets.size(), writeDescriptorSets.data(), 0, nullptr);
 
 
@@ -695,9 +700,9 @@ void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& dirShadowRenderT
 
 	// SSAO Blur
 	std::vector<VkWriteDescriptorSet> ssaoBlurWrites;
-	
+
 	VkDescriptorImageInfo ssaoInputInfo;
-	ssaoInputInfo.imageLayout =   VK_IMAGE_LAYOUT_GENERAL;
+	ssaoInputInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
 	ssaoInputInfo.imageView = offscreenRenderTarget.getImageViewByIndex(7).getHandle();
 	ssaoInputInfo.sampler = resourceManager.getDefaultSampler().getHandle();
 	ssaoBlurWrites.emplace_back(ssaoBlurDescSetBindings.makeWrite(ssaoBlurDescSet, SSAOBlurBindings::eSSAOInput, &ssaoInputInfo));

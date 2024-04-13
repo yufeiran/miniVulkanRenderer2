@@ -336,6 +336,35 @@ namespace mini
 		std::unique_ptr<PipelineLayout>            pipelineLayout;
 	};
 
+	class HDRToCubeMapRenderPass :public GraphicsRenderPass
+	{
+	public:
+		HDRToCubeMapRenderPass(Device& device,
+			ResourceManager& resourceManager,
+			const RenderPass& renderPass,
+			VkExtent2D extent,
+			std::shared_ptr<DescriptorSetLayout> descSetLayout,
+			PushConstantRaster& pcRaster,
+			int subpassIndex = 0
+		);
+		~HDRToCubeMapRenderPass();
+
+		void update();
+		void draw(CommandBuffer& cmd, std::vector<VkDescriptorSet> descSet);
+
+		void rebuild(VkExtent2D surfaceExtent, int subpassIndex = 0);
+	private:
+		const RenderPass& renderPass;
+
+		PushConstantRaster& pcRaster;
+
+		std::vector<std::unique_ptr<ShaderModule>> shaderModules;
+		std::unique_ptr<PipelineLayout>            pipelineLayout;
+
+		SkyLightCube skyLightCube;
+
+	};
+
 
 
 

@@ -24,6 +24,8 @@ void main()
         }
     }
     result /= 16.0;
+
+    result = texture(ssaoSampler, TexCoords).rgb;
     FragColor = vec4(result, 1.0);
 
 }

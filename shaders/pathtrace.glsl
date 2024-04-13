@@ -83,7 +83,7 @@ vec3 PathTrace(Ray r)
         // Hitting the environment 
         if(prd.hitT == INFINITY)
         {
-            vec3 cubeMapColor = texture(cubeMapTexture,r.direction).xyz;
+            vec3 cubeMapColor = SRGBtoLINEAR(texture(cubeMapTexture,r.direction)).xyz;
 
             float factor;
             if(depth == 0)

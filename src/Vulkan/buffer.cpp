@@ -49,6 +49,15 @@ Buffer::~Buffer()
 	}
 }
 
+VkDescriptorBufferInfo Buffer::getDescriptorBufferInfo(VkDeviceSize offset, VkDeviceSize range)
+{
+VkDescriptorBufferInfo bufferInfo{};
+	bufferInfo.buffer = handle;
+	bufferInfo.offset = offset;
+	bufferInfo.range = range;
+	return bufferInfo;
+}
+
 VkBuffer Buffer::getHandle()
 {
 	return handle;

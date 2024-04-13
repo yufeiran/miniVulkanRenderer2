@@ -26,7 +26,7 @@ void main()
         for(int i = 0; i < 3; ++i)
         {
             FragPos = gl_in[i].gl_Position;
-            gl_Position = lightsUni.lights[0].pointLightSpaceMatrix[face] * FragPos;
+            gl_Position = lightsUni.lights[0].pointLightSpaceMatrix[face] * FragPos; 
             EmitVertex();
         }
         EndPrimitive();

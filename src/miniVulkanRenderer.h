@@ -50,6 +50,7 @@
 #include "Rendering/ssaoPipelineBuilder.h"
 #include "Rendering/pbbloomPipelineBuilder.h"
 #include "Rendering/SSRPipelineBuilder.h"
+#include "Rendering/makeCubeMapPipeline.h"
 
 
 
@@ -234,6 +235,8 @@ private:
 	std::unique_ptr<SSRPipelineBuilder>      ssrPipelineBuilder;
 
 	std::unique_ptr<PBBloomPipelineBuilder>  pbbloomPipelineBuilder;
+
+	std::unique_ptr<MakeCubeMapPipeline>     makeCubeMapPipeline;
 
 
 

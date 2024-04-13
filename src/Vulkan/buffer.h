@@ -26,6 +26,8 @@ public:
 
 	~Buffer();
 
+	VkDescriptorBufferInfo getDescriptorBufferInfo(VkDeviceSize offset = 0, VkDeviceSize range = VK_WHOLE_SIZE);
+
 	VkBuffer getHandle();
 
 	uint32_t getSize();

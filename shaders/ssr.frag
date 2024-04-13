@@ -231,7 +231,7 @@ void main()
     float rough = texture(ssrMetalRoughSampler, TexCoords).g;
 
     vec3 finalColor = vec3(0,0,0);
-    finalColor = mix(finalColor, albedo, metal * rough);
+    finalColor = mix(finalColor, albedo,  rough);
 
     FragColor = vec4(finalColor, 1.0);
 

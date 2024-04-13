@@ -236,7 +236,7 @@ void MiniVulkanRenderer::loadShowCase()
 	objMat = glm::mat4(1.0f);
 	//objMat = glm::scale(objMat, { 0.01, 0.01, 0.01 });
 
-	objMat = glm::translate(objMat, { 0,0,3 });
+	objMat = glm::translate(objMat, { 2,0,2 });
 	objMat = glm::scale(objMat, { 50,50,50 });
 	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoomBox/glTF/BoomBox.gltf", objMat);
 	////resourceManager->loadScene("D://yufeiran/model/AMD/GI/GI.gltf",objMat);
@@ -388,14 +388,20 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	resourceManager->loadCubemap(HornstullsStrandCubeMapNames);
 
+	std::string dikhololo_night_4k_Names = "../../assets/HDRI/dikhololo_night_4k.hdr";
 
+	resourceManager->loadHDR(dikhololo_night_4k_Names);
 
 	LogTimerEnd("Load scene");
+
+
 
 	LogSpace();
 
 
+	makeCubeMapPipeline = std::make_unique<MakeCubeMapPipeline>(*device, *resourceManager,pcRaster);
 
+	makeCubeMapPipeline->updateDescriptorSet(resourceManager->getHdrImageView());
 
 	graphicsPipelineBuilder = std::make_unique<GraphicsPipelineBuilder>(*device, *resourceManager, *renderContext, offscreenColorFormat, pcRaster);
 
@@ -421,8 +427,10 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	auto& shadowMapRenderTarget = shadowPipelineBuilder->getDirRenderTarget();
 	auto& PointShadowMapRenderPass = shadowPipelineBuilder->getPointRenderTarget();
+	auto& cubemapImageView = makeCubeMapPipeline->getRenderTarget().getImageViewByIndex(0);
 
-	graphicsPipelineBuilder->updateDescriptorSet(shadowMapRenderTarget, PointShadowMapRenderPass, *offscreenRenderTarget);
+	graphicsPipelineBuilder->updateDescriptorSet(shadowMapRenderTarget, PointShadowMapRenderPass, *offscreenRenderTarget,
+		cubemapImageView);
 
 
 
@@ -1319,6 +1327,9 @@ void MiniVulkanRenderer::loop()
 
 		graphicsPipelineBuilder->update(cmd, camera, surfaceExtent, lights);
 
+		// makeHDRToCubeMap
+		makeCubeMapPipeline->draw(cmd);
+
 
 		// Raster render pass
 		{
@@ -1870,8 +1881,11 @@ void MiniVulkanRenderer::handleSizeChange()
 
 	updatePostDescriptorSet();
 
+	auto& cubeMapImageView = makeCubeMapPipeline->getRenderTarget().getImageViewByIndex(0);
+
 	graphicsPipelineBuilder->rebuild(extent);
-	graphicsPipelineBuilder->updateDescriptorSet(shadowPipelineBuilder->getDirRenderTarget(), shadowPipelineBuilder->getPointRenderTarget(), *offscreenRenderTarget);
+	graphicsPipelineBuilder->updateDescriptorSet(shadowPipelineBuilder->getDirRenderTarget(), shadowPipelineBuilder->getPointRenderTarget(), *offscreenRenderTarget
+	,cubeMapImageView);
 
 	ssrPipelineBuilder->rebuild(extent, *offscreenRenderTarget);
 

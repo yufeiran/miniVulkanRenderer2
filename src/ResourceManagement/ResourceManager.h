@@ -75,6 +75,8 @@ public:
 
 	void loadCubemap(const std::vector<std::string>& cubeMapNames, bool flipTexture = false);
 
+	void loadHDR(const std::string& filename, bool flipTexture = true);
+
 	void createTextureImages(const std::vector<tinygltf::Image*>& loadImages, bool flipTexture = false);
 
 	void createTextureImages(const std::vector<std::string>& textures, const std::string &modelPath, bool flipTexture = false);
@@ -86,6 +88,11 @@ public:
 	Sampler& getDefaultSampler() { return *defaultSampler; }
 	Sampler& getRepeatSampler() { return *repeatSampler; }
 	Sampler& getClampToEdgeSampler() { return *clampToEdgeSampler; }
+
+	Texture& getCubeMapTexture() { return cubeMapTexture; }
+	Texture& getHdrTexture() { return hdrTexture; }
+	ImageView& getHdrImageView() { return *hdrImageView; }
+
 
 	const std::vector<std::unique_ptr<ObjModel>>&  getModels() const{return objModel;}
 	std::vector<ObjInstance>&     getInstances() {return instances;}
@@ -103,13 +110,20 @@ public:
 	std::unique_ptr<Sampler>                  mirroredRepeatSampler;
 	std::unique_ptr<Sampler>                  clampToEdgeSampler;
 
-	std::unique_ptr<Image>                    cubeMap;
-	std::unique_ptr<ImageView>                cubeMapView;
-	Texture                                   cubeMapTexture;
+
 
 	GltfLoader                                gltfLoader;
 
 private:
+
+	std::unique_ptr<Image>                    cubeMap;
+	std::unique_ptr<ImageView>                cubeMapView;
+	Texture                                   cubeMapTexture;
+
+	std::unique_ptr<Image>                    hdrImage;
+	std::unique_ptr<ImageView>                hdrImageView;
+	Texture                                   hdrTexture;
+
 	std::map<std::string, uint32_t> modelMap;
 
 	int lightCubeObjIndex = -1;

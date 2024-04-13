@@ -511,6 +511,19 @@ void ResourceManager::loadCubemap(const std::vector<std::string>& cubeMapNames, 
 	cubeMapTexture.descriptor.sampler     = defaultSampler->getHandle();
 }
 
+void ResourceManager::loadHDR(const std::string& filename, bool flipTexture)
+{
+	hdrImage = std::make_unique<Image>(device, filename, flipTexture);
+	hdrImageView = std::make_unique<ImageView>(*hdrImage,VK_FORMAT_UNDEFINED,VK_IMAGE_VIEW_TYPE_2D);
+
+	hdrTexture.image                  = hdrImage->getHandle();
+	hdrTexture.descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	hdrTexture.descriptor.imageView   = hdrImageView->getHandle();
+	hdrTexture.descriptor.sampler     = defaultSampler->getHandle();
+
+
+}
+
 void ResourceManager::createTextureImages(const std::vector<tinygltf::Image*>& loadImages, bool flipTexture)
 {
 		if(loadImages.empty() && textures.empty())

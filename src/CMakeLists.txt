@@ -90,6 +90,8 @@ set(PLATFORM_FILES
 )
 
 set(RENDERING_FILES 
+    ./Rendering/pipeline.h 
+    ./Rendering/pipeline.cpp
     ./Rendering/renderContext.h 
     ./Rendering/renderContext.cpp 
     ./Rendering/renderTarget.h 
@@ -114,6 +116,8 @@ set(RENDERING_FILES
     ./Rendering/pbbloomPipelineBuilder.cpp
     ./Rendering/SSRPipelineBuilder.h
     ./Rendering/SSRPipelineBuilder.cpp
+    ./Rendering/makeCubeMapPipeline.h
+    ./Rendering/makeCubeMapPipeline.cpp
 )
 
 set(RESOURCE_MANAGEMENT_FILES

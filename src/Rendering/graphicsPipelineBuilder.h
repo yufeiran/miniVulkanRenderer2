@@ -32,7 +32,8 @@ namespace mini
 		void createLightUniformsBuffer();
 		void updateLightUniformsBuffer(CommandBuffer& cmd, const std::vector<Light>& shadowLights);
 
-		void updateDescriptorSet(RenderTarget& dirShadowRenderTarget, RenderTarget& pointShadowRenderTarget,RenderTarget& offscreenRenderTarget);
+		void updateDescriptorSet(RenderTarget& dirShadowRenderTarget, RenderTarget& pointShadowRenderTarget,RenderTarget& offscreenRenderTarget,
+			const ImageView& cubemapImageView);
 
 		Buffer& getLightUniformsBuffer() { return *lightUniformsBuffer; }
 

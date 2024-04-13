@@ -75,7 +75,18 @@ START_ENUM(SSRBindings)
 	eSSRMetalRough = 4
 END_ENUM();
 
+START_ENUM(HDRToCubeMapBindings)
+	eHDRInput = 0,
+	eHDRToCubeMapUniforms = 1
 
+END_ENUM();
+
+
+struct  HDRToCubeMapUniforms
+{
+	mat4 proj;
+	mat4 view[6];
+};
 	
 
 START_ENUM(DebugMode)
