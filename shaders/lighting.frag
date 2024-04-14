@@ -23,6 +23,7 @@ layout(buffer_reference, scalar) buffer MatIndices { int i[]; };
 layout(binding = eObjDescs, scalar) buffer ObjDesc_ { ObjDesc i[]; } objDesc;
 layout(binding = eTextures) uniform sampler2D[] textureSamplers;
 layout(binding = eCubeMap) uniform samplerCube cubeMapTexture;
+layout(binding = eDiffuseIrradiance) uniform samplerCube irradianceMap;
 layout(binding = eDirShadowMap) uniform sampler2D shadowmap;
 layout(binding = ePointShadowMap) uniform samplerCube pointShadowMapTexture;
 layout(binding = eLight,std140) uniform _LightUniforms {LightUniforms lightsUni;};
@@ -312,6 +313,11 @@ void main() {
 
     //state.mat.f0 = mix(vec3(dielectricSpecular), state.mat.albedo, state.mat.metallic);
     state.mat.f0 = state.mat.albedo;
+
+    vec3  specularCol = state.mat.f0;
+    float reflectance = max(max(specularCol.r, specularCol.g),specularCol.b);
+    vec3  f0          = specularCol.rgb;
+    vec3  f90         = vec3(clamp(reflectance * 50.0 , 0.0, 1.0));
     
 
 
@@ -406,14 +412,27 @@ void main() {
     // color += sampleColor;
 
 
+
+
    
 
-    vec3 ambient = vec3(0.001) * pcRaster.skyLightIntensity * state.mat.albedo;
-    if(pcRaster.needSSAO == 1)
-    {
-        ambient *= state.mat.ao;
-    }
+    // vec3 ambient = vec3(0.001) * pcRaster.skyLightIntensity * state.mat.albedo;
+    // if(pcRaster.needSSAO == 1)
+    // {
+    //     ambient *= state.mat.ao;
+    // }
+    // color += ambient;
+
+
+
+    vec3 kS = F_Schlick(f0,f90,max(dot(state.ffnormal, viewDir), 0.0));
+    vec3 kD = 1.0 - kS;
+    vec3 irradiance = texture(irradianceMap, state.ffnormal).rgb;
+    vec3 diffuse = irradiance * state.mat.albedo;
+    vec3 ambient = (kD * diffuse) * state.mat.ao * pcRaster.skyLightIntensity * 0.01;
+
     color += ambient;
+
 
     color = DebugInfo(state, color);
 

@@ -20,14 +20,15 @@ using uint = unsigned int;
 #endif
 
 START_ENUM(SceneBindings)
-	eGlobals         = 0,
-	eObjDescs        = 1,
-	eTextures        = 2,
-	eCubeMap         = 3,
-	eDirShadowMap    = 4,
-	ePointShadowMap  = 5,
-	eLight           = 6,
-	eSSAOSamples	 = 7
+	eGlobals           = 0,
+	eObjDescs          = 1,
+	eTextures          = 2,
+	eCubeMap           = 3,
+	eDiffuseIrradiance = 4,
+	eDirShadowMap      = 5,
+	ePointShadowMap    = 6,
+	eLight             = 7,
+	eSSAOSamples	   = 8
 END_ENUM();
 
 START_ENUM(PBBloomBindings)
@@ -79,6 +80,11 @@ START_ENUM(HDRToCubeMapBindings)
 	eHDRInput = 0,
 	eHDRToCubeMapUniforms = 1
 
+END_ENUM();
+
+START_ENUM(DiffuseIrradianceBindings)
+	eDiffuseIrradianceInput = 0,
+	eDiffuseIrradianceUniforms = 1
 END_ENUM();
 
 

@@ -693,7 +693,7 @@ void mini::SSRRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
 }
 
 mini::SSRBlurRenderPass::SSRBlurRenderPass(Device& device, ResourceManager& resourceManager, const RenderPass& renderPass, VkExtent2D extent, std::shared_ptr<DescriptorSetLayout> ssaoBlurDescSetLayout, PushConstantRaster& pcRaster, int subpassIndex)
-:GraphicsRenderPass(device, resourceManager, extent), renderPass(renderPass), pcRaster(pcRaster), postQuad(device)
+	:GraphicsRenderPass(device, resourceManager, extent), renderPass(renderPass), pcRaster(pcRaster), postQuad(device)
 {
 	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/ssao.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
 	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/ssrBlur.frag.spv", device, VK_SHADER_STAGE_FRAGMENT_BIT));
@@ -750,7 +750,7 @@ void mini::SSRBlurRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex
 }
 
 mini::HDRToCubeMapRenderPass::HDRToCubeMapRenderPass(Device& device, ResourceManager& resourceManager, const RenderPass& renderPass, VkExtent2D extent, std::shared_ptr<DescriptorSetLayout> descSetLayout, PushConstantRaster& pcRaster, int subpassIndex)
-:GraphicsRenderPass(device, resourceManager, extent), renderPass(renderPass), pcRaster(pcRaster),skyLightCube(device)
+	:GraphicsRenderPass(device, resourceManager, extent), renderPass(renderPass), pcRaster(pcRaster), skyLightCube(device)
 {
 	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/hdrToCubemap.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
 	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/hdrToCubemap.geom.spv", device, VK_SHADER_STAGE_GEOMETRY_BIT));
@@ -805,6 +805,76 @@ void mini::HDRToCubeMapRenderPass::draw(CommandBuffer& cmd, std::vector<VkDescri
 }
 
 void mini::HDRToCubeMapRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
+{
+	extent = surfaceExtent;
+
+	graphicsPipeline = std::make_unique<GraphicsPipeline>(shaderModules, *pipelineLayout, device, extent);
+	graphicsPipeline->setSubpassIndex(subpassIndex);
+	graphicsPipeline->depthStencil.depthTestEnable = VK_FALSE;
+	graphicsPipeline->depthStencil.depthWriteEnable = VK_FALSE;
+	graphicsPipeline->rasterizer.cullMode = VK_CULL_MODE_NONE;
+
+
+	graphicsPipeline->build(renderPass);
+}
+
+mini::DiffuseIrradianceRenderPass::DiffuseIrradianceRenderPass(Device& device, ResourceManager& resourceManager, const RenderPass& renderPass, VkExtent2D extent, std::shared_ptr<DescriptorSetLayout> descSetLayout, PushConstantRaster& pcRaster, int subpassIndex)
+	:GraphicsRenderPass(device, resourceManager, extent), renderPass(renderPass), pcRaster(pcRaster), skyLightCube(device)
+{
+	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/diffuseIrradiance.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/diffuseIrradiance.geom.spv", device, VK_SHADER_STAGE_GEOMETRY_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/diffuseIrradiance.frag.spv", device, VK_SHADER_STAGE_FRAGMENT_BIT));
+
+	std::vector<VkPushConstantRange> pushConstants;
+	VkPushConstantRange pushConstant = {};
+	pushConstant.offset = 0;
+	pushConstant.size = sizeof(PushConstantRaster);
+	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+	pushConstants.push_back(pushConstant);
+
+
+
+	std::vector<std::shared_ptr<DescriptorSetLayout>>  descSetLayouts;
+	descSetLayouts.push_back(descSetLayout);
+
+	pipelineLayout = std::make_unique<PipelineLayout>(device, descSetLayouts, pushConstants);
+
+	rebuild(extent, subpassIndex);
+}
+
+mini::DiffuseIrradianceRenderPass::~DiffuseIrradianceRenderPass()
+{
+
+}
+
+void mini::DiffuseIrradianceRenderPass::update()
+{
+
+}
+
+void mini::DiffuseIrradianceRenderPass::draw(CommandBuffer& cmd, std::vector<VkDescriptorSet> descSet)
+{
+	VkDeviceSize offset{ 0 };
+
+	cmd.setViewPortAndScissor(extent);
+
+	auto& rasterPipeline = graphicsPipeline;
+
+	cmd.bindPipeline(*rasterPipeline);
+
+
+	cmd.bindDescriptorSet(descSet);
+
+	cmd.pushConstant(pcRaster, static_cast<VkShaderStageFlagBits>(VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT));
+
+
+	cmd.bindVertexBuffer(skyLightCube.getVertexBuffer());
+	//cmd.bindIndexBuffer(*model->indexBuffer);
+
+	cmd.draw(skyLightCube.getVertexCount(), 1, 0, 0);
+}
+
+void mini::DiffuseIrradianceRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
 {
 	extent = surfaceExtent;
 

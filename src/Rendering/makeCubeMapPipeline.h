@@ -38,29 +38,54 @@ public:
 
 	void draw(CommandBuffer& cmd);
 
-	RenderTarget& getRenderTarget() { return *renderTarget; }
+	RenderTarget& getCubeMapRenderTarget() { return *hdrToCubeMapRenderTarget; }
+
+	RenderTarget& getDiffuseIrradianceRenderTarget() { return *diffuseIrradianceRenderTarget; }
 
 
 private:
 
-	const int CUBE_MAP_SIZE = 4096;
+	const uint32_t CUBE_MAP_SIZE = 2048;
 	const VkFormat CUBE_MAP_FORMAT = VK_FORMAT_R8G8B8A8_SRGB ;
+
+	const VkExtent2D cubeMapExtent = { CUBE_MAP_SIZE,CUBE_MAP_SIZE };
+	const VkExtent2D diffuseIrradianceExtent = { CUBE_MAP_SIZE / 64,CUBE_MAP_SIZE / 64 };
+	//const VkExtent2D diffuseIrradianceExtent = { CUBE_MAP_SIZE / 64,CUBE_MAP_SIZE / 64 };
 
 	Device&                               device;		
 	ResourceManager&                      resourceManager;
-	DescriptorSetBindings                 descSetBindings;
-	std::shared_ptr<DescriptorSetLayout>  descSetLayout;
-	std::unique_ptr<DescriptorPool>       descPool;
-	VkDescriptorSet                       descSet;
-
 
 	std::unique_ptr<PipelineLayout>       pipelineLayout;
-	std::unique_ptr<RenderPass>           renderPass;
 
-	std::unique_ptr<RenderTarget>         renderTarget;
-	std::unique_ptr<FrameBuffer>          framebuffer;
+	// HDR to CubeMap
+	DescriptorSetBindings                 hdrToCubeMapDescSetBindings;
+	std::shared_ptr<DescriptorSetLayout>  hdrToCubeMapDescSetLayout;
+	std::unique_ptr<DescriptorPool>       hdrToCubeMapDescPool;
+	VkDescriptorSet                       hdrToCubeMapDescSet;
 
-	std::unique_ptr<HDRToCubeMapRenderPass>  hdrToCubeMapRenderPass;
+
+	std::unique_ptr<RenderPass>           hdrToCubeMapRenderPass;
+
+	std::unique_ptr<RenderTarget>         hdrToCubeMapRenderTarget;
+	std::unique_ptr<FrameBuffer>          hdrToCubeMapFramebuffer;
+
+	std::unique_ptr<HDRToCubeMapRenderPass>       hdrToCubeMapPass;
+
+	// Diffuse Irradiance
+	DescriptorSetBindings                 diffuseIrradianceDescSetBindings;
+	std::shared_ptr<DescriptorSetLayout>  diffuseIrradianceDescSetLayout;
+	std::unique_ptr<DescriptorPool>       diffuseIrradianceDescPool;
+	VkDescriptorSet                       diffuseIrradianceDescSet;
+
+	std::unique_ptr<RenderPass>           diffuseIrradianceRenderPass;
+
+	std::unique_ptr<RenderTarget>         diffuseIrradianceRenderTarget;
+	std::unique_ptr<FrameBuffer>          diffuseIrradianceFramebuffer;
+
+
+	std::unique_ptr<DiffuseIrradianceRenderPass>  diffuseIrradiancePass;
+
+
 
 	PushConstantRaster&                   pcRaster;
 

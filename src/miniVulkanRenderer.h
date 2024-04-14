@@ -92,12 +92,12 @@ public:
 
 	void raytrace(CommandBuffer& cmd, const glm::vec4& clearColor);
 
-	void rasterize(CommandBuffer& cmd,VkClearColorValue defaultClearColor);
+	void rasterize(CommandBuffer& cmd, VkClearColorValue defaultClearColor);
 
 	// ui---------------------
-	void renderUI(std::vector<VkClearValue>& clearValues,VkExtent2D screenSize, bool sizeChange ,bool &lightSizeChange);
+	void renderUI(std::vector<VkClearValue>& clearValues, VkExtent2D screenSize, bool sizeChange, bool& lightSizeChange);
 
-	bool uiLights(VkExtent2D screenSize, bool sizeChange ,bool &lightSizeChange);
+	bool uiLights(VkExtent2D screenSize, bool sizeChange, bool& lightSizeChange);
 
 	bool uiInstance(VkExtent2D screenSize, bool sizeChange = false);
 
@@ -113,7 +113,7 @@ public:
 
 	void updateInstances();
 
-	
+
 	void processIO();
 	void keyControl();
 	void mouseControl();
@@ -143,7 +143,7 @@ public:
 		768,                 // height
 		1,				     // NeedSSAO
 		0,                   // lightType 0:normal 1: light
-	    0,                    // light index
+		0,                    // light index
 		2,                   // shadowMode  0:normal 1:pcf 2.PCSS
 		5,                     // shadowLigheSize
 		0.1,                  // ssrStep
@@ -172,18 +172,19 @@ public:
 		0,   // debugBloom
 		0,   // debugSSR
 		0.020, // pbbloomRadius;
-	    0.01, // pbbloomIntensity;
-	    1, // 0:off 1:on
+		0.01, // pbbloomIntensity;
+		1, // 0:off 1:on
 		0.5,  // ssrIntensity
 		0   // raytraceMode
 	};
 
 	std::vector<Light> lights = {
-		
-		
+
+
 	};
 
 private:
+	bool makeCubeMapEveryTime = false;
 	bool canRaytracing = false;
 	bool useRaytracing = false;
 	int width, height;

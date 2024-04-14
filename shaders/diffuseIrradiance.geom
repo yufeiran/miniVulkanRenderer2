@@ -14,7 +14,7 @@
 layout (triangles) in;
 layout (triangle_strip, max_vertices = 18 ) out;
 
-layout(binding = eHDRToCubeMapUniforms,std140) uniform _HDRToCubeMapUniforms {HDRToCubeMapUniforms hdrToCubeMapUni;};
+layout(binding = eDiffuseIrradianceUniforms,std140) uniform _HDRToCubeMapUniforms {HDRToCubeMapUniforms hdrToCubeMapUni;};
 
 layout(location = 0) out vec4 FragPos;
 

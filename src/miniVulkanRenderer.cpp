@@ -344,26 +344,16 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	tempCommandPool = std::make_unique<CommandPool>(*device);
 
-
-
-	Log("Load scene");
-	LogTimerStart("Load scene");
-
 	resourceManager = std::make_unique<ResourceManager>(*device);
-
-	//resourceManagement->loadModel("BattleCruiser", "../../assets/BattleCruiser/BattleCruiser.obj");
-
-	load();
-	//loadSponza();
 
 
 	std::vector<std::string> defaultCubeMapNames = {
-		"../../assets/skybox/default/right.jpg",
-		"../../assets/skybox/default/left.jpg",
-		"../../assets/skybox/default/top.jpg",
-		"../../assets/skybox/default/bottom.jpg",
-		"../../assets/skybox/default/front.jpg",
-		"../../assets/skybox/default/back.jpg",
+	"../../assets/skybox/default/right.jpg",
+	"../../assets/skybox/default/left.jpg",
+	"../../assets/skybox/default/top.jpg",
+	"../../assets/skybox/default/bottom.jpg",
+	"../../assets/skybox/default/front.jpg",
+	"../../assets/skybox/default/back.jpg",
 	};
 
 	std::vector<std::string> yokohamaCubeMapNames = {
@@ -386,11 +376,30 @@ void MiniVulkanRenderer::init(int width, int height)
 	};
 
 
-	resourceManager->loadCubemap(HornstullsStrandCubeMapNames);
+
 
 	std::string dikhololo_night_4k_Names = "../../assets/HDRI/dikhololo_night_4k.hdr";
 
+	std::string dikhololo_night_8k_Names = "D:/yufeiran/model/HDRI/dikhololo_night_8k.hdr";
+
+
+
+
+
+	Log("Load scene");
+	LogTimerStart("Load scene");
+
+
+
+	//resourceManagement->loadModel("BattleCruiser", "../../assets/BattleCruiser/BattleCruiser.obj");
+
+	load();
+	//loadSponza();
+	resourceManager->loadCubemap(HornstullsStrandCubeMapNames);
+
 	resourceManager->loadHDR(dikhololo_night_4k_Names);
+
+
 
 	LogTimerEnd("Load scene");
 
@@ -399,7 +408,7 @@ void MiniVulkanRenderer::init(int width, int height)
 	LogSpace();
 
 
-	makeCubeMapPipeline = std::make_unique<MakeCubeMapPipeline>(*device, *resourceManager,pcRaster);
+	makeCubeMapPipeline = std::make_unique<MakeCubeMapPipeline>(*device, *resourceManager, pcRaster);
 
 	makeCubeMapPipeline->updateDescriptorSet(resourceManager->getHdrImageView());
 
@@ -427,10 +436,11 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	auto& shadowMapRenderTarget = shadowPipelineBuilder->getDirRenderTarget();
 	auto& PointShadowMapRenderPass = shadowPipelineBuilder->getPointRenderTarget();
-	auto& cubemapImageView = makeCubeMapPipeline->getRenderTarget().getImageViewByIndex(0);
+	auto& cubemapImageView = makeCubeMapPipeline->getCubeMapRenderTarget().getImageViewByIndex(0);
+	auto& diffuseIrrImageView = makeCubeMapPipeline->getDiffuseIrradianceRenderTarget().getImageViewByIndex(0);
 
 	graphicsPipelineBuilder->updateDescriptorSet(shadowMapRenderTarget, PointShadowMapRenderPass, *offscreenRenderTarget,
-		cubemapImageView);
+		cubemapImageView, diffuseIrrImageView);
 
 
 
@@ -1240,6 +1250,25 @@ bool MiniVulkanRenderer::uiInstance(VkExtent2D screenSize, bool sizeChange)
 
 void MiniVulkanRenderer::loop()
 {
+
+
+	if (makeCubeMapEveryTime == false)
+	{
+		auto& cmd = renderContext->getCurrentCommandBuffer();
+		cmd.reset();
+		cmd.begin();
+
+		// makeHDRToCubeMap
+		makeCubeMapPipeline->draw(cmd);
+		cmd.end();
+
+
+		cmd.submitAndWaitIdle(device->getGraphicQueue());
+	}
+
+
+
+
 	std::vector<VkClearValue> clearValues(3);
 	VkClearColorValue defaultClearColor = { 106.0f / 256,131.0f / 256,114.0f / 256,1.0f };
 	clearValues[0].color = defaultClearColor;
@@ -1323,12 +1352,13 @@ void MiniVulkanRenderer::loop()
 
 		surfaceExtent = renderContext->getSwapchain().getExtent();
 
-
+		if (makeCubeMapEveryTime)
+		{
+			makeCubeMapPipeline->draw(cmd);
+		}
 
 		graphicsPipelineBuilder->update(cmd, camera, surfaceExtent, lights);
 
-		// makeHDRToCubeMap
-		makeCubeMapPipeline->draw(cmd);
 
 
 		// Raster render pass
@@ -1881,11 +1911,12 @@ void MiniVulkanRenderer::handleSizeChange()
 
 	updatePostDescriptorSet();
 
-	auto& cubeMapImageView = makeCubeMapPipeline->getRenderTarget().getImageViewByIndex(0);
+	auto& cubeMapImageView = makeCubeMapPipeline->getCubeMapRenderTarget().getImageViewByIndex(0);
+	auto& diffuseIrrImageView = makeCubeMapPipeline->getDiffuseIrradianceRenderTarget().getImageViewByIndex(0);
 
 	graphicsPipelineBuilder->rebuild(extent);
 	graphicsPipelineBuilder->updateDescriptorSet(shadowPipelineBuilder->getDirRenderTarget(), shadowPipelineBuilder->getPointRenderTarget(), *offscreenRenderTarget
-	,cubeMapImageView);
+		, cubeMapImageView,diffuseIrrImageView);
 
 	ssrPipelineBuilder->rebuild(extent, *offscreenRenderTarget);
 

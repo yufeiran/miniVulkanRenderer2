@@ -3,65 +3,145 @@
 mini::MakeCubeMapPipeline::MakeCubeMapPipeline(Device& device, ResourceManager& resourceManager, PushConstantRaster& pcRaster)
 	: device(device), resourceManager(resourceManager), pcRaster(pcRaster)
 {
+
+
+
+
 	createHDRToCubeMapUniforms();
 
-	std::vector<SubpassInfo> subpassInfos;
+	createDescriptorSetLayout();
+
+
 
 
 	// hdrToCubemap
 	{
-		SubpassInfo subpassInfo = {};
-		subpassInfo.output.push_back(0);
+		std::vector<SubpassInfo> subpassInfos;
+		{
+			SubpassInfo subpassInfo = {};
+			subpassInfo.output.push_back(0);
 
-		VkSubpassDependency dependency = {};
+			VkSubpassDependency dependency = {};
 
-		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-		dependency.dstSubpass = 0;
-		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-		dependency.srcAccessMask = 0;
-		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+			dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+			dependency.dstSubpass = 0;
+			dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+			dependency.srcAccessMask = 0;
+			dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+			dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
 
-		subpassInfo.dependencies.push_back(dependency);
+			subpassInfo.dependencies.push_back(dependency);
 
-		subpassInfos.push_back(subpassInfo);
+			subpassInfos.push_back(subpassInfo);
+		}
+
+
+
+		std::vector<Attachment> attachments;
+		{
+
+			// cubemap
+			Attachment attachment{ CUBE_MAP_FORMAT,VK_SAMPLE_COUNT_1_BIT,VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT };
+			attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			attachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
+
+			attachments.push_back(attachment);
+
+
+
+		}
+
+		std::vector<LoadStoreInfo> loadStoreInfos;
+		{
+
+			LoadStoreInfo cubemapLoadStoreInfo{};
+			cubemapLoadStoreInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			cubemapLoadStoreInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+			// for cubemap
+			loadStoreInfos.push_back(cubemapLoadStoreInfo);
+
+
+		}
+
+
+
+
+
+		hdrToCubeMapRenderPass = std::make_unique<RenderPass>(device, attachments, loadStoreInfos, subpassInfos);
+
+
+
+		hdrToCubeMapPass = std::make_unique<HDRToCubeMapRenderPass>(device, resourceManager, *hdrToCubeMapRenderPass, cubeMapExtent, hdrToCubeMapDescSetLayout, pcRaster, 0);
+
+
+
 	}
 
-	createDescriptorSetLayout();
 
-	std::vector<Attachment> attachments;
+	// diffuse irradiance
 	{
+		std::vector<SubpassInfo> subpassInfos;
+		{
+			SubpassInfo subpassInfo = {};
+			subpassInfo.output.push_back(0);
+
+			VkSubpassDependency dependency = {};
+
+			dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+			dependency.dstSubpass = 0;
+			dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+			dependency.srcAccessMask = 0;
+			dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+			dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
 
-		Attachment attachment{ CUBE_MAP_FORMAT,VK_SAMPLE_COUNT_1_BIT,VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT };
-		attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		attachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
+			subpassInfo.dependencies.push_back(dependency);
 
-		attachments.push_back(attachment);
+			subpassInfos.push_back(subpassInfo);
+		}
 
+
+
+		std::vector<Attachment> attachments;
+		{
+
+
+
+			// irradiance map
+			Attachment irradianceAttachment{ CUBE_MAP_FORMAT,VK_SAMPLE_COUNT_1_BIT,VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT };
+			irradianceAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			irradianceAttachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
+
+			attachments.push_back(irradianceAttachment);
+
+		}
+
+		std::vector<LoadStoreInfo> loadStoreInfos;
+		{
+
+
+			LoadStoreInfo irradianceCubemapLoadStoreInfo{};
+			irradianceCubemapLoadStoreInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			irradianceCubemapLoadStoreInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+			loadStoreInfos.push_back(irradianceCubemapLoadStoreInfo);
+
+		}
+
+
+
+
+
+		diffuseIrradianceRenderPass = std::make_unique<RenderPass>(device, attachments, loadStoreInfos, subpassInfos);
+
+
+		diffuseIrradiancePass = std::make_unique<DiffuseIrradianceRenderPass>(device, resourceManager, *diffuseIrradianceRenderPass, diffuseIrradianceExtent, diffuseIrradianceDescSetLayout, pcRaster, 0);
 	}
 
-	std::vector<LoadStoreInfo> loadStoreInfos;
-	{
-
-		LoadStoreInfo depthLoadStoreInfo{};
-		depthLoadStoreInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		depthLoadStoreInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-
-
-		// for shadow map
-		loadStoreInfos.push_back(depthLoadStoreInfo);
-	}
-
-
-	VkExtent2D surfaceExtent = { SHADOW_WIDTH,SHADOW_HEIGHT };
-
-	renderPass = std::make_unique<RenderPass>(device, attachments, loadStoreInfos, subpassInfos);
 
 
 
-	hdrToCubeMapRenderPass = std::make_unique<HDRToCubeMapRenderPass>(device, resourceManager, *renderPass, surfaceExtent, descSetLayout, pcRaster, 0);
 
 	createRenderTarget();
 
@@ -90,18 +170,36 @@ void mini::MakeCubeMapPipeline::createHDRToCubeMapUniforms()
 
 void mini::MakeCubeMapPipeline::createDescriptorSetLayout()
 {
-	descSetBindings.addBinding(HDRToCubeMapBindings::eHDRInput, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
-		VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
+
+	// HDR to CubeMap
+	{
+		hdrToCubeMapDescSetBindings.addBinding(HDRToCubeMapBindings::eHDRInput, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
+			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
 
 
-	descSetBindings.addBinding(HDRToCubeMapBindings::eHDRToCubeMapUniforms, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
-		VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
+		hdrToCubeMapDescSetBindings.addBinding(HDRToCubeMapBindings::eHDRToCubeMapUniforms, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
+			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
 
 
-	descSetLayout = descSetBindings.createLayout(device);
-	descPool = descSetBindings.createPool(device, 1);
-	descSet = descPool->allocateDescriptorSet(*descSetLayout);
+		hdrToCubeMapDescSetLayout = hdrToCubeMapDescSetBindings.createLayout(device);
+		hdrToCubeMapDescPool = hdrToCubeMapDescSetBindings.createPool(device, 1);
+		hdrToCubeMapDescSet = hdrToCubeMapDescPool->allocateDescriptorSet(*hdrToCubeMapDescSetLayout);
+	}
 
+	// Diffuse Irradiance
+	{
+		diffuseIrradianceDescSetBindings.addBinding(HDRToCubeMapBindings::eHDRInput, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
+			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
+
+
+		diffuseIrradianceDescSetBindings.addBinding(HDRToCubeMapBindings::eHDRToCubeMapUniforms, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
+			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
+
+
+		diffuseIrradianceDescSetLayout = diffuseIrradianceDescSetBindings.createLayout(device);
+		diffuseIrradianceDescPool = diffuseIrradianceDescSetBindings.createPool(device, 1);
+		diffuseIrradianceDescSet = diffuseIrradianceDescPool->allocateDescriptorSet(*diffuseIrradianceDescSetLayout);
+	}
 }
 
 void mini::MakeCubeMapPipeline::createRenderTarget()
@@ -110,21 +208,44 @@ void mini::MakeCubeMapPipeline::createRenderTarget()
 
 
 
-	VkExtent2D cubeMapExtent = { CUBE_MAP_SIZE,CUBE_MAP_SIZE };
+	
+
+	// HDR to CubeMap
+	{
 
 
-	std::vector<Image> images;
+		std::vector<Image> images;
 
-	std::unique_ptr<Image> image = std::make_unique<Image>(device,
-		cubeMapExtent, CUBE_MAP_FORMAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, 6);
+		std::unique_ptr<Image> image = std::make_unique<Image>(device,
+			cubeMapExtent, CUBE_MAP_FORMAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, 6);
 
 
-	images.push_back(std::move(*image));
 
-	renderTarget = std::make_unique<RenderTarget>(std::move(images), VK_IMAGE_VIEW_TYPE_CUBE);
+		images.push_back(std::move(*image));
 
-	framebuffer = std::make_unique<FrameBuffer>(device, *renderTarget, *renderPass);
 
+		hdrToCubeMapRenderTarget = std::make_unique<RenderTarget>(std::move(images), VK_IMAGE_VIEW_TYPE_CUBE);
+
+		hdrToCubeMapFramebuffer = std::make_unique<FrameBuffer>(device, *hdrToCubeMapRenderTarget, *hdrToCubeMapRenderPass);
+	}
+
+	// Diffuse iradiance
+	{
+
+
+		std::vector<Image> images;
+
+
+		std::unique_ptr<Image> irradianceMapimage = std::make_unique<Image>(device,
+			diffuseIrradianceExtent, CUBE_MAP_FORMAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, 6);
+
+		images.push_back(std::move(*irradianceMapimage));
+
+		diffuseIrradianceRenderTarget = std::make_unique<RenderTarget>(std::move(images), VK_IMAGE_VIEW_TYPE_CUBE);
+
+		diffuseIrradianceFramebuffer = std::make_unique<FrameBuffer>(device, *diffuseIrradianceRenderTarget, *diffuseIrradianceRenderPass);
+
+	}
 
 
 
@@ -132,30 +253,59 @@ void mini::MakeCubeMapPipeline::createRenderTarget()
 
 void mini::MakeCubeMapPipeline::updateDescriptorSet(ImageView& hdrImageView)
 {
-	std::vector<VkWriteDescriptorSet> descriptorWrites;
+
+	// HDR to cubemap
+	{
+		std::vector<VkWriteDescriptorSet> descriptorWrites;
 
 
 
-	VkDescriptorImageInfo hdrInputImageInfo;
-	hdrInputImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	hdrInputImageInfo.imageView = hdrImageView.getHandle();
-	hdrInputImageInfo.sampler = resourceManager.getDefaultSampler().getHandle();
+		VkDescriptorImageInfo hdrInputImageInfo;
+		hdrInputImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		hdrInputImageInfo.imageView = hdrImageView.getHandle();
+		hdrInputImageInfo.sampler = resourceManager.getDefaultSampler().getHandle();
 
-	descriptorWrites.emplace_back(descSetBindings.makeWrite(descSet, HDRToCubeMapBindings::eHDRInput, &hdrInputImageInfo));
+		descriptorWrites.emplace_back(hdrToCubeMapDescSetBindings.makeWrite(hdrToCubeMapDescSet, HDRToCubeMapBindings::eHDRInput, &hdrInputImageInfo));
 
-	VkDescriptorBufferInfo hdrToCubeMapUniformsInfo = hdrToCubeMapUniforms->getDescriptorBufferInfo();
-	descriptorWrites.emplace_back(descSetBindings.makeWrite(descSet, HDRToCubeMapBindings::eHDRToCubeMapUniforms, &hdrToCubeMapUniformsInfo));
+		VkDescriptorBufferInfo hdrToCubeMapUniformsInfo = hdrToCubeMapUniforms->getDescriptorBufferInfo();
+		descriptorWrites.emplace_back(hdrToCubeMapDescSetBindings.makeWrite(hdrToCubeMapDescSet, HDRToCubeMapBindings::eHDRToCubeMapUniforms, &hdrToCubeMapUniformsInfo));
 
-	vkUpdateDescriptorSets(device.getHandle(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+		vkUpdateDescriptorSets(device.getHandle(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+	}
+
+	// Diffuse Irradiance
+	{
+		std::vector<VkWriteDescriptorSet> descriptorWrites;
+
+		VkDescriptorImageInfo hdrInputImageInfo;
+		hdrInputImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+		hdrInputImageInfo.imageView = hdrToCubeMapRenderTarget->getImageViewByIndex(0).getHandle();
+		hdrInputImageInfo.sampler = resourceManager.getDefaultSampler().getHandle();
+
+		descriptorWrites.emplace_back(diffuseIrradianceDescSetBindings.makeWrite(diffuseIrradianceDescSet, DiffuseIrradianceBindings::eDiffuseIrradianceInput, &hdrInputImageInfo));
+
+		VkDescriptorBufferInfo hdrToCubeMapUniformsInfo = hdrToCubeMapUniforms->getDescriptorBufferInfo();
+		descriptorWrites.emplace_back(diffuseIrradianceDescSetBindings.makeWrite(diffuseIrradianceDescSet, DiffuseIrradianceBindings::eDiffuseIrradianceUniforms, &hdrToCubeMapUniformsInfo));
+
+		vkUpdateDescriptorSets(device.getHandle(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+
+	}
+
 }
 
 void mini::MakeCubeMapPipeline::draw(CommandBuffer& cmd)
 {
-	VkClearValue clearValue;
-	clearValue.color = { 0.0f, 0.0f, 0.0f, 1.0f };
+	std::vector<VkClearValue> clearValue{ 1 };
+	clearValue[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 
-	cmd.beginRenderPass(*renderPass, *framebuffer, { clearValue });
-	hdrToCubeMapRenderPass->draw(cmd, { descSet });
+	cmd.beginRenderPass(*hdrToCubeMapRenderPass, *hdrToCubeMapFramebuffer, clearValue);
+	hdrToCubeMapPass->draw(cmd, { hdrToCubeMapDescSet });
 	cmd.endRenderPass();
+
+	cmd.beginRenderPass(*diffuseIrradianceRenderPass, *diffuseIrradianceFramebuffer, clearValue);
+	diffuseIrradiancePass->draw(cmd, { diffuseIrradianceDescSet });
+	cmd.endRenderPass();
+
+
 }

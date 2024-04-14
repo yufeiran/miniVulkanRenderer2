@@ -413,6 +413,10 @@ void GraphicsPipelineBuilder::createDescriptorSetLayout()
 		VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
 		| VK_SHADER_STAGE_MISS_BIT_KHR | VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
 
+	descSetBindings.addBinding(SceneBindings::eDiffuseIrradiance, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
+		VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
+		| VK_SHADER_STAGE_MISS_BIT_KHR | VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
+
 	descSetBindings.addBinding(SceneBindings::eDirShadowMap, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
 		| VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
 
@@ -527,7 +531,7 @@ void GraphicsPipelineBuilder::createSSAOBuffers()
 
 
 void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& dirShadowRenderTarget, RenderTarget& pointShadowRenderTarget, RenderTarget& offscreenRenderTarget,
-	const ImageView& cubemapImageView)
+	const ImageView& cubemapImageView, const ImageView& diffuseIrradianceImageView)
 {
 	std::vector<VkWriteDescriptorSet> writes;
 
@@ -547,11 +551,19 @@ void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& dirShadowRenderT
 	writes.emplace_back(descSetBindings.makeWriteArray(descSet, SceneBindings::eTextures, diit.data()));
 
 
+
+
 	VkDescriptorImageInfo cubeMapInfo;
 	cubeMapInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
 	cubeMapInfo.imageView = cubemapImageView.getHandle();
 	cubeMapInfo.sampler = resourceManager.getDefaultSampler().getHandle();
 	writes.emplace_back(descSetBindings.makeWrite(descSet, SceneBindings::eCubeMap, &cubeMapInfo));
+
+	VkDescriptorImageInfo diffuseIrradianceImageInfo;
+	diffuseIrradianceImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+	diffuseIrradianceImageInfo.imageView = diffuseIrradianceImageView.getHandle();
+	diffuseIrradianceImageInfo.sampler = resourceManager.getDefaultSampler().getHandle();
+	writes.emplace_back(descSetBindings.makeWrite(descSet, SceneBindings::eDiffuseIrradiance, &diffuseIrradianceImageInfo));
 
 
 	VkDescriptorImageInfo shadowMapInfo;

@@ -33,7 +33,7 @@ namespace mini
 		void updateLightUniformsBuffer(CommandBuffer& cmd, const std::vector<Light>& shadowLights);
 
 		void updateDescriptorSet(RenderTarget& dirShadowRenderTarget, RenderTarget& pointShadowRenderTarget,RenderTarget& offscreenRenderTarget,
-			const ImageView& cubemapImageView);
+			const ImageView& cubemapImageView ,const ImageView& diffuseIrradianceImageView);
 
 		Buffer& getLightUniformsBuffer() { return *lightUniformsBuffer; }
 

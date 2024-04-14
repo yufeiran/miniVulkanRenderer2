@@ -365,6 +365,35 @@ namespace mini
 
 	};
 
+	class DiffuseIrradianceRenderPass :public GraphicsRenderPass
+	{
+	public:
+		DiffuseIrradianceRenderPass(Device& device,
+						ResourceManager& resourceManager,
+						const RenderPass& renderPass,
+						VkExtent2D extent,
+						std::shared_ptr<DescriptorSetLayout> descSetLayout,
+						PushConstantRaster& pcRaster,
+						int subpassIndex = 0
+				);
+		~DiffuseIrradianceRenderPass();
+
+		void update();
+		void draw(CommandBuffer& cmd, std::vector<VkDescriptorSet> descSet);
+
+		void rebuild(VkExtent2D surfaceExtent, int subpassIndex = 0);
+	private:
+		const RenderPass& renderPass;
+
+		PushConstantRaster& pcRaster;
+
+		std::vector<std::unique_ptr<ShaderModule>> shaderModules;
+		std::unique_ptr<PipelineLayout>            pipelineLayout;
+
+		SkyLightCube skyLightCube;
+
+
+	};
 
 
 
