@@ -1,5 +1,10 @@
 # miniVulkanRenderer2
- A mini renderer using Vulkan
+
+<div align="center">
+<img src="assets/logo.png">
+<p>A mini renderer using Vulkan</p>
+</div>
+
  ## 1. Features
  * PBR
  * PathTrace
