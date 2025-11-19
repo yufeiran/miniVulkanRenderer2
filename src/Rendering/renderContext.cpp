@@ -59,12 +59,17 @@ void RenderContext::prepare(const RenderPass& renderPass,
 		}
 
 		commandPool = std::make_unique<CommandPool>(device);
+		uint32_t imageCount = swapchain->getImageCount();
+		for (int i = 0; i < imageCount; i++)
+		{
+			renderFinishedSemaphores.emplace_back(std::make_unique<Semaphore>(device));
+		}
 
 		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
 
 			imageAvailableSemaphores.emplace_back(std::make_unique<Semaphore>(device));
-			renderFinishedSemaphores.emplace_back(std::make_unique<Semaphore>(device));
+			
 
 			inFlightFences.emplace_back(std::make_unique<Fence>(device, VK_FENCE_CREATE_SIGNALED_BIT));
 
@@ -135,7 +140,7 @@ void RenderContext::submit(const Queue& queue, const CommandBuffer* cmd)
 	VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
 
 	auto& imageAvailableSemaphore = imageAvailableSemaphores[currentFrames];
-	auto& renderFinishedSemaphore = renderFinishedSemaphores[currentFrames];
+	auto& renderFinishedSemaphore = renderFinishedSemaphores[activeFrameIndex];
 	auto& inFlightFence = inFlightFences[currentFrames];
 
 
@@ -165,9 +170,11 @@ void RenderContext::submit(const Queue& queue, const CommandBuffer* cmd)
 
 void RenderContext::endFrame()
 {
+	
 	auto& imageAvailableSemaphore = imageAvailableSemaphores[currentFrames];
-	auto& renderFinishedSemaphore = renderFinishedSemaphores[currentFrames];
+	auto& renderFinishedSemaphore = renderFinishedSemaphores[activeFrameIndex];
 	auto& inFlightFence = inFlightFences[currentFrames];
+	
 
 	assert(frameActive && "Frame is not active, call beginFrame");
 	if (swapchain)

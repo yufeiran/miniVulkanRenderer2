@@ -33,17 +33,8 @@
 /.VSCodeCounter
 imgui.ini
 
-/spv
+spv/
+*.spv
 
-*.spv
-spv/raytrace.rgen.spv
-*.spv
-spv/fragmentShader.frag.spv
-spv/raytrace.rchit.spv
-spv/raytrace.rgen.spv
-spv/vertexShader.vert.spv
-*.spv
-*.spv
-*.spv
 .$pass.drawio.bkp
 *.dtmp

@@ -21,7 +21,7 @@ using namespace std::chrono;
 
 void MiniVulkanRenderer::load()
 {
-	int testCase = 0;
+	int testCase = 2;
 	switch (testCase)
 	{
 	case 0:

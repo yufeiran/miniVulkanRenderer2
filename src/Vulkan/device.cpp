@@ -106,6 +106,10 @@ Device::Device(PhysicalDevice& gpu,
 	
 	asFeatures.pNext = &rtFeatures;
 
+	VkPhysicalDeviceVulkan13Features features13{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES };
+	features13.shaderDemoteToHelperInvocation = VK_TRUE;
+	rtFeatures.pNext = &features13;
+
 
 
 
