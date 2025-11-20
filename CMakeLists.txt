@@ -4,15 +4,28 @@
 
 cmake_minimum_required( VERSION 3.20)
 
-set(CMAKE_TOOLCHAIN_FILE C:/src/vcpkg/scripts/buildsystems/vcpkg.cmake)
+# if windows, set vcpkg toolchain file
+if(WIN32)
+  set(CMAKE_TOOLCHAIN_FILE C:/src/vcpkg/scripts/buildsystems/vcpkg.cmake)
+endif()
 
 project("miniVulkanRenderer2")
 
+set(CMAKE_BUILD_TYPE Debug) 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
+
 
 #设置多线程编译
 if (MSVC)
 add_definitions("/MP")
+endif()
+
+if(WIN32)
+    add_definitions(-DVK_USE_PLATFORM_WIN32_KHR)
+elseif(UNIX)
+    add_definitions(-DVK_USE_PLATFORM_XCB_KHR)
 endif()
 
 

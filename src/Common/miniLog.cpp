@@ -1,8 +1,13 @@
 #include "miniLog.h"
+#if defined(_WIN32) || defined(_WIN64)
 #include <Windows.h>
+#endif
 #include <fstream>
 #include <chrono>
 #include <map>
+#include <cstring>
+
+#include "Common/common.h"
 
 namespace mini {
 
@@ -16,19 +21,23 @@ const int LOG_TYPE_COLOR[LOG_TYPE_SUM] = {
 	6
 };
 
-
+#if defined(_WIN32) || defined(_WIN64)
 HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+#endif
 
 void outputTag(LOG_TYPE logType)
 {
 	if(logType!=NONE_TYPE)
 	{	std::cout << "[";
 
+#if defined(_WIN32) || defined(_WIN64)
 		SetConsoleTextAttribute(handle, FOREGROUND_INTENSITY | LOG_TYPE_COLOR[logType]);
+#endif
 
 		std::cout << LOG_TYPE_STR[logType];
+#if defined(_WIN32) || defined(_WIN64)
 		SetConsoleTextAttribute(handle, FOREGROUND_INTENSITY | 7);
-
+#endif
 		std::cout << "] ";
 	}
 }
@@ -92,7 +101,7 @@ void LogSpace()
 void LogLogo()
 {
 	std::ifstream logoFile;
-	logoFile.open("../../assets/logo.txt");
+	logoFile.open(getAssetPath("logo.txt"));
 	while(logoFile)
 	{
 		char lineBuf[200];

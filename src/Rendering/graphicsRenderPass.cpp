@@ -25,8 +25,8 @@ GeometryRenderPass::GeometryRenderPass(Device& device,
 )
 	:GraphicsRenderPass(device, resourceManager, extent), renderPass(renderPass), pcRaster(pcRaster)
 {
-	rasterShaderModules.push_back(std::make_unique<ShaderModule>("../../spv/geometry.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
-	rasterShaderModules.push_back(std::make_unique<ShaderModule>("../../spv/geometry.frag.spv", device, VK_SHADER_STAGE_FRAGMENT_BIT));
+	rasterShaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("geometry.vert.spv"), device, VK_SHADER_STAGE_VERTEX_BIT));
+	rasterShaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("geometry.frag.spv"), device, VK_SHADER_STAGE_FRAGMENT_BIT));
 
 	std::vector<VkPushConstantRange> pushConstants;
 	VkPushConstantRange pushConstant = {};
@@ -104,8 +104,8 @@ SkyLightRenderPass::SkyLightRenderPass(Device& device,
 	int                                  subpassIndex)
 	:GraphicsRenderPass(device, resourceManager, extent), renderPass(renderPass), pcRaster(pcRaster), skyLightCube(device)
 {
-	skyLightShaderModules.push_back(std::make_unique<ShaderModule>("../../spv/skybox.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
-	skyLightShaderModules.push_back(std::make_unique<ShaderModule>("../../spv/skybox.frag.spv", device, VK_SHADER_STAGE_FRAGMENT_BIT));
+	skyLightShaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("skybox.vert.spv"), device, VK_SHADER_STAGE_VERTEX_BIT));
+	skyLightShaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("skybox.frag.spv"), device, VK_SHADER_STAGE_FRAGMENT_BIT));
 
 	std::vector<VkPushConstantRange> pushConstants;
 	VkPushConstantRange pushConstant = {};
@@ -185,8 +185,8 @@ DirShadowMapRenderPass::DirShadowMapRenderPass(Device& device,
 	int subpassIndex
 ) :GraphicsRenderPass(device, resourceManager, extent), renderPass(renderPass), pcRaster(pcRaster)
 {
-	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/shadowMap.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
-	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/shadowMap.frag.spv", device, VK_SHADER_STAGE_FRAGMENT_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("shadowMap.vert.spv"), device, VK_SHADER_STAGE_VERTEX_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("shadowMap.frag.spv"), device, VK_SHADER_STAGE_FRAGMENT_BIT));
 
 	std::vector<VkPushConstantRange> pushConstants;
 	VkPushConstantRange pushConstant = {};
@@ -246,9 +246,9 @@ void DirShadowMapRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
 PointShadowMapRenderPass::PointShadowMapRenderPass(Device& device, ResourceManager& resourceManager, const RenderPass& renderPass, VkExtent2D extent, std::shared_ptr<DescriptorSetLayout> descSetLayout, PushConstantRaster& pcRaster, int subpassIndex)
 	:GraphicsRenderPass(device, resourceManager, extent), renderPass(renderPass), pcRaster(pcRaster)
 {
-	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/shadowMapPoint.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
-	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/shadowMapPoint.geom.spv", device, VK_SHADER_STAGE_GEOMETRY_BIT));
-	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/shadowMapPoint.frag.spv", device, VK_SHADER_STAGE_FRAGMENT_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("shadowMapPoint.vert.spv"), device, VK_SHADER_STAGE_VERTEX_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("shadowMapPoint.geom.spv"), device, VK_SHADER_STAGE_GEOMETRY_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("shadowMapPoint.frag.spv"), device, VK_SHADER_STAGE_FRAGMENT_BIT));
 
 	std::vector<VkPushConstantRange> pushConstants;
 	VkPushConstantRange pushConstant = {};
@@ -311,8 +311,8 @@ void PointShadowMapRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassInde
 LightingRenderPass::LightingRenderPass(Device& device, ResourceManager& resourceManager, const RenderPass& renderPass, VkExtent2D extent, std::shared_ptr<DescriptorSetLayout> globalDescSetLayout, std::shared_ptr<DescriptorSetLayout> gBufferDescSetLayout, PushConstantRaster& pcRaster, int subpassIndex)
 	:GraphicsRenderPass(device, resourceManager, extent), renderPass(renderPass), pcRaster(pcRaster), postQuad(device)
 {
-	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/lighting.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
-	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/lighting.frag.spv", device, VK_SHADER_STAGE_FRAGMENT_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("lighting.vert.spv"), device, VK_SHADER_STAGE_VERTEX_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("lighting.frag.spv"), device, VK_SHADER_STAGE_FRAGMENT_BIT));
 
 	std::vector<VkPushConstantRange> pushConstants;
 	VkPushConstantRange pushConstant = {};
@@ -380,8 +380,8 @@ SSAORenderPass::SSAORenderPass(Device& device,
 	int                                   subpassIndex)
 	:GraphicsRenderPass(device, resourceManager, extent), renderPass(renderPass), pcRaster(pcRaster), postQuad(device)
 {
-	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/ssao.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
-	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/ssao.frag.spv", device, VK_SHADER_STAGE_FRAGMENT_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("ssao.vert.spv"), device, VK_SHADER_STAGE_VERTEX_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("ssao.frag.spv"), device, VK_SHADER_STAGE_FRAGMENT_BIT));
 
 	std::vector<VkPushConstantRange> pushConstants;
 	VkPushConstantRange pushConstant = {};
@@ -447,8 +447,8 @@ SSAOBlurRenderPass::SSAOBlurRenderPass(Device& device,
 	PushConstantRaster& pcRaster, int subpassIndex)
 	:GraphicsRenderPass(device, resourceManager, extent), renderPass(renderPass), pcRaster(pcRaster), postQuad(device)
 {
-	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/ssao.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
-	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/ssaoBlur.frag.spv", device, VK_SHADER_STAGE_FRAGMENT_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("ssao.vert.spv"), device, VK_SHADER_STAGE_VERTEX_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("ssaoBlur.frag.spv"), device, VK_SHADER_STAGE_FRAGMENT_BIT));
 
 
 	std::vector<VkPushConstantRange> pushConstants;
@@ -512,8 +512,8 @@ PBBDownSamplingRenderPass::PBBDownSamplingRenderPass(Device& device,
 	int subpassIndex)
 	:GraphicsRenderPass(device, resourceManager, extent), renderPass(renderPass), pcPost(pcPost), postQuad(device)
 {
-	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/post.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
-	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/pbbloomDownSampling.frag.spv", device, VK_SHADER_STAGE_FRAGMENT_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("post.vert.spv"), device, VK_SHADER_STAGE_VERTEX_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("pbbloomDownSampling.frag.spv"), device, VK_SHADER_STAGE_FRAGMENT_BIT));
 
 	std::vector<VkPushConstantRange> pushConstants;
 	VkPushConstantRange pushConstant = {};
@@ -577,8 +577,8 @@ mini::PBBUpSamplingRenderPass::PBBUpSamplingRenderPass(
 	int subpassIndex)
 	:GraphicsRenderPass(device, resourceManager, extent), renderPass(renderPass), pcPost(pcPost), postQuad(device)
 {
-	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/post.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
-	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/pbbloomUpSampling.frag.spv", device, VK_SHADER_STAGE_FRAGMENT_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("post.vert.spv"), device, VK_SHADER_STAGE_VERTEX_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("pbbloomUpSampling.frag.spv"), device, VK_SHADER_STAGE_FRAGMENT_BIT));
 
 	std::vector<VkPushConstantRange> pushConstants;
 	VkPushConstantRange pushConstant = {};
@@ -634,8 +634,8 @@ void mini::PBBUpSamplingRenderPass::rebuild(VkExtent2D surfaceExtent, int subpas
 mini::SSRRenderPass::SSRRenderPass(Device& device, ResourceManager& resourceManager, const RenderPass& renderPass, VkExtent2D extent, std::shared_ptr<DescriptorSetLayout> descSetLayout, std::shared_ptr<DescriptorSetLayout> ssrDescSetLayout, PushConstantRaster& pcRaster, int subpassIndex)
 	:GraphicsRenderPass(device, resourceManager, extent), renderPass(renderPass), pcRaster(pcRaster), postQuad(device)
 {
-	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/ssr.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
-	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/ssr.frag.spv", device, VK_SHADER_STAGE_FRAGMENT_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("ssr.vert.spv"), device, VK_SHADER_STAGE_VERTEX_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("ssr.frag.spv"), device, VK_SHADER_STAGE_FRAGMENT_BIT));
 
 	std::vector<VkPushConstantRange> pushConstants;
 	VkPushConstantRange pushConstant = {};
@@ -695,8 +695,8 @@ void mini::SSRRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex)
 mini::SSRBlurRenderPass::SSRBlurRenderPass(Device& device, ResourceManager& resourceManager, const RenderPass& renderPass, VkExtent2D extent, std::shared_ptr<DescriptorSetLayout> ssaoBlurDescSetLayout, PushConstantRaster& pcRaster, int subpassIndex)
 	:GraphicsRenderPass(device, resourceManager, extent), renderPass(renderPass), pcRaster(pcRaster), postQuad(device)
 {
-	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/ssao.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
-	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/ssrBlur.frag.spv", device, VK_SHADER_STAGE_FRAGMENT_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("ssao.vert.spv"), device, VK_SHADER_STAGE_VERTEX_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("ssrBlur.frag.spv"), device, VK_SHADER_STAGE_FRAGMENT_BIT));
 
 
 	std::vector<VkPushConstantRange> pushConstants;
@@ -752,9 +752,9 @@ void mini::SSRBlurRenderPass::rebuild(VkExtent2D surfaceExtent, int subpassIndex
 mini::HDRToCubeMapRenderPass::HDRToCubeMapRenderPass(Device& device, ResourceManager& resourceManager, const RenderPass& renderPass, VkExtent2D extent, std::shared_ptr<DescriptorSetLayout> descSetLayout, PushConstantRaster& pcRaster, int subpassIndex)
 	:GraphicsRenderPass(device, resourceManager, extent), renderPass(renderPass), pcRaster(pcRaster), skyLightCube(device)
 {
-	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/hdrToCubemap.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
-	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/hdrToCubemap.geom.spv", device, VK_SHADER_STAGE_GEOMETRY_BIT));
-	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/hdrToCubemap.frag.spv", device, VK_SHADER_STAGE_FRAGMENT_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("hdrToCubemap.vert.spv"), device, VK_SHADER_STAGE_VERTEX_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("hdrToCubemap.geom.spv"), device, VK_SHADER_STAGE_GEOMETRY_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("hdrToCubemap.frag.spv"), device, VK_SHADER_STAGE_FRAGMENT_BIT));
 
 	std::vector<VkPushConstantRange> pushConstants;
 	VkPushConstantRange pushConstant = {};
@@ -821,9 +821,9 @@ void mini::HDRToCubeMapRenderPass::rebuild(VkExtent2D surfaceExtent, int subpass
 mini::DiffuseIrradianceRenderPass::DiffuseIrradianceRenderPass(Device& device, ResourceManager& resourceManager, const RenderPass& renderPass, VkExtent2D extent, std::shared_ptr<DescriptorSetLayout> descSetLayout, PushConstantRaster& pcRaster, int subpassIndex)
 	:GraphicsRenderPass(device, resourceManager, extent), renderPass(renderPass), pcRaster(pcRaster), skyLightCube(device)
 {
-	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/diffuseIrradiance.vert.spv", device, VK_SHADER_STAGE_VERTEX_BIT));
-	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/diffuseIrradiance.geom.spv", device, VK_SHADER_STAGE_GEOMETRY_BIT));
-	shaderModules.push_back(std::make_unique<ShaderModule>("../../spv/diffuseIrradiance.frag.spv", device, VK_SHADER_STAGE_FRAGMENT_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("diffuseIrradiance.vert.spv"), device, VK_SHADER_STAGE_VERTEX_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("diffuseIrradiance.geom.spv"), device, VK_SHADER_STAGE_GEOMETRY_BIT));
+	shaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("diffuseIrradiance.frag.spv"), device, VK_SHADER_STAGE_FRAGMENT_BIT));
 
 	std::vector<VkPushConstantRange> pushConstants;
 	VkPushConstantRange pushConstant = {};

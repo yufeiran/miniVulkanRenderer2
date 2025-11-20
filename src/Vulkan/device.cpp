@@ -211,7 +211,7 @@ Queue& Device::getPresentQueue() const
 
 void Device::copyBuffer(Buffer& srcBuffer, Buffer& dstBuffer, VkDeviceSize size)
 {
-	auto &cmd= commandPoolForTransfer->createCommandBuffer();
+	auto cmd= commandPoolForTransfer->createCommandBuffer();
 
 	cmd->begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 

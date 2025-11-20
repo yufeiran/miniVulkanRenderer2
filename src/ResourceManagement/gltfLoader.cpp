@@ -751,7 +751,7 @@ void GltfLoader::createTangents(GltfPrimMesh& resultMesh)
 		glm::vec3 otangent = glm::normalize(t - (glm::dot(n, t) * n));
 
 		// In case the tangent is invalid
-		if(isnan(otangent.x) || isnan(otangent.y) || isnan(otangent.z)){
+		if(std::isnan(otangent.x) || std::isnan(otangent.y) || std::isnan(otangent.z)){
 			otangent = glm::vec3(0, 0, 0);
 		}
 

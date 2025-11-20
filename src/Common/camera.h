@@ -25,7 +25,7 @@ public:
 	void calViewMat();
 	void updateCameraVec();
 
-	void setPos(glm::vec3& pos);
+	void setPos(const glm::vec3& pos);
 
 	void setViewDir(double yaw, double pitch);
 

@@ -1,5 +1,5 @@
 #include "Rendering/postQuad.h"
-
+#include <memory>
 using namespace mini;
 
 PostQuad::PostQuad(Device& device)

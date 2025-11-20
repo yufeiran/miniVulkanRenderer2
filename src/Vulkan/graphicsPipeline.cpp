@@ -1,4 +1,4 @@
-#include "GraphicsPipeline.h"
+#include "graphicsPipeline.h"
 #include "shaderModule.h"
 #include "device.h"
 #include "Vulkan/renderPass.h"

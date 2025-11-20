@@ -3,7 +3,9 @@
 #include"stb_image.h"
 
 #define GLFW_EXPOSE_NATIVE_WIN32
+#if defined(_WIN32) || defined(_WIN64)
 #include"GLFW/glfw3native.h"
+#endif 
 
 #include<fstream>
 
@@ -19,7 +21,8 @@ GUIWindow::GUIWindow(int width, int height, const char* title)
 	glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
 	handle = glfwCreateWindow(width, height, "miniVulkanRenderer2", nullptr, nullptr);
-	loadIcon("../../assets/logo.png");
+	std::string iconPath = getAssetPath("logo.png");
+	loadIcon(iconPath.c_str());
 	
 	//setCursorMode(DISABLED_CURSOR);
 
@@ -62,7 +65,7 @@ void GUIWindow::joystickInput()
 	
 	const char* mappings;
 	
-	std::ifstream infile("../../assets/gamecontrollerdb.txt", std::ios::out | std::ios::in);
+	std::ifstream infile(getAssetPath("gamecontrollerdb.txt"), std::ios::out | std::ios::in);
 
 	std::ostringstream tmp;
 	tmp << infile.rdbuf();
@@ -85,10 +88,10 @@ VkSurfaceKHR GUIWindow::createSurface(VkInstance instance)
 	}
 	this->instance = instance;
 
-	VkWin32SurfaceCreateInfoKHR createInfo{};
-	createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-	createInfo.hwnd = glfwGetWin32Window(handle);
-	createInfo.hinstance = GetModuleHandle(nullptr);
+	// VkWin32SurfaceCreateInfoKHR createInfo{};
+	// createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+	// createInfo.hwnd = glfwGetWin32Window(handle);
+	// createInfo.hinstance = GetModuleHandle(nullptr);
 
 	VkSurfaceKHR surface;
 

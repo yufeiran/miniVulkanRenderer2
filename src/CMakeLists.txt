@@ -71,8 +71,8 @@ set(COMMON_FILES
     ./Common/miniError.h
     ./Common/material.h
     ./Common/material.cpp 
-    ./Common/Vertex.h 
-    ./Common/Vertex.cpp 
+    ./Common/vertex.h 
+    ./Common/vertex.cpp 
     ./Common/camera.h 
     ./Common/camera.cpp 
     ./Common/common.h
@@ -82,11 +82,8 @@ set(COMMON_FILES
 )
 
 set(PLATFORM_FILES
-    ./Platform/platform.h 
-    ./Platform/platform.cpp 
     ./Platform/GUIWindow.h 
     ./Platform/GUIWindow.cpp 
-
 )
 
 set(RENDERING_FILES 
@@ -155,13 +152,15 @@ add_executable(miniVulkanRenderer2
 )
 
 
-
 find_package(glfw3 REQUIRED)
 set_property(TARGET miniVulkanRenderer2 PROPERTY VS_DEBUGGER_WORKING_DIRECTORY 
 "$<TARGET_FILE_DIR:miniVulkanRenderer2>")
 
 if (WIN32)
    set(VOLK_STATIC_DEFINES VK_USE_PLATFORM_WIN32_KHR)
+endif()
+if (UNIX)
+    set(VOLK_STATIC_DEFINES VK_USE_PLATFORM_XCB_KHR)
 endif()
 
 target_include_directories(miniVulkanRenderer2 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")

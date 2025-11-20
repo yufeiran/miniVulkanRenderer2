@@ -29,7 +29,7 @@
 #include "Vulkan/image.h"
 #include "Vulkan/swapchain.h"
 #include "Vulkan/shaderModule.h"
-#include "Vulkan/GraphicsPipeline.h"
+#include "Vulkan/graphicsPipeline.h"
 #include "Vulkan/commandPool.h"
 #include "Vulkan/commandBuffer.h"
 #include "Vulkan/framebuffer.h"

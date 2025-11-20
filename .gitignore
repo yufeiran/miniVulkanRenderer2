@@ -38,3 +38,6 @@ spv/
 
 .$pass.drawio.bkp
 *.dtmp
+
+.cache/
+compile_commands.json

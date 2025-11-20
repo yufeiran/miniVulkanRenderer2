@@ -102,39 +102,39 @@ namespace mini
 					colorRefs.push_back(ref);
 				}
 			}
-			VkSubpassDescription subpass{};
-			subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+			VkSubpassDescription subpass1{};
+			subpass1.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 
 			if (inputRef.size() > 0)
 			{
-				subpass.inputAttachmentCount = inputRef.size();
-				subpass.pInputAttachments = inputRef.data();
+				subpass1.inputAttachmentCount = inputRef.size();
+				subpass1.pInputAttachments = inputRef.data();
 			}
 			else
 			{
-				subpass.inputAttachmentCount = 0;
-				subpass.pInputAttachments = nullptr;
+				subpass1.inputAttachmentCount = 0;
+				subpass1.pInputAttachments = nullptr;
 			}
 
 			if (colorRefs.size() > 0)
 			{
-				subpass.colorAttachmentCount = colorRefs.size();
-				subpass.pColorAttachments = colorRefs.data();
+				subpass1.colorAttachmentCount = colorRefs.size();
+				subpass1.pColorAttachments = colorRefs.data();
 			}
 			else
 			{
-				subpass.colorAttachmentCount = 0;
-				subpass.pColorAttachments = nullptr;
+				subpass1.colorAttachmentCount = 0;
+				subpass1.pColorAttachments = nullptr;
 			}
 
 			if (depthRefs.has_value())
 			{
-				subpass.pDepthStencilAttachment = &depthRefs.value();
+				subpass1.pDepthStencilAttachment = &depthRefs.value();
 			}
 			else {
-				subpass.pDepthStencilAttachment = nullptr;
+				subpass1.pDepthStencilAttachment = nullptr;
 			}
-			subpassDescriptions.push_back(subpass);
+			subpassDescriptions.push_back(subpass1);
 			subpassIndex++;
 
 		}
@@ -143,12 +143,12 @@ namespace mini
 
 		if (subpasses.size() == 0)
 		{
-			VkSubpassDescription subpass{};
-			subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-			subpass.colorAttachmentCount = 1;
-			subpass.pColorAttachments = &refs[0];
-			subpass.pDepthStencilAttachment = &refs[1];
-			subpassDescriptions.push_back(subpass);
+			VkSubpassDescription subpass1{};
+			subpass1.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+			subpass1.colorAttachmentCount = 1;
+			subpass1.pColorAttachments = &refs[0];
+			subpass1.pDepthStencilAttachment = &refs[1];
+			subpassDescriptions.push_back(subpass1);
 
 		}
 

@@ -11,6 +11,9 @@
 #include <assert.h>
 #include <array>
 #include <chrono>
+#include <memory>
+#include <sstream>
+#include <cstring>
 #include "miniLog.h"
 
 #define GLM_FORCE_RADIANS
@@ -23,7 +26,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 
+#if defined(_WIN32) || defined(_WIN64)
 #define VK_USE_PLATFORM_WIN32_KHR
+#elseif defined(UNIX)
+#define VK_USE_PLATFORM_XCB_KHR
+#endif
 #include"volk.h"
 
 
@@ -32,6 +39,7 @@
 
 #include"Common/miniLog.h"
 #include"Common/miniError.h"
+#include"Common/assertPath.h"
 
 namespace mini
 {

@@ -733,7 +733,7 @@ void GraphicsPipelineBuilder::updateUniformBuffer(CommandBuffer& cmd, Camera& ca
 	const float aspectRatio = surfaceExtent.width / static_cast<float>(surfaceExtent.height);
 	GlobalUniforms hostUBO = {};
 	const auto& view = camera.getViewMat();
-	auto& proj = glm::perspective(glm::radians(45.0f), (float)surfaceExtent.width / (float)surfaceExtent.height, camera.getNearPlane(), camera.getFarPlane());
+	auto proj = glm::perspective(glm::radians(45.0f), (float)surfaceExtent.width / (float)surfaceExtent.height, camera.getNearPlane(), camera.getFarPlane());
 	proj[1][1] *= -1;
 
 	hostUBO.viewProj = proj * view;

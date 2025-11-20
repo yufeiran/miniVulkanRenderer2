@@ -3,6 +3,7 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include "miniVulkanRenderer.h"
 #include <chrono>
+#include "Common/common.h"
 #include "Vulkan/shaderInfo.h"
 #include "ResourceManagement/ResourceManager.h"
 #include "Vulkan/sampler.h"
@@ -94,12 +95,12 @@ void MiniVulkanRenderer::loadFeatures()
 
 
 
-	//resourceManager->loadScene("../../assets/lightScene.gltf");
+	//resourceManager->loadScene(getAssetPath("lightScene.gltf");
 
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat, { 0,-1,0 });
 	objMat = glm::scale(objMat, { 3,1,3 });
-	//resourceManager->loadScene( "../../assets/plane/plane1.gltf",objMat);
+	//resourceManager->loadScene( getAssetPath("plane/plane1.gltf",objMat);
 
 }
 
@@ -111,7 +112,7 @@ void MiniVulkanRenderer::loadBugBox()
 
 	resourceManager->loadScene("D://yufeiran/model/bugbox/bugbox.gltf", objMat);
 
-	resourceManager->loadScene("../../assets/lightScene.gltf");
+	resourceManager->loadScene(getAssetPath("lightScene.gltf"));
 }
 
 void MiniVulkanRenderer::loadTestGltf()
@@ -131,33 +132,33 @@ void MiniVulkanRenderer::loadTestGltf()
 
 	objMat = glm::translate(objMat, { 2,0,0 });
 	objMat = glm::scale(objMat, { 5,5,5 });
-	//resourceManager->loadObjModel("bunny", "../../assets/bunny/bunny.obj",objMat);
+	//resourceManager->loadObjModel("bunny", getAssetPath("bunny/bunny.obj",objMat);
 
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat, { 4,2.5,0 });
 	objMat = glm::scale(objMat, { 2,2,2 });
-	//resourceManager->loadObjModel("smpl", "../../assets/smpl/smpl.obj",objMat);
+	//resourceManager->loadObjModel("smpl", getAssetPath("smpl/smpl.obj",objMat);
 
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat, { 0,2,0 });
 	objMat = glm::scale(objMat, { 1,1,1 });
-	//resourceManager->loadObjModel("backpack", "../../assets/backpack/backpack.obj",objMat, true);
+	//resourceManager->loadObjModel("backpack", getAssetPath("backpack/backpack.obj",objMat, true);
 
-	//resourceManager->loadScene("../../assets/glTFBox/Box.gltf",objMat);
+	//resourceManager->loadScene(getAssetPath("glTFBox/Box.gltf",objMat);
 
-	//resourceManager->loadScene("../../assets/glTFBox/Box.gltf");
+	//resourceManager->loadScene(getAssetPath("glTFBox/Box.gltf");
 	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf");
 
 	//objMat = glm::mat4(1.0f);
 	//objMat = glm::translate(objMat,{-12,5,0});
-	//resourceManager->loadScene("../../assets/cornellBox/cornellBox.gltf",objMat);
+	//resourceManager->loadScene(getAssetPath("cornellBox/cornellBox.gltf",objMat);
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat, { 0,0,0 });
 	objMat = glm::scale(objMat, { 3,1,3 });
-	resourceManager->loadScene("../../assets/plane/plane1.gltf", objMat);
+	resourceManager->loadScene(getAssetPath("plane/plane1.gltf"), objMat);
 
 
-	//resourceManager->loadScene("../../assets/lightScene.gltf");
+	//resourceManager->loadScene(getAssetPath("lightScene.gltf");
 
 
 	objMat = glm::mat4(1.0f);
@@ -209,9 +210,9 @@ void MiniVulkanRenderer::loadTestGltf()
 
 
 
-	//resourceManagement->loadModel("Medieval_building", "../../assets/nv_raytracing_tutorial_scene/Medieval_building.obj",true);
+	//resourceManagement->loadModel("Medieval_building", getAssetPath("nv_raytracing_tutorial_scene/Medieval_building.obj",true);
 
-	//resourceManagement->loadModel("plane", "../../assets/nv_raytracing_tutorial_scene/plane.obj",true);
+	//resourceManagement->loadModel("plane", getAssetPath("nv_raytracing_tutorial_scene/plane.obj",true);
 }
 
 void MiniVulkanRenderer::loadSponza()
@@ -221,11 +222,11 @@ void MiniVulkanRenderer::loadSponza()
 	//objMat = glm::translate(objMat,{-10,-1,0});
 	//resourceManager->loadScene("D://yufeiran/model/AMD/Deferred/Deferred.gltf",objMat);
 
-	resourceManager->loadScene("D://yufeiran/model/AMD/PBR/PBR.gltf", objMat);
+	//resourceManager->loadScene("D://yufeiran/model/AMD/PBR/PBR.gltf", objMat);
 
 	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",objMat);
 
-	//resourceManager->loadScene("../../assets/lightScene.gltf");
+	//resourceManager->loadScene(getAssetPath("lightScene.gltf");
 }
 
 
@@ -256,7 +257,7 @@ void MiniVulkanRenderer::loadShowCase()
 
 	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoomBox/glTF/BoomBox.gltf",objMat);
 
-	////resourceManager->loadScene("../../assets/lightScene.gltf");
+	////resourceManager->loadScene(getAssetPath("lightScene.gltf");
 
 
 
@@ -273,12 +274,12 @@ void MiniVulkanRenderer::loadShowCase()
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat, { 0,-1,0 });
 	objMat = glm::scale(objMat, { 5,1,5 });
-	//resourceManager->loadScene("../../assets/texturePlane/texturePlane.gltf", objMat);
+	//resourceManager->loadScene(getAssetPath("texturePlane/texturePlane.gltf", objMat);
 
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat, { 0,-1,0 });
 	objMat = glm::scale(objMat, { 1,1, 1 });
-	resourceManager->loadScene("../../assets/plane/plane.gltf", objMat);
+	resourceManager->loadScene(getAssetPath("plane/plane.gltf"), objMat);
 
 	//resourceManager->loadScene("D://yufeiran/model/rocky_ground_with_moss/scene.gltf", objMat);
 
@@ -348,39 +349,39 @@ void MiniVulkanRenderer::init(int width, int height)
 
 
 	std::vector<std::string> defaultCubeMapNames = {
-	"../../assets/skybox/default/right.jpg",
-	"../../assets/skybox/default/left.jpg",
-	"../../assets/skybox/default/top.jpg",
-	"../../assets/skybox/default/bottom.jpg",
-	"../../assets/skybox/default/front.jpg",
-	"../../assets/skybox/default/back.jpg",
+	getAssetPath("skybox/default/right.jpg"),
+	getAssetPath("skybox/default/left.jpg"),
+	getAssetPath("skybox/default/top.jpg"),
+	getAssetPath("skybox/default/bottom.jpg"),
+	getAssetPath("skybox/default/front.jpg"),
+	getAssetPath("skybox/default/back.jpg"),
 	};
 
 	std::vector<std::string> yokohamaCubeMapNames = {
-		"../../assets/skybox/Yokohama3/posx.jpg",
-		"../../assets/skybox/Yokohama3/negx.jpg",
-		"../../assets/skybox/Yokohama3/posy.jpg",
-		"../../assets/skybox/Yokohama3/negy.jpg",
-		"../../assets/skybox/Yokohama3/posz.jpg",
-		"../../assets/skybox/Yokohama3/negz.jpg"
+		getAssetPath("skybox/Yokohama3/posx.jpg"),
+		getAssetPath("skybox/Yokohama3/negx.jpg"),
+		getAssetPath("skybox/Yokohama3/posy.jpg"),
+		getAssetPath("skybox/Yokohama3/negy.jpg"),
+		getAssetPath("skybox/Yokohama3/posz.jpg"),
+		getAssetPath("skybox/Yokohama3/negz.jpg")
 	};
 
 
 	std::vector<std::string> HornstullsStrandCubeMapNames = {
-	"../../assets/skybox/HornstullsStrand/posx.jpg",
-	"../../assets/skybox/HornstullsStrand/negx.jpg",
-	"../../assets/skybox/HornstullsStrand/posy.jpg",
-	"../../assets/skybox/HornstullsStrand/negy.jpg",
-	"../../assets/skybox/HornstullsStrand/posz.jpg",
-	"../../assets/skybox/HornstullsStrand/negz.jpg"
+	getAssetPath("skybox/HornstullsStrand/posx.jpg"),
+	getAssetPath("skybox/HornstullsStrand/negx.jpg"),
+	getAssetPath("skybox/HornstullsStrand/posy.jpg"),
+	getAssetPath("skybox/HornstullsStrand/negy.jpg"),
+	getAssetPath("skybox/HornstullsStrand/posz.jpg"),
+	getAssetPath("skybox/HornstullsStrand/negz.jpg")
 	};
 
 
 
 
-	std::string dikhololo_night_4k_Names = "../../assets/HDRI/dikhololo_night_4k.hdr";
+	std::string dikhololo_night_4k_Names = getAssetPath("HDRI/dikhololo_night_4k.hdr");
 
-	std::string dikhololo_night_8k_Names = "D:/yufeiran/model/HDRI/dikhololo_night_8k.hdr";
+	std::string dikhololo_night_8k_Names = getAssetPath("HDRI/dikhololo_night_8k.hdr");
 
 
 
@@ -391,7 +392,7 @@ void MiniVulkanRenderer::init(int width, int height)
 
 
 
-	//resourceManagement->loadModel("BattleCruiser", "../../assets/BattleCruiser/BattleCruiser.obj");
+	//resourceManagement->loadModel("BattleCruiser", getAssetPath("BattleCruiser/BattleCruiser.obj");
 
 	load();
 	//loadSponza();
@@ -528,7 +529,7 @@ void MiniVulkanRenderer::initImGUI()
 
 	ImGui_ImplVulkan_Init(&init_info, postRenderPass->getHandle());
 
-	auto& tempCmd = tempCommandPool->createCommandBuffer();
+	auto tempCmd = tempCommandPool->createCommandBuffer();
 	tempCmd->beginSingleTime();
 	ImGui_ImplVulkan_CreateFontsTexture(tempCmd->getHandle());
 	tempCmd->endSingleTime(device->getGraphicQueue());
@@ -716,11 +717,11 @@ void MiniVulkanRenderer::createRtPipeline()
 	};
 
 
-	ShaderModule rayGenShader("../../spv/raytrace.rgen.spv", *device, VK_SHADER_STAGE_RAYGEN_BIT_KHR);
-	ShaderModule rayCHitShader("../../spv/raytrace.rchit.spv", *device, VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
-	ShaderModule rayAnyHitShader("../../spv/raytrace.rahit.spv", *device, VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
-	ShaderModule rayMissShader("../../spv/raytrace.rmiss.spv", *device, VK_SHADER_STAGE_MISS_BIT_KHR);
-	ShaderModule rayShadowMissShader("../../spv/raytraceShadow.rmiss.spv", *device, VK_SHADER_STAGE_MISS_BIT_KHR);
+	ShaderModule rayGenShader(getSPVPath("raytrace.rgen.spv"), *device, VK_SHADER_STAGE_RAYGEN_BIT_KHR);
+	ShaderModule rayCHitShader(getSPVPath("raytrace.rchit.spv"), *device, VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
+	ShaderModule rayAnyHitShader(getSPVPath("raytrace.rahit.spv"), *device, VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
+	ShaderModule rayMissShader(getSPVPath("raytrace.rmiss.spv"), *device, VK_SHADER_STAGE_MISS_BIT_KHR);
+	ShaderModule rayShadowMissShader(getSPVPath("raytraceShadow.rmiss.spv"), *device, VK_SHADER_STAGE_MISS_BIT_KHR);
 
 
 	// All stages 
@@ -1871,7 +1872,7 @@ void MiniVulkanRenderer::cleanScene()
 	updatePostDescriptorSet();
 
 
-	auto& descSetLayout = graphicsPipelineBuilder->getDescriptorSetLayout();
+	const auto& descSetLayout = graphicsPipelineBuilder->getDescriptorSetLayout();
 	auto& rasterPipeline = graphicsPipelineBuilder->getForwardRenderPass().getGraphicsPipeline();
 	std::vector<std::shared_ptr<DescriptorSetLayout>> layouts{ descSetLayout };
 	renderContext->prepare(*postRenderPass, *resourceManager, layouts
@@ -1930,7 +1931,7 @@ void MiniVulkanRenderer::handleSizeChange()
  //   rasterPipeline = std::make_unique<GraphicPipeline>(rasterShaderModules,*rasterPipelineLayout,*device,surfaceExtent);
 	//rasterPipeline->build(*rasterRenderPass);
 
-	auto& descSetLayout = graphicsPipelineBuilder->getDescriptorSetLayout();
+	const auto& descSetLayout = graphicsPipelineBuilder->getDescriptorSetLayout();
 	auto& rasterPipeline = graphicsPipelineBuilder->getForwardRenderPass().getGraphicsPipeline();
 	std::vector<std::shared_ptr<DescriptorSetLayout>> layouts{ descSetLayout };
 	renderContext->prepare(*postRenderPass, *resourceManager, layouts
@@ -2021,8 +2022,8 @@ void MiniVulkanRenderer::initPostRender()
 	ShaderInfo postShaderInfo;
 	postShaderInfo.bindingInfoMap[0][1] = BindingInfo{ TEXTURE_BINDING_TYPE,DIFFUSE };
 
-	postShaderModules.push_back(std::make_unique<ShaderModule>("../../spv/post.vert.spv", *device, VK_SHADER_STAGE_VERTEX_BIT));
-	postShaderModules.push_back(std::make_unique<ShaderModule>("../../spv/post.frag.spv", *device, VK_SHADER_STAGE_FRAGMENT_BIT));
+	postShaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("post.vert.spv"), *device, VK_SHADER_STAGE_VERTEX_BIT));
+	postShaderModules.push_back(std::make_unique<ShaderModule>(getSPVPath("post.frag.spv"), *device, VK_SHADER_STAGE_FRAGMENT_BIT));
 
 	for (auto& s : postShaderModules)
 	{

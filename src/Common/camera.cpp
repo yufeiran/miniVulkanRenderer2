@@ -36,7 +36,7 @@ void Camera::updateCameraVec()
 	calViewMat();
 }
 
-void Camera::setPos(glm::vec3& pos)
+void Camera::setPos(const glm::vec3& pos)
 {
 	cameraPos = pos;
 	calViewMat();

@@ -3,7 +3,7 @@
 #include"commandPool.h"
 #include"device.h"
 #include"Vulkan/renderPass.h"
-#include"GraphicsPipeline.h"
+#include"graphicsPipeline.h"
 #include"buffer.h"
 
 #include"Vulkan/descriptorPool.h"
@@ -111,7 +111,7 @@ void CommandBuffer::bindVertexBuffer(Buffer& vertexBuffer)
 
 void CommandBuffer::bindIndexBuffer(Buffer& indexBuffer)
 {
-    // TODO: ÀàÐÍÓÐ¿ÉÄÜÊÇUINT32 »ò UINT16
+    // TODO: ï¿½ï¿½ï¿½ï¿½ï¿½Ð¿ï¿½ï¿½ï¿½ï¿½ï¿½UINT32 ï¿½ï¿½ UINT16
     vkCmdBindIndexBuffer(handle, indexBuffer.getHandle(), 0, indexType);
 }
 

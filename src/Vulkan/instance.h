@@ -10,7 +10,7 @@ class Instance
 {
 public:
 	Instance(const std::vector<const char*>& requiredExtensions = {},
-		const std::vector<const char*>& requiredValidationLayers = { "VK_LAYER_KHRONOS_validation","VK_LAYER_LUNARG_monitor" },
+		const std::vector<const char*>& requiredValidationLayers = { "VK_LAYER_KHRONOS_validation" },
 		bool enableValidationLayers = true);
 	~Instance();
 

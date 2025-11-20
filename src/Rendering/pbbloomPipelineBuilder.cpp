@@ -100,12 +100,12 @@ void PBBloomPipelineBuilder::rebuild(VkExtent2D extent,RenderTarget& gBufferRend
 
 			upSamplingRenderPasses.push_back(std::move(upSamplingRenderPass));
 
-			VkExtent2D nowDownExtent = {bloomInputTextureSizes[i].x /2 , bloomInputTextureSizes[i].y /2 };
+			VkExtent2D nowDownExtent = {(uint32_t)(bloomInputTextureSizes[i].x / 2), (uint32_t)(bloomInputTextureSizes[i].y / 2)};
 
 			auto pbbDownSamplingRenderPass = std::make_unique<PBBDownSamplingRenderPass>(device,resourceManager,*downSamplingRenderPasses[i],nowDownExtent,descSetLayout,pcPost);
 			pbbDownSamplingRenderPasses.push_back(std::move(pbbDownSamplingRenderPass));
 
-			VkExtent2D nowUpExtent = {bloomInputTextureSizes[N - i - 1].x / 2 , bloomInputTextureSizes[N - i - 1].y / 2 };
+			VkExtent2D nowUpExtent = {(uint32_t)(bloomInputTextureSizes[N - i - 1].x / 2), (uint32_t)(bloomInputTextureSizes[N - i - 1].y / 2)};
 			auto pbbUpSamplingRenderPass = std::make_unique<PBBUpSamplingRenderPass>(device,resourceManager,*upSamplingRenderPasses[i],nowUpExtent,descSetLayout,pcPost);
 			pbbUpSamplingRenderPasses.push_back(std::move(pbbUpSamplingRenderPass));
 	}
@@ -292,7 +292,7 @@ void PBBloomPipelineBuilder::createRenderTarget()
 	std::vector<Image> images;
 	for(int i = 0; i < N; i++)
 	{
-		VkExtent2D nowExtent = {bloomInputTextureSizes[i].x /2 , bloomInputTextureSizes[i].y /2 };
+		VkExtent2D nowExtent = {(uint32_t)(bloomInputTextureSizes[i].x / 2), (uint32_t)(bloomInputTextureSizes[i].y / 2)};
 		std::unique_ptr<Image> bloomImage = std::make_unique<Image>(device,
 						nowExtent, offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT);
 

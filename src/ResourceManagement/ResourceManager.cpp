@@ -4,6 +4,7 @@
 #include <glm/gtx/euler_angles.hpp>
 
 #include "ResourceManagement/ResourceManager.h"
+#include "Common/common.h"
 #include "Vulkan/device.h"
 #include "Vulkan/physicalDevice.h"
 #include "Vulkan/image.h"
@@ -68,7 +69,8 @@ void ResourceManager::loadLightCube()
 	glm::mat4 objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat,{0,0,0});
 	objMat = glm::scale(objMat,{0.2,0.2,0.2});
-	loadScene( "../../assets/box/box.gltf",objMat);
+	Log(getAssetPath("box/Box.gltf"));
+	loadScene( getAssetPath("box/Box.gltf"),objMat);
 	lightCubeObjIndex = objModel.size()-1;
 	instances.erase(instances.end()-1);
 }
@@ -287,7 +289,7 @@ void ResourceManager::loadObjModel(std::string name, std::string path, glm::mat4
 	VkBufferUsageFlags rayTracingFlags = 
 		flag | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
 
-	auto &mVec = toMaterial(loader.materials);
+	auto mVec = toMaterial(loader.materials);
 
 	model->vertexBuffer   = std::make_unique<Buffer>(device, loader.vertices, static_cast<VkBufferUsageFlagBits>( VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | rayTracingFlags));
 	model->indexBuffer    = std::make_unique<Buffer>(device, loader.indices, static_cast<VkBufferUsageFlagBits>( VK_BUFFER_USAGE_INDEX_BUFFER_BIT | rayTracingFlags));
@@ -549,7 +551,7 @@ void ResourceManager::createTextureImages(const std::vector<tinygltf::Image*>& l
 	{
 		for(const auto& gltfImage : loadImages)
 		{
-			VkExtent2D                 imageSize{gltfImage->width , gltfImage->height};
+			VkExtent2D                 imageSize{(uint32_t) gltfImage->width , (uint32_t) gltfImage->height};
 			std::unique_ptr<Image>     image     = std::make_unique<Image>(device, imageSize, gltfImage->image.size(),(void*)(&gltfImage->image[0]),VK_FORMAT_R8G8B8A8_UNORM);
 			std::unique_ptr<ImageView> imageView = std::make_unique<ImageView>(*image);
 		
