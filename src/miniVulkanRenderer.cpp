@@ -22,7 +22,7 @@ using namespace std::chrono;
 
 void MiniVulkanRenderer::load()
 {
-	int testCase = 2;
+	int testCase = 1;
 	switch (testCase)
 	{
 	case 0:
@@ -142,7 +142,7 @@ void MiniVulkanRenderer::loadTestGltf()
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat, { 0,2,0 });
 	objMat = glm::scale(objMat, { 1,1,1 });
-	//resourceManager->loadObjModel("backpack", getAssetPath("backpack/backpack.obj",objMat, true);
+	resourceManager->loadObjModel("backpack", getAssetPath("backpack/backpack.obj"),objMat, true);
 
 	//resourceManager->loadScene(getAssetPath("glTFBox/Box.gltf",objMat);
 
@@ -164,7 +164,7 @@ void MiniVulkanRenderer::loadTestGltf()
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat, { 0,3,0 });
 	objMat = glm::scale(objMat, { 3,3,3 });
-	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoxTextured/glTF/BoxTextured.gltf", objMat);
+	// resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoxTextured/glTF/BoxTextured.gltf", objMat);
 
 
 
@@ -447,7 +447,7 @@ void MiniVulkanRenderer::init(int width, int height)
 
 
 
-	initPostRender();
+	initPostRender(renderContext->getSwapchainImageFormat());
 
 
 
@@ -2015,7 +2015,7 @@ void MiniVulkanRenderer::initRayTracingRender()
 }
 
 
-void MiniVulkanRenderer::initPostRender()
+void MiniVulkanRenderer::initPostRender(VkFormat postSurfaceColorFormat)
 {
 	// create post pipeline!
 
@@ -2050,7 +2050,7 @@ void MiniVulkanRenderer::initPostRender()
 
 	std::vector<Attachment> attachments;
 	{
-		Attachment colorAttachment{ defaultSurfaceColorFormat,VK_SAMPLE_COUNT_1_BIT,VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT };
+		Attachment colorAttachment{ postSurfaceColorFormat,VK_SAMPLE_COUNT_1_BIT,VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT };
 		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 

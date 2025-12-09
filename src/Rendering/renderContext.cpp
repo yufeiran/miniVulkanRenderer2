@@ -29,6 +29,8 @@ RenderContext::RenderContext(Device& device, VkSurfaceKHR surface, const GUIWind
 	if (surface != VK_NULL_HANDLE)
 	{
 		swapchain = std::make_unique<Swapchain>(device, surface, surfaceExtent);
+		DEFAULT_VK_FORMAT = swapchain->getImageFormat();
+		swapchainImageFormat = swapchain->getImageFormat();
 	}
 }
 

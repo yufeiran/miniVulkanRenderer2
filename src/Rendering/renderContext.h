@@ -58,6 +58,8 @@ public:
 
 	uint32_t getCurrentFrames();
 
+	VkFormat getSwapchainImageFormat() const { return swapchainImageFormat; }
+
 private:
 	Device& device;
 
@@ -89,6 +91,8 @@ private:
 
 
 	uint32_t currentFrames = 0;
+
+	VkFormat swapchainImageFormat{ VK_FORMAT_R8G8B8A8_SRGB};
 
 	
 };

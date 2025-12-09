@@ -17,7 +17,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 
 
-#设置多线程编译
+#设置多线程编�?
 if (MSVC)
 add_definitions("/MP")
 endif()

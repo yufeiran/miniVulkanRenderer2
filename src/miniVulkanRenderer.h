@@ -102,7 +102,7 @@ public:
 	bool uiInstance(VkExtent2D screenSize, bool sizeChange = false);
 
 	//post -----------------
-	void initPostRender();
+	void initPostRender(VkFormat postSurfaceColorFormat);
 	void updatePostDescriptorSet();
 
 	void resetFrame();
