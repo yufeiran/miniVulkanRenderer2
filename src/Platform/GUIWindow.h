@@ -27,7 +27,9 @@ public:
 
 	VkSurfaceKHR createSurface(VkInstance instance);
 
-	VkExtent2D getExtent() const;
+	VkExtent2D getFramebufferSize() const;
+
+	VkExtent2D getWindowSize() const;
 
 	void setTitle(const char* name);
 

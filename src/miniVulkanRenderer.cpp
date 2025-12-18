@@ -425,15 +425,15 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	shadowPipelineBuilder = std::make_unique<ShadowPipelineBuilder>(*device, *resourceManager, pcRaster, graphicsPipelineBuilder->getLightUniformsBuffer());
 
-	ssaoPipelineBuilder = std::make_unique<SSAOPipelineBuilder>(*device, *resourceManager, window->getExtent(), graphicsPipelineBuilder->getDescriptorSetLayout(),
+	ssaoPipelineBuilder = std::make_unique<SSAOPipelineBuilder>(*device, *resourceManager, window->getFramebufferSize(), graphicsPipelineBuilder->getDescriptorSetLayout(),
 		*offscreenRenderTarget, offscreenColorFormat, pcRaster);
 
-	ssrPipelineBuilder = std::make_unique<SSRPipelineBuilder>(*device, *resourceManager, window->getExtent(), graphicsPipelineBuilder->getDescriptorSetLayout(),
+	ssrPipelineBuilder = std::make_unique<SSRPipelineBuilder>(*device, *resourceManager, window->getFramebufferSize(), graphicsPipelineBuilder->getDescriptorSetLayout(),
 		*offscreenRenderTarget, offscreenColorFormat, pcRaster);
 
 	pbbloomPipelineBuilder = std::make_unique<PBBloomPipelineBuilder>(*device,
 		*resourceManager,
-		window->getExtent(),
+		window->getFramebufferSize(),
 		*offscreenRenderTarget,
 		offscreenColorFormat,
 		pcPost, 5);
@@ -1285,6 +1285,9 @@ void MiniVulkanRenderer::loop()
 	static bool changeToRaytracing = false;
 	static bool lastCanRaytracingMode = useRaytracing;
 
+	int lastHeight = window->getFramebufferSize().height;
+	int lastWidth = window->getFramebufferSize().width;
+
 
 	while (!window->shouldClose()) {
 		calFps();
@@ -1324,17 +1327,24 @@ void MiniVulkanRenderer::loop()
 
 
 		auto result = renderContext->beginFrame();
-		if (result == VK_ERROR_OUT_OF_DATE_KHR)
+		int nowHeight = window->getFramebufferSize().height;
+		int nowWidth = window->getFramebufferSize().width;
+		if( (nowHeight != lastHeight || nowWidth != lastWidth) || (result == VK_ERROR_OUT_OF_DATE_KHR))
 		{
+			lastHeight = nowHeight;
+			lastWidth = nowWidth;
+
 			handleSizeChange();
 			sizeChange = true;
+			Log("Size change!");
 			continue;
+
+
 		}
 
 
-
-		pcRaster.screenHeight = window->getExtent().height;
-		pcRaster.screenWidth = window->getExtent().width;
+		pcRaster.screenHeight = window->getFramebufferSize().height;
+		pcRaster.screenWidth = window->getFramebufferSize().width;
 
 		auto& cmd = renderContext->getCurrentCommandBuffer();
 		auto& renderFrame = renderContext->getActiveFrame();
@@ -1348,7 +1358,7 @@ void MiniVulkanRenderer::loop()
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		{
-			renderUI(clearValues, window->getExtent(), sizeChange, lightSizeChange);
+			renderUI(clearValues, window->getFramebufferSize(), sizeChange, lightSizeChange);
 		}
 
 
@@ -1521,7 +1531,7 @@ void MiniVulkanRenderer::keyControl()
 	float deltaTime = currentFrame - lastFrame;
 	lastFrame = currentFrame;
 
-	float moveCameraSpeed = 3;
+	float moveCameraSpeed = 5;
 	auto& camera = miniRenderer.getCamera();
 
 
@@ -1909,15 +1919,24 @@ void MiniVulkanRenderer::handleSizeChange()
 	resetFrame();
 	device->waitIdle();
 
-	auto extent = window->getExtent();
+	auto extent = window->getFramebufferSize();
 	while (extent.width == 0 || extent.height == 0)
 	{
-		extent = window->getExtent();
+		extent = window->getFramebufferSize();
 		window->waitEvents();
 	}
 	width = extent.width;
 	height = extent.height;
 	frameCount = 0;
+
+	// inform ImGui
+	ImGuiIO& io = ImGui::GetIO();
+	io.DisplaySize = ImVec2((float)width, (float)height);
+	auto winExtent = window->getWindowSize();
+	if (width > 0 && height > 0)
+	{
+		io.DisplayFramebufferScale = ImVec2((float)width / winExtent.width, (float)height / winExtent.height);
+	}
 
 
 	renderContext.reset();
@@ -1972,7 +1991,7 @@ Camera& MiniVulkanRenderer::getCamera()
 
 void MiniVulkanRenderer::createOffScreenFrameBuffer()
 {
-	surfaceExtent = window->getExtent();
+	surfaceExtent = window->getFramebufferSize();
 
 	std::vector<Image> images;
 
@@ -2286,7 +2305,7 @@ void MiniVulkanRenderer::calFps()
 	frameCount++;
 	lastFrameCount++;
 
-	VkExtent2D extent = window->getExtent();
+	VkExtent2D extent = window->getFramebufferSize();
 
 	std::string title = "miniVulkanRenderer2 " + std::to_string(extent.width) + "x" + std::to_string(extent.height) + " avg fps:";
 

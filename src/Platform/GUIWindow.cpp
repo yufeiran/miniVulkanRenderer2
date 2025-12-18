@@ -104,11 +104,18 @@ VkSurfaceKHR GUIWindow::createSurface(VkInstance instance)
 	return surface;
 }
 
-VkExtent2D GUIWindow::getExtent() const
+VkExtent2D GUIWindow::getFramebufferSize() const
 {
 	int width, height;
 	glfwGetFramebufferSize(handle, &width, &height);
 	return VkExtent2D{ static_cast<uint32_t>( width),static_cast<uint32_t>( height) };
+}
+
+VkExtent2D GUIWindow::getWindowSize() const
+{
+	int winWidth, winHeight;
+	glfwGetWindowSize(handle, &winWidth, &winHeight);
+	return VkExtent2D{ static_cast<uint32_t>(width),static_cast<uint32_t>(height) };
 }
 
 void GUIWindow::setTitle(const char* name)
