@@ -3,31 +3,31 @@
 using namespace mini;
 
 PBBloomPipelineBuilder::PBBloomPipelineBuilder(
-	Device& device, 
+	Device& device,
 	ResourceManager& resourceManager,
-	VkExtent2D extent, 
-	RenderTarget& gBufferRenderTarget, 
-	VkFormat offscreenColorFormat, 
+	VkExtent2D extent,
+	RenderTarget& gBufferRenderTarget,
+	VkFormat offscreenColorFormat,
 	PushConstantPost& pcPost,
 	int N)
 	: device(device),
 	resourceManager(resourceManager),
 	pcPost(pcPost),
-	gBufferRenderTarget(&gBufferRenderTarget),N(N),offscreenColorFormat(offscreenColorFormat),extent(extent)
+	gBufferRenderTarget(&gBufferRenderTarget), N(N), offscreenColorFormat(offscreenColorFormat), extent(extent)
 {
 
 
-	rebuild(extent,gBufferRenderTarget,N);
+	rebuild(extent, gBufferRenderTarget, N);
 
 
 
 
-	
 
 
-	
 
-	
+
+
+
 }
 
 PBBloomPipelineBuilder::~PBBloomPipelineBuilder()
@@ -35,7 +35,7 @@ PBBloomPipelineBuilder::~PBBloomPipelineBuilder()
 
 }
 
-void PBBloomPipelineBuilder::rebuild(VkExtent2D extent,RenderTarget& gBufferRenderTarget,  int N)
+void PBBloomPipelineBuilder::rebuild(VkExtent2D extent, RenderTarget& gBufferRenderTarget, int N)
 {
 	this->extent = extent;
 	this->gBufferRenderTarget = &gBufferRenderTarget;
@@ -46,75 +46,75 @@ void PBBloomPipelineBuilder::rebuild(VkExtent2D extent,RenderTarget& gBufferRend
 
 	pbbDownSamplingRenderPasses.clear();
 	pbbUpSamplingRenderPasses.clear();
-	for(int i = 0; i < N; i++)
+	for (int i = 0; i < N; i++)
 	{
 		std::vector<SubpassInfo> subpassInfos;
 
-			// downSamplePass
-			{
-				SubpassInfo subpassInfo = {};
-				subpassInfo.output.push_back(-1);
-				subpassInfo.output.push_back(0);
+		// downSamplePass
+		{
+			SubpassInfo subpassInfo = {};
+			subpassInfo.output.push_back(-1);
+			subpassInfo.output.push_back(0);
 
-				VkSubpassDependency dependency = {};
+			VkSubpassDependency dependency = {};
 
-				dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-				dependency.dstSubpass = 0;
-				dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT|VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-				dependency.srcAccessMask = 0;
-				dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT| VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-				dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT|VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+			dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+			dependency.dstSubpass = 0;
+			dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+			dependency.srcAccessMask = 0;
+			dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+			dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
-				subpassInfo.dependencies.push_back(dependency);
+			subpassInfo.dependencies.push_back(dependency);
 
-				subpassInfos.push_back(subpassInfo);
-			}
-	 
-
-			std::vector<Attachment> attachments;
-			{
-
-				Attachment attachment{ offscreenColorFormat,VK_SAMPLE_COUNT_1_BIT,VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT };
-				attachment.initialLayout = VK_IMAGE_LAYOUT_GENERAL;
-				attachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
-
-				attachments.push_back(attachment);
-			}
-
-			std::vector<LoadStoreInfo> loadStoreInfos;
-			{
-
-				LoadStoreInfo depthLoadStoreInfo{};
-				depthLoadStoreInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-				depthLoadStoreInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-	
-
-				// for shadow map
-				loadStoreInfos.push_back(depthLoadStoreInfo);
-			}
+			subpassInfos.push_back(subpassInfo);
+		}
 
 
-			auto downSamplingRenderPass  = std::make_unique<RenderPass>(device,attachments,loadStoreInfos,subpassInfos);
-			downSamplingRenderPasses.push_back(std::move(downSamplingRenderPass));
-			auto upSamplingRenderPass  = std::make_unique<RenderPass>(device,attachments,loadStoreInfos,subpassInfos);
+		std::vector<Attachment> attachments;
+		{
 
-			upSamplingRenderPasses.push_back(std::move(upSamplingRenderPass));
+			Attachment attachment{ offscreenColorFormat,VK_SAMPLE_COUNT_1_BIT,VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT };
+			attachment.initialLayout = VK_IMAGE_LAYOUT_GENERAL;
+			attachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
 
-			VkExtent2D nowDownExtent = {(uint32_t)(bloomInputTextureSizes[i].x / 2), (uint32_t)(bloomInputTextureSizes[i].y / 2)};
+			attachments.push_back(attachment);
+		}
 
-			auto pbbDownSamplingRenderPass = std::make_unique<PBBDownSamplingRenderPass>(device,resourceManager,*downSamplingRenderPasses[i],nowDownExtent,descSetLayout,pcPost);
-			pbbDownSamplingRenderPasses.push_back(std::move(pbbDownSamplingRenderPass));
+		std::vector<LoadStoreInfo> loadStoreInfos;
+		{
 
-			VkExtent2D nowUpExtent = {(uint32_t)(bloomInputTextureSizes[N - i - 1].x / 2), (uint32_t)(bloomInputTextureSizes[N - i - 1].y / 2)};
-			auto pbbUpSamplingRenderPass = std::make_unique<PBBUpSamplingRenderPass>(device,resourceManager,*upSamplingRenderPasses[i],nowUpExtent,descSetLayout,pcPost);
-			pbbUpSamplingRenderPasses.push_back(std::move(pbbUpSamplingRenderPass));
+			LoadStoreInfo depthLoadStoreInfo{};
+			depthLoadStoreInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			depthLoadStoreInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+
+			// for shadow map
+			loadStoreInfos.push_back(depthLoadStoreInfo);
+		}
+
+
+		auto downSamplingRenderPass = std::make_unique<RenderPass>(device, attachments, loadStoreInfos, subpassInfos);
+		downSamplingRenderPasses.push_back(std::move(downSamplingRenderPass));
+		auto upSamplingRenderPass = std::make_unique<RenderPass>(device, attachments, loadStoreInfos, subpassInfos);
+
+		upSamplingRenderPasses.push_back(std::move(upSamplingRenderPass));
+
+		VkExtent2D nowDownExtent = { (uint32_t)(bloomInputTextureSizes[i].x / 2), (uint32_t)(bloomInputTextureSizes[i].y / 2) };
+
+		auto pbbDownSamplingRenderPass = std::make_unique<PBBDownSamplingRenderPass>(device, resourceManager, *downSamplingRenderPasses[i], nowDownExtent, descSetLayout, pcPost);
+		pbbDownSamplingRenderPasses.push_back(std::move(pbbDownSamplingRenderPass));
+
+		VkExtent2D nowUpExtent = { (uint32_t)(bloomInputTextureSizes[N - i - 1].x / 2), (uint32_t)(bloomInputTextureSizes[N - i - 1].y / 2) };
+		auto pbbUpSamplingRenderPass = std::make_unique<PBBUpSamplingRenderPass>(device, resourceManager, *upSamplingRenderPasses[i], nowUpExtent, descSetLayout, pcPost);
+		pbbUpSamplingRenderPasses.push_back(std::move(pbbUpSamplingRenderPass));
 	}
 	createRenderTarget();
 
 	createBloomSizeBuffers();
 
 	updateDescriptorSet();
-	
+
 }
 
 void PBBloomPipelineBuilder::createDescriptorSetLayout()
@@ -127,20 +127,20 @@ void PBBloomPipelineBuilder::createDescriptorSetLayout()
 
 
 
-	descSetBindings.addBinding(PBBloomBindings::epbbloomInput,  VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
-									VK_SHADER_STAGE_VERTEX_BIT |VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_RAYGEN_BIT_KHR |  VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
-	descSetBindings.addBinding(PBBloomBindings::epbInputSize,  VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1,
-								VK_SHADER_STAGE_VERTEX_BIT |VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_RAYGEN_BIT_KHR |  VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
-	
-	descSetLayout = descSetBindings.createLayout(device);
-	descPool      = descSetBindings.createPool(device,2*N);
+	descSetBindings.addBinding(PBBloomBindings::epbbloomInput, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
+		VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
+	descSetBindings.addBinding(PBBloomBindings::epbInputSize, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1,
+		VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
 
-	for(int i = 0; i < N;i++)
+	descSetLayout = descSetBindings.createLayout(device);
+	descPool = descSetBindings.createPool(device, 2 * N);
+
+	for (int i = 0; i < N; i++)
 	{
 
-		auto upDescSet       = descPool->allocateDescriptorSet(*descSetLayout);
+		auto upDescSet = descPool->allocateDescriptorSet(*descSetLayout);
 		upSamplingDescSets.push_back(std::move(upDescSet));
-		auto downDescSet       = descPool->allocateDescriptorSet(*descSetLayout);
+		auto downDescSet = descPool->allocateDescriptorSet(*descSetLayout);
 		downSamplingDescSets.push_back(std::move(downDescSet));
 	}
 
@@ -152,23 +152,23 @@ void PBBloomPipelineBuilder::updateDescriptorSet()
 
 
 	// downSampling
-	for(int i = 0;i < N; i++)
+	for (int i = 0; i < N; i++)
 	{
 		std::vector<VkWriteDescriptorSet> writes;
 		{
 			VkDescriptorImageInfo imageInfo{};
 			imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-			if(i == 0)
+			if (i == 0)
 			{
 				imageInfo.imageView = gBufferRenderTarget->getImageViewByIndex(0).getHandle();
 			}
-			else 
+			else
 			{
-				imageInfo.imageView = renderTargets[i -1]->getImageViewByIndex(0).getHandle();
+				imageInfo.imageView = renderTargets[i - 1]->getImageViewByIndex(0).getHandle();
 			}
 
 			imageInfo.sampler = resourceManager.getClampToEdgeSampler().getHandle();
-		
+
 			VkWriteDescriptorSet write{};
 			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			write.dstSet = downSamplingDescSets[i];
@@ -177,7 +177,7 @@ void PBBloomPipelineBuilder::updateDescriptorSet()
 			write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 			write.descriptorCount = 1;
 			write.pImageInfo = &imageInfo;
-		
+
 			writes.push_back(write);
 		}
 
@@ -186,7 +186,7 @@ void PBBloomPipelineBuilder::updateDescriptorSet()
 			bufferInfo.buffer = bloomSizeBuffers[i]->getHandle();
 			bufferInfo.offset = 0;
 			bufferInfo.range = sizeof(glm::vec2);
-		
+
 			VkWriteDescriptorSet write{};
 			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			write.dstSet = downSamplingDescSets[i];
@@ -195,7 +195,7 @@ void PBBloomPipelineBuilder::updateDescriptorSet()
 			write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 			write.descriptorCount = 1;
 			write.pBufferInfo = &bufferInfo;
-		
+
 			writes.push_back(write);
 		}
 
@@ -203,23 +203,23 @@ void PBBloomPipelineBuilder::updateDescriptorSet()
 	}
 
 	// upSampling
-	for(int i = 0; i < N; i++)
+	for (int i = 0; i < N; i++)
 	{
 		std::vector<VkWriteDescriptorSet> writes;
 		{
 			VkDescriptorImageInfo imageInfo{};
 			imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-			if(i == N - 1)
+			if (i == N - 1)
 			{
 				imageInfo.imageView = renderTargets[i]->getImageViewByIndex(0).getHandle();
 			}
-			else 
+			else
 			{
 				imageInfo.imageView = renderTargets[i + 1]->getImageViewByIndex(0).getHandle();
 			}
-			
+
 			imageInfo.sampler = resourceManager.getClampToEdgeSampler().getHandle();
-				
+
 			VkWriteDescriptorSet write{};
 			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			write.dstSet = upSamplingDescSets[i];
@@ -228,7 +228,7 @@ void PBBloomPipelineBuilder::updateDescriptorSet()
 			write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 			write.descriptorCount = 1;
 			write.pImageInfo = &imageInfo;
-				
+
 			writes.push_back(write);
 		}
 
@@ -237,7 +237,7 @@ void PBBloomPipelineBuilder::updateDescriptorSet()
 			bufferInfo.buffer = bloomSizeBuffers[i]->getHandle();
 			bufferInfo.offset = 0;
 			bufferInfo.range = sizeof(glm::vec2);
-				
+
 			VkWriteDescriptorSet write{};
 			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			write.dstSet = upSamplingDescSets[i];
@@ -246,7 +246,7 @@ void PBBloomPipelineBuilder::updateDescriptorSet()
 			write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 			write.descriptorCount = 1;
 			write.pBufferInfo = &bufferInfo;
-				
+
 			writes.push_back(write);
 		}
 
@@ -259,24 +259,60 @@ void PBBloomPipelineBuilder::updateDescriptorSet()
 
 }
 
+void mini::PBBloomPipelineBuilder::insertMipBarrier(CommandBuffer& cmd, VkImage image)
+{
+
+	VkImageMemoryBarrier barrier = {};
+	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+
+	barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+	barrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+	barrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.image = image;
+	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	barrier.subresourceRange.baseMipLevel = 0;
+	barrier.subresourceRange.levelCount = 1;
+	barrier.subresourceRange.layerCount = 1;
+
+	vkCmdPipelineBarrier(
+		cmd.getHandle(),
+		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+		0, 0, nullptr, 0, nullptr, 1, &barrier
+	);
+
+}
+
 void PBBloomPipelineBuilder::draw(CommandBuffer& cmd)
 {
 	VkClearValue clearValue;
 	clearValue.color = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 	// downSampling
-	for(int i = 0; i < N; i++)
+	for (int i = 0; i < N; i++)
 	{
-		cmd.beginRenderPass(*downSamplingRenderPasses[i],*downSamplingFramebuffers[i],{clearValue});
-		pbbDownSamplingRenderPasses[i]->draw(cmd,{downSamplingDescSets[i]});
+		if (i > 0)
+		{
+			VkImage prevImage = renderTargets[i - 1]->getImageByIndex(0).getHandle();
+			insertMipBarrier(cmd, prevImage);
+		}
+		cmd.beginRenderPass(*downSamplingRenderPasses[i], *downSamplingFramebuffers[i], { clearValue });
+		pbbDownSamplingRenderPasses[i]->draw(cmd, { downSamplingDescSets[i] });
 		cmd.endRenderPass();
 	}
 
 	// upSampling
-	for(int i = 0; i < N; i++)
+	for (int i = 0; i < N; i++)
 	{
-		cmd.beginRenderPass(*upSamplingRenderPasses[i],*upSamplingFramebuffers[i],{clearValue});
-		pbbUpSamplingRenderPasses[i]->draw(cmd,{upSamplingDescSets[i]});
+		VkImage prevImage;
+		
+		prevImage = renderTargets[N - 1 -i]->getImageByIndex(0).getHandle();
+		insertMipBarrier(cmd, prevImage);
+		cmd.beginRenderPass(*upSamplingRenderPasses[i], *upSamplingFramebuffers[i], { clearValue });
+		pbbUpSamplingRenderPasses[i]->draw(cmd, { upSamplingDescSets[i] });
 		cmd.endRenderPass();
 	}
 }
@@ -290,30 +326,30 @@ void PBBloomPipelineBuilder::createRenderTarget()
 
 
 	std::vector<Image> images;
-	for(int i = 0; i < N; i++)
+	for (int i = 0; i < N; i++)
 	{
-		VkExtent2D nowExtent = {(uint32_t)(bloomInputTextureSizes[i].x / 2), (uint32_t)(bloomInputTextureSizes[i].y / 2)};
+		VkExtent2D nowExtent = { (uint32_t)(bloomInputTextureSizes[i].x / 2), (uint32_t)(bloomInputTextureSizes[i].y / 2) };
 		std::unique_ptr<Image> bloomImage = std::make_unique<Image>(device,
-						nowExtent, offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT);
+			nowExtent, offscreenColorFormat, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT);
 
 		images.push_back(std::move(*bloomImage));
-		
+
 
 		auto renderTarget = std::make_unique<RenderTarget>(std::move(images));
 
 		renderTargets.push_back(std::move(renderTarget));
 
-	    auto downSamplingFramebuffer = std::make_unique<FrameBuffer>(device,*renderTargets[i],*downSamplingRenderPasses[i]);
+		auto downSamplingFramebuffer = std::make_unique<FrameBuffer>(device, *renderTargets[i], *downSamplingRenderPasses[i]);
 		downSamplingFramebuffers.push_back(std::move(downSamplingFramebuffer));
 
-		auto upSamplingFramebuffer = std::make_unique<FrameBuffer>(device,*renderTargets[i],*upSamplingRenderPasses[i]);
+		auto upSamplingFramebuffer = std::make_unique<FrameBuffer>(device, *renderTargets[i], *upSamplingRenderPasses[i]);
 		upSamplingFramebuffers.push_back(std::move(upSamplingFramebuffer));
 
-		
-		
+
+
 	}
 
-	std::reverse(upSamplingFramebuffers.begin(),upSamplingFramebuffers.end());
+	std::reverse(upSamplingFramebuffers.begin(), upSamplingFramebuffers.end());
 
 
 
@@ -324,9 +360,9 @@ void PBBloomPipelineBuilder::createBloomSizeBuffers()
 {
 
 	bloomSizeBuffers.clear();
-	for(int i = 0; i < N;i++)
+	for (int i = 0; i < N; i++)
 	{
-		std::vector<glm::vec2> tempVec(1,bloomInputTextureSizes[i]);
+		std::vector<glm::vec2> tempVec(1, bloomInputTextureSizes[i]);
 		auto bloomSizeBuffer = std::make_unique<Buffer>(device, tempVec,
 			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 		bloomSizeBuffers.push_back(std::move(bloomSizeBuffer));
@@ -337,12 +373,12 @@ void mini::PBBloomPipelineBuilder::calculateBloomSizes()
 {
 	bloomInputTextureSizes.clear();
 	auto originalExtent = gBufferRenderTarget->getExtent();
-	for(int i = 0; i < N; i++)
+	for (int i = 0; i < N; i++)
 	{
-		bloomInputTextureSizes.push_back({originalExtent.width,originalExtent.height});
+		bloomInputTextureSizes.push_back({ originalExtent.width,originalExtent.height });
 		originalExtent.width /= 2;
 		originalExtent.height /= 2;
-		
+
 
 	}
 }

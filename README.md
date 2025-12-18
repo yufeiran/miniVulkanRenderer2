@@ -7,12 +7,13 @@
 </div>
 
  ## 0. TODO
- - [ ] Linux / MacOS Support
+ - [x] Linux Support
+ - [ ] MacOS Support
  - [ ] Rendering performance optimization
+ - [ ] Configurable render quality options
+ ## 1 Install && Build
 
- ## 0.1 Install && Build
-
- ### Linux
+ ### 1.1 Linux
  Ubuntu 24.04:
 ```
 sudo apt update
@@ -20,7 +21,7 @@ sudo apt install libvulkan-dev vulkan-tools vulkan-utility-libraries-dev libglfw
 
 ```
 
- ## 1. Features
+ ## 2. Features
  * PBR
  * PathTrace
  * SubPass
@@ -28,13 +29,13 @@ sudo apt install libvulkan-dev vulkan-tools vulkan-utility-libraries-dev libglfw
  * SSR
  * Physical Based Bloom
 
-## 2. Screenshot
+## 3. Screenshot
 ![raytracing](assets/screenshot/shadowMappingPoint_raytracing.png)
 
 [Detail](Screenshot.md)
  
-## 3. ThirdParty
-* imgui
+## 4. ThirdParty
+* imgui 
 * tinygltf
 * tinyobjloader
 * volk

@@ -545,7 +545,7 @@ void mini::PBBDownSamplingRenderPass::draw(CommandBuffer& cmd, const std::vector
 	cmd.bindPipeline(*graphicsPipeline);
 
 	cmd.bindDescriptorSet(descSet);
-
+	
 
 	vkCmdPushConstants(cmd.getHandle(), pipelineLayout->getHandle(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstantPost), &pcPost);
 	cmd.bindVertexBuffer(postQuad.getVertexBuffer());

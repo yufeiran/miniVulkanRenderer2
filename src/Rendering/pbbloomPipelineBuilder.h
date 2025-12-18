@@ -40,6 +40,7 @@ public:
 
 	void updateDescriptorSet();
 
+	void insertMipBarrier(CommandBuffer& cmd,VkImage image);
 
 	void draw(CommandBuffer& cmd);
 
