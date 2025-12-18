@@ -17,7 +17,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 
 
-#设置多线程编�?
+#设置多线程编�?
 if (MSVC)
 add_definitions("/MP")
 endif()
@@ -33,6 +33,9 @@ set(CMAKE_CXX_STANDARD 17)
 
 find_package(Vulkan REQUIRED)
 
+if (MSVC)
+    add_compile_options(/utf-8)
+endif()
 
 add_subdirectory(third_party)
 

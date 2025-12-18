@@ -318,6 +318,7 @@ void ResourceManager::loadObjModel(std::string name, std::string path, glm::mat4
 
 	objModel.emplace_back(std::move(model));
 	objDesc.emplace_back(std::move(desc));
+	materials.emplace_back(std::move(mVec[0]));
 
 }
 

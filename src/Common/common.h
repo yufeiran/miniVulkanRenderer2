@@ -28,7 +28,7 @@
 
 #if defined(_WIN32) || defined(_WIN64)
 #define VK_USE_PLATFORM_WIN32_KHR
-#elseif defined(UNIX)
+#elif defined(UNIX)
 #define VK_USE_PLATFORM_XCB_KHR
 #endif
 #include"volk.h"

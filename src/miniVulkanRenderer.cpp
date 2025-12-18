@@ -142,7 +142,7 @@ void MiniVulkanRenderer::loadTestGltf()
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat, { 0,2,0 });
 	objMat = glm::scale(objMat, { 1,1,1 });
-	resourceManager->loadObjModel("backpack", getAssetPath("backpack/backpack.obj"),objMat, true);
+	//resourceManager->loadObjModel("backpack", "../../assets/backpack/backpack.obj",objMat, true);
 
 	//resourceManager->loadScene(getAssetPath("glTFBox/Box.gltf",objMat);
 
@@ -155,7 +155,7 @@ void MiniVulkanRenderer::loadTestGltf()
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat, { 0,0,0 });
 	objMat = glm::scale(objMat, { 3,1,3 });
-	resourceManager->loadScene(getAssetPath("plane/plane1.gltf"), objMat);
+	resourceManager->loadScene("../../assets/plane/plane1.gltf", objMat);
 
 
 	//resourceManager->loadScene(getAssetPath("lightScene.gltf");
@@ -164,9 +164,13 @@ void MiniVulkanRenderer::loadTestGltf()
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat, { 0,3,0 });
 	objMat = glm::scale(objMat, { 3,3,3 });
-	// resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoxTextured/glTF/BoxTextured.gltf", objMat);
+	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoxTextured/glTF/BoxTextured.gltf", objMat);
 
 
+	objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat, { 0,2,0 });
+	objMat = glm::scale(objMat, { 1,1,1 });
+	resourceManager->loadObjModel("backpack", "../../assets/backpack/backpack.obj",objMat, true);
 
 
 
@@ -1517,6 +1521,10 @@ void MiniVulkanRenderer::keyControl()
 	float deltaTime = currentFrame - lastFrame;
 	lastFrame = currentFrame;
 
+	float moveCameraSpeed = 3;
+	auto& camera = miniRenderer.getCamera();
+
+
 	if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS)
 	{
 		camera.move(UP_DIR, deltaTime);
@@ -1544,6 +1552,22 @@ void MiniVulkanRenderer::keyControl()
 	if (glfwGetKey(win, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
 		glfwSetWindowShouldClose(win, GLFW_TRUE);
+	}
+	if (glfwGetKey(win, GLFW_KEY_I) == GLFW_PRESS)
+	{
+		camera.changeDir(0, moveCameraSpeed);
+	}
+	if (glfwGetKey(win, GLFW_KEY_K) == GLFW_PRESS)
+	{
+		camera.changeDir(0, -moveCameraSpeed);
+	}
+	if (glfwGetKey(win, GLFW_KEY_J) == GLFW_PRESS)
+	{
+		camera.changeDir(-moveCameraSpeed, 0);
+	}
+	if (glfwGetKey(win, GLFW_KEY_L) == GLFW_PRESS)
+	{
+		camera.changeDir(moveCameraSpeed, 0);
 	}
 
 }
