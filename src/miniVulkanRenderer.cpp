@@ -1391,8 +1391,6 @@ void MiniVulkanRenderer::loop()
 			else
 			{
 
-
-
 				rasterize(cmd, defaultClearColor);
 
 			}
@@ -1531,33 +1529,35 @@ void MiniVulkanRenderer::keyControl()
 	float deltaTime = currentFrame - lastFrame;
 	lastFrame = currentFrame;
 
-	float moveCameraSpeed = 5;
+	float moveCameraSpeed = 500;
 	auto& camera = miniRenderer.getCamera();
+
+	static float speedRate = 1.0;
 
 
 	if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS)
 	{
-		camera.move(UP_DIR, deltaTime);
+		camera.move(UP_DIR, deltaTime * speedRate);
 	}
 	if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS)
 	{
-		camera.move(DOWN_DIR, deltaTime);
+		camera.move(DOWN_DIR, deltaTime * speedRate);
 	}
 	if (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS)
 	{
-		camera.move(LEFT_DIR, deltaTime);
+		camera.move(LEFT_DIR, deltaTime * speedRate);
 	}
 	if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS)
 	{
-		camera.move(RIGHT_DIR, deltaTime);
+		camera.move(RIGHT_DIR, deltaTime * speedRate);
 	}
 	if (glfwGetKey(win, GLFW_KEY_SPACE) == GLFW_PRESS)
 	{
-		camera.move(FRONT_DIR, deltaTime);
+		camera.move(FRONT_DIR, deltaTime * speedRate);
 	}
 	if (glfwGetKey(win, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
 	{
-		camera.move(END_DIR, deltaTime);
+		camera.move(END_DIR, deltaTime *speedRate);
 	}
 	if (glfwGetKey(win, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
@@ -1565,19 +1565,27 @@ void MiniVulkanRenderer::keyControl()
 	}
 	if (glfwGetKey(win, GLFW_KEY_I) == GLFW_PRESS)
 	{
-		camera.changeDir(0, moveCameraSpeed);
+		camera.changeDir(0, moveCameraSpeed * deltaTime *speedRate);
 	}
 	if (glfwGetKey(win, GLFW_KEY_K) == GLFW_PRESS)
 	{
-		camera.changeDir(0, -moveCameraSpeed);
+		camera.changeDir(0, -moveCameraSpeed * deltaTime * speedRate);
 	}
 	if (glfwGetKey(win, GLFW_KEY_J) == GLFW_PRESS)
 	{
-		camera.changeDir(-moveCameraSpeed, 0);
+		camera.changeDir(-moveCameraSpeed * deltaTime * speedRate, 0);
 	}
 	if (glfwGetKey(win, GLFW_KEY_L) == GLFW_PRESS)
 	{
-		camera.changeDir(moveCameraSpeed, 0);
+		camera.changeDir(moveCameraSpeed * deltaTime * speedRate, 0);
+	}
+	if (glfwGetKey(win, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+	{
+		speedRate = 3.0;
+	}
+	if (glfwGetKey(win, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
+	{
+		speedRate = 1.0;
 	}
 
 }
