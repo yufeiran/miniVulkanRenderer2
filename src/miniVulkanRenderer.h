@@ -99,6 +99,8 @@ public:
 
 	bool uiLights(VkExtent2D screenSize, bool sizeChange, bool& lightSizeChange);
 
+	bool uiSettings(VkExtent2D screenSize, bool sizeChange);
+
 	bool uiInstance(VkExtent2D screenSize, bool sizeChange = false);
 
 	//post -----------------

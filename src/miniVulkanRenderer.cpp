@@ -22,7 +22,7 @@ using namespace std::chrono;
 
 void MiniVulkanRenderer::load()
 {
-	int testCase = 1;
+	int testCase = 2;
 	switch (testCase)
 	{
 	case 0:
@@ -226,7 +226,13 @@ void MiniVulkanRenderer::loadSponza()
 	//objMat = glm::translate(objMat,{-10,-1,0});
 	//resourceManager->loadScene("D://yufeiran/model/AMD/Deferred/Deferred.gltf",objMat);
 
+	//resourceManager->loadScene("D://yufeiran/model/AMD/GI/GI.gltf", objMat);
+
 	//resourceManager->loadScene("D://yufeiran/model/AMD/PBR/PBR.gltf", objMat);
+
+	resourceManager->loadScene("D://yufeiran/model/AMD/Shadow/Shadow.gltf", objMat);
+
+
 
 	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",objMat);
 
@@ -1251,6 +1257,15 @@ bool MiniVulkanRenderer::uiInstance(VkExtent2D screenSize, bool sizeChange)
 	ImGui::End();
 
 	return changed;
+}
+
+bool MiniVulkanRenderer::uiSettings(VkExtent2D screenSize, bool sizeChange)
+{
+	bool change = false;
+
+	
+
+	return false;
 }
 
 void MiniVulkanRenderer::loop()
