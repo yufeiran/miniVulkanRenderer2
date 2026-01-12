@@ -8,6 +8,8 @@
 
  ## 0. TODO
  - [x] Linux Support
+ - [ ] Compute Shader(Bloom / Animation)
+ - [ ] OpenXR Support
  - [ ] MacOS Support
  - [ ] Rendering performance optimization
  - [ ] Configurable render quality options
