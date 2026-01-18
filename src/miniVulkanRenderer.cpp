@@ -170,7 +170,7 @@ void MiniVulkanRenderer::loadTestGltf()
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat, { 0,2,0 });
 	objMat = glm::scale(objMat, { 1,1,1 });
-	resourceManager->loadObjModel("backpack", "../../assets/backpack/backpack.obj",objMat, true);
+	resourceManager->loadObjModel("backpack", "../../assets/backpack/backpack.obj", objMat, true);
 
 
 
@@ -1042,6 +1042,7 @@ void MiniVulkanRenderer::renderUI(std::vector<VkClearValue>& clearValues, VkExte
 
 	changed |= uiLights(screenSize, sizeChange, lightSizeChange);
 	changed |= uiInstance(screenSize, sizeChange);
+	changed |= uiSettings(screenSize, sizeChange);
 
 
 
@@ -1104,8 +1105,6 @@ bool MiniVulkanRenderer::uiLights(VkExtent2D screenSize, bool sizeChange, bool& 
 				instance.translation = pos;
 				instance.updateTransformByFactor();
 			}
-
-
 
 			auto intensity = light.getIntensity();
 			changed |= ImGui::SliderFloat("Intensity", &intensity, 0.f, 10.f);
@@ -1227,12 +1226,6 @@ bool MiniVulkanRenderer::uiInstance(VkExtent2D screenSize, bool sizeChange)
 
 			}
 
-
-
-
-
-
-
 			//glm::mat4 scaleMat = glm::scale(glm::mat4(1.0f),scale);
 
 
@@ -1261,9 +1254,29 @@ bool MiniVulkanRenderer::uiInstance(VkExtent2D screenSize, bool sizeChange)
 
 bool MiniVulkanRenderer::uiSettings(VkExtent2D screenSize, bool sizeChange)
 {
-	bool change = false;
+	bool changed = false;
+	static bool init = true;
 
-	
+	int windowWidth = 800;
+	int windowHeight = 200;
+
+	if (init == true)
+	{
+		ImGui::SetNextWindowPos(ImVec2(screenSize.width - windowWidth - 50, 50));
+		ImGui::SetNextWindowSize(ImVec2(windowWidth, windowHeight));
+
+		init = false;
+	}
+
+	auto& gs = getGlobalMiniSetting();
+
+	ImGui::Begin("Settings");
+	{
+		ImGui::Checkbox("SSR", &gs.ssr_on);
+		ImGui::Checkbox("Bloom", &gs.bloom_on);
+	}
+
+	ImGui::End();
 
 	return false;
 }
@@ -1344,7 +1357,7 @@ void MiniVulkanRenderer::loop()
 		auto result = renderContext->beginFrame();
 		int nowHeight = window->getFramebufferSize().height;
 		int nowWidth = window->getFramebufferSize().width;
-		if( (nowHeight != lastHeight || nowWidth != lastWidth) || (result == VK_ERROR_OUT_OF_DATE_KHR))
+		if ((nowHeight != lastHeight || nowWidth != lastWidth) || (result == VK_ERROR_OUT_OF_DATE_KHR))
 		{
 			lastHeight = nowHeight;
 			lastWidth = nowWidth;
@@ -1414,7 +1427,10 @@ void MiniVulkanRenderer::loop()
 
 		// Offscreen render pass
 		{
-			pbbloomPipelineBuilder->draw(cmd);
+			auto& gs = getGlobalMiniSetting();
+			if (gs.bloom_on) {
+				pbbloomPipelineBuilder->draw(cmd);
+			}
 
 			cmd.beginRenderPass(*postRenderPass, frameBuffer, clearValues);
 			cmd.bindPipeline(*postPipeline);
@@ -1492,6 +1508,8 @@ void MiniVulkanRenderer::updateInstances()
 
 void MiniVulkanRenderer::rasterize(CommandBuffer& cmd, VkClearColorValue defaultClearColor)
 {
+	auto& gs = getGlobalMiniSetting();
+
 	std::vector<VkClearValue>clearValues = std::vector<VkClearValue>(11);
 
 	clearValues[0].color = defaultClearColor;
@@ -1514,8 +1532,10 @@ void MiniVulkanRenderer::rasterize(CommandBuffer& cmd, VkClearColorValue default
 	cmd.endRenderPass();
 
 
-
-	ssrPipelineBuilder->draw(cmd, graphicsPipelineBuilder->getDescriptorSet());
+	if (gs.ssr_on)
+	{
+		ssrPipelineBuilder->draw(cmd, graphicsPipelineBuilder->getDescriptorSet());
+	}
 
 
 }
@@ -1572,7 +1592,7 @@ void MiniVulkanRenderer::keyControl()
 	}
 	if (glfwGetKey(win, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
 	{
-		camera.move(END_DIR, deltaTime *speedRate);
+		camera.move(END_DIR, deltaTime * speedRate);
 	}
 	if (glfwGetKey(win, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
@@ -1580,7 +1600,7 @@ void MiniVulkanRenderer::keyControl()
 	}
 	if (glfwGetKey(win, GLFW_KEY_I) == GLFW_PRESS)
 	{
-		camera.changeDir(0, moveCameraSpeed * deltaTime *speedRate);
+		camera.changeDir(0, moveCameraSpeed * deltaTime * speedRate);
 	}
 	if (glfwGetKey(win, GLFW_KEY_K) == GLFW_PRESS)
 	{
@@ -1983,7 +2003,7 @@ void MiniVulkanRenderer::handleSizeChange()
 
 	graphicsPipelineBuilder->rebuild(extent);
 	graphicsPipelineBuilder->updateDescriptorSet(shadowPipelineBuilder->getDirRenderTarget(), shadowPipelineBuilder->getPointRenderTarget(), *offscreenRenderTarget
-		, cubeMapImageView,diffuseIrrImageView);
+		, cubeMapImageView, diffuseIrrImageView);
 
 	ssrPipelineBuilder->rebuild(extent, *offscreenRenderTarget);
 

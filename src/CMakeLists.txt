@@ -7,125 +7,31 @@ set(RENDERER_FILES
 )
 
 
-set(VULKAN_FRAMEWORK_FILES
-    ./Vulkan/device.h
-    ./Vulkan/device.cpp
-    ./Vulkan/instance.h
-    ./Vulkan/instance.cpp
-    ./Vulkan/physicalDevice.h
-    ./Vulkan/physicalDevice.cpp
-    ./Vulkan/queue.h 
-    ./Vulkan/queue.cpp 
-    ./Vulkan/commandBuffer.h 
-    ./Vulkan/commandBuffer.cpp
-    ./Vulkan/commandPool.h 
-    ./Vulkan/commandPool.cpp 
-    ./Vulkan/swapchain.h 
-    ./Vulkan/swapchain.cpp 
-    ./Vulkan/imageView.h 
-    ./Vulkan/imageView.cpp 
-    ./Vulkan/image.h
-    ./Vulkan/image.cpp
-    ./Vulkan/shaderModule.h 
-    ./Vulkan/shaderModule.cpp 
-    ./Vulkan/graphicsPipeline.h 
-    ./Vulkan/graphicsPipeline.cpp 
-    ./Vulkan/framebuffer.h 
-    ./Vulkan/framebuffer.cpp
-    ./Vulkan/semaphore.h 
-    ./Vulkan/semaphore.cpp 
-    ./Vulkan/fence.h 
-    ./Vulkan/fence.cpp 
-    ./Vulkan/buffer.cpp 
-    ./Vulkan/buffer.h
-    ./Vulkan/deviceMemory.h 
-    ./Vulkan/deviceMemory.cpp 
-    ./Vulkan/descriptorSet.h 
-    ./Vulkan/descriptorSet.cpp 
-    ./Vulkan/descriptorSetLayout.h 
-    ./Vulkan/descriptorSetLayout.cpp 
-    ./Vulkan/descriptorPool.h 
-    ./Vulkan/descriptorPool.cpp 
-    ./Vulkan/sampler.h 
-    ./Vulkan/sampler.cpp 
-    ./Vulkan/shaderInfo.h 
-    ./Vulkan/shaderInfo.cpp 
-    ./Vulkan/pipelineLayout.h 
-    ./Vulkan/pipelineLayout.cpp
-    ./Vulkan/renderPass.h 
-    ./Vulkan/renderPass.cpp 
-    ./Vulkan/rayTracingPipeline.h 
-    ./Vulkan/rayTracingPipeline.cpp 
-    ./Vulkan/queryPool.h 
-    ./Vulkan/queryPool.cpp 
-    ./Vulkan/descriptorSetBindings.h 
-    ./Vulkan/descriptorSetBindings.cpp 
-    ./Vulkan/texture.h 
-    ./Vulkan/texture.cpp
-
+file(GLOB_RECURSE VULKAN_FRAMEWORK_FILES CONFIGURE_DEPENDS
+    "./Vulkan/*.h"
+    "./Vulkan/*.cpp"
 )
 
-set(COMMON_FILES
-    ./Common/miniLog.h 
-    ./Common/miniLog.cpp 
-    ./Common/miniError.h
-    ./Common/material.h
-    ./Common/material.cpp 
-    ./Common/vertex.h 
-    ./Common/vertex.cpp 
-    ./Common/camera.h 
-    ./Common/camera.cpp 
-    ./Common/common.h
-    ./Common/common.cpp
-    ./Common/light.h 
-    ./Common/light.cpp
+file(GLOB_RECURSE COMMON_FILES CONFIGURE_DEPENDS
+    "./Common/*.h"
+    "./Common/*.cpp"
 )
 
-set(PLATFORM_FILES
-    ./Platform/GUIWindow.h 
-    ./Platform/GUIWindow.cpp 
+file(GLOB_RECURSE PLATFORM_FILES CONFIGURE_DEPENDS
+    "./Platform/*.h"
+    "./Platform/*.cpp"
 )
 
-set(RENDERING_FILES 
-    ./Rendering/pipeline.h 
-    ./Rendering/pipeline.cpp
-    ./Rendering/renderContext.h 
-    ./Rendering/renderContext.cpp 
-    ./Rendering/renderTarget.h 
-    ./Rendering/renderTarget.cpp 
-    ./Rendering/renderFrame.h 
-    ./Rendering/renderFrame.cpp 
-    ./Rendering/postQuad.h 
-    ./Rendering/postQuad.cpp
-    ./Rendering/graphicsRenderPass.h 
-    ./Rendering/graphicsRenderPass.cpp
-    ./Rendering/skyLightCube.h 
-    ./Rendering/skyLightCube.cpp
-    ./Rendering/graphicsPipelineBuilder.h
-    ./Rendering/graphicsPipelineBuilder.cpp
-    ./Rendering/rayTracingBuilder.h 
-    ./Rendering/rayTracingBuilder.cpp 
-    ./Rendering/shadowPipelineBuilder.h 
-    ./Rendering/shadowPipelineBuilder.cpp 
-    ./Rendering/ssaoPipelineBuilder.h
-    ./Rendering/ssaoPipelineBuilder.cpp
-    ./Rendering/pbbloomPipelineBuilder.h
-    ./Rendering/pbbloomPipelineBuilder.cpp
-    ./Rendering/SSRPipelineBuilder.h
-    ./Rendering/SSRPipelineBuilder.cpp
-    ./Rendering/makeCubeMapPipeline.h
-    ./Rendering/makeCubeMapPipeline.cpp
+
+file(GLOB_RECURSE RENDERING_FILES CONFIGURE_DEPENDS
+    "./Rendering/*.h"
+    "./Rendering/*.cpp"
 )
 
-set(RESOURCE_MANAGEMENT_FILES
-    ./ResourceManagement/ResourceManager.h 
-    ./ResourceManagement/ResourceManager.cpp 
-    ./ResourceManagement/objLoader.h 
-    ./ResourceManagement/objLoader.cpp 
-    ./ResourceManagement/gltfLoader.h 
-    ./ResourceManagement/gltfLoader.cpp
-    ./ResourceManagement/boundingBox.h
 
+file(GLOB_RECURSE RESOURCE_MANAGEMENT_FILES CONFIGURE_DEPENDS
+    "./ResourceManagement/*.h"
+    "./ResourceManagement/*.cpp"
 )
 
 set(SHADER_HEADER 

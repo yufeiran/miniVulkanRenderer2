@@ -41,3 +41,7 @@ spv/
 
 .cache/
 compile_commands.json
+
+out/
+
+.vs/
