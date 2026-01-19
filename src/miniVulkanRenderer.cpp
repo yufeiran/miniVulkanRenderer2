@@ -80,7 +80,7 @@ void MiniVulkanRenderer::loadFeatures()
 
 
 	//NormalTangentTest 
-	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/NormalTangentTest/glTF/NormalTangentTest.gltf", objMat);
+	rm->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/NormalTangentTest/glTF/NormalTangentTest.gltf", objMat);
 
 
 	// TransmissionTest
@@ -110,9 +110,9 @@ void MiniVulkanRenderer::loadBugBox()
 	objMat = glm::mat4(1.0f);
 	//resourceManager->loadScene("D://yufeiran/model/AMD/Deferred/Deferred.gltf",objMat);
 
-	resourceManager->loadScene("D://yufeiran/model/bugbox/bugbox.gltf", objMat);
+	rm->loadScene("D://yufeiran/model/bugbox/bugbox.gltf", objMat);
 
-	resourceManager->loadScene(getAssetPath("lightScene.gltf"));
+	rm->loadScene(getAssetPath("lightScene.gltf"));
 }
 
 void MiniVulkanRenderer::loadTestGltf()
@@ -155,7 +155,7 @@ void MiniVulkanRenderer::loadTestGltf()
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat, { 0,0,0 });
 	objMat = glm::scale(objMat, { 3,1,3 });
-	resourceManager->loadScene("../../assets/plane/plane1.gltf", objMat);
+	rm->loadScene("../../assets/plane/plane1.gltf", objMat);
 
 
 	//resourceManager->loadScene(getAssetPath("lightScene.gltf");
@@ -164,13 +164,13 @@ void MiniVulkanRenderer::loadTestGltf()
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat, { 0,3,0 });
 	objMat = glm::scale(objMat, { 3,3,3 });
-	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoxTextured/glTF/BoxTextured.gltf", objMat);
+	rm->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoxTextured/glTF/BoxTextured.gltf", objMat);
 
 
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat, { 0,2,0 });
 	objMat = glm::scale(objMat, { 1,1,1 });
-	resourceManager->loadObjModel("backpack", "../../assets/backpack/backpack.obj", objMat, true);
+	rm->loadObjModel("backpack", "../../assets/backpack/backpack.obj", objMat, true);
 
 
 
@@ -230,7 +230,9 @@ void MiniVulkanRenderer::loadSponza()
 
 	//resourceManager->loadScene("D://yufeiran/model/AMD/PBR/PBR.gltf", objMat);
 
-	resourceManager->loadScene("D://yufeiran/model/AMD/Shadow/Shadow.gltf", objMat);
+	//rm->loadScene("D://yufeiran/model/AMD/Shadow/Shadow.gltf", objMat);
+
+	rm->loadScene("D://yufeiran/model/debug/flower.gltf", objMat);
 
 
 
@@ -249,7 +251,7 @@ void MiniVulkanRenderer::loadShowCase()
 
 	objMat = glm::translate(objMat, { 2,0,2 });
 	objMat = glm::scale(objMat, { 50,50,50 });
-	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoomBox/glTF/BoomBox.gltf", objMat);
+	rm->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/BoomBox/glTF/BoomBox.gltf", objMat);
 	////resourceManager->loadScene("D://yufeiran/model/AMD/GI/GI.gltf",objMat);
 	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/GearboxAssy/glTF/GearboxAssy.gltf",objMat);
 	//resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/AntiqueCamera/glTF/AntiqueCamera.gltf",objMat);
@@ -275,7 +277,7 @@ void MiniVulkanRenderer::loadShowCase()
 	objMat = glm::translate(objMat, { 0, 0, 0 });
 	////resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/cube/glTF/cube.gltf", objMat);
 
-	resourceManager->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf", objMat);
+	rm->loadScene("D://yufeiran/model/glTF-Sample-Models/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf", objMat);
 
 
 
@@ -289,7 +291,7 @@ void MiniVulkanRenderer::loadShowCase()
 	objMat = glm::mat4(1.0f);
 	objMat = glm::translate(objMat, { 0,-1,0 });
 	objMat = glm::scale(objMat, { 1,1, 1 });
-	resourceManager->loadScene(getAssetPath("plane/plane.gltf"), objMat);
+	rm->loadScene(getAssetPath("plane/plane.gltf"), objMat);
 
 	//resourceManager->loadScene("D://yufeiran/model/rocky_ground_with_moss/scene.gltf", objMat);
 
@@ -355,7 +357,7 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	tempCommandPool = std::make_unique<CommandPool>(*device);
 
-	resourceManager = std::make_unique<ResourceManager>(*device);
+	rm = std::make_unique<ResourceManager>(*device);
 
 
 	std::vector<std::string> defaultCubeMapNames = {
@@ -406,9 +408,9 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	load();
 	//loadSponza();
-	resourceManager->loadCubemap(HornstullsStrandCubeMapNames);
+	rm->loadCubemap(HornstullsStrandCubeMapNames);
 
-	resourceManager->loadHDR(dikhololo_night_4k_Names);
+	rm->loadHDR(dikhololo_night_4k_Names);
 
 
 
@@ -419,26 +421,26 @@ void MiniVulkanRenderer::init(int width, int height)
 	LogSpace();
 
 
-	makeCubeMapPipeline = std::make_unique<MakeCubeMapPipeline>(*device, *resourceManager, pcRaster);
+	makeCubeMapPipeline = std::make_unique<MakeCubeMapPipeline>(*device, *rm, pcRaster);
 
-	makeCubeMapPipeline->updateDescriptorSet(resourceManager->getHdrImageView());
+	makeCubeMapPipeline->updateDescriptorSet(rm->getHdrImageView());
 
-	graphicsPipelineBuilder = std::make_unique<GraphicsPipelineBuilder>(*device, *resourceManager, *renderContext, offscreenColorFormat, pcRaster);
+	graphicsPipelineBuilder = std::make_unique<GraphicsPipelineBuilder>(*device, *rm, *renderContext, offscreenColorFormat, pcRaster);
 
 
 
 	createOffScreenFrameBuffer();
 
-	shadowPipelineBuilder = std::make_unique<ShadowPipelineBuilder>(*device, *resourceManager, pcRaster, graphicsPipelineBuilder->getLightUniformsBuffer());
+	shadowPipelineBuilder = std::make_unique<ShadowPipelineBuilder>(*device, *rm, pcRaster, graphicsPipelineBuilder->getLightUniformsBuffer());
 
-	ssaoPipelineBuilder = std::make_unique<SSAOPipelineBuilder>(*device, *resourceManager, window->getFramebufferSize(), graphicsPipelineBuilder->getDescriptorSetLayout(),
+	ssaoPipelineBuilder = std::make_unique<SSAOPipelineBuilder>(*device, *rm, window->getFramebufferSize(), graphicsPipelineBuilder->getDescriptorSetLayout(),
 		*offscreenRenderTarget, offscreenColorFormat, pcRaster);
 
-	ssrPipelineBuilder = std::make_unique<SSRPipelineBuilder>(*device, *resourceManager, window->getFramebufferSize(), graphicsPipelineBuilder->getDescriptorSetLayout(),
+	ssrPipelineBuilder = std::make_unique<SSRPipelineBuilder>(*device, *rm, window->getFramebufferSize(), graphicsPipelineBuilder->getDescriptorSetLayout(),
 		*offscreenRenderTarget, offscreenColorFormat, pcRaster);
 
 	pbbloomPipelineBuilder = std::make_unique<PBBloomPipelineBuilder>(*device,
-		*resourceManager,
+		*rm,
 		window->getFramebufferSize(),
 		*offscreenRenderTarget,
 		offscreenColorFormat,
@@ -467,7 +469,7 @@ void MiniVulkanRenderer::init(int width, int height)
 
 
 	std::vector<std::shared_ptr<DescriptorSetLayout>> layouts{ graphicsPipelineBuilder->getDescriptorSetLayout() };
-	renderContext->prepare(*postRenderPass, *resourceManager, layouts,
+	renderContext->prepare(*postRenderPass, *rm, layouts,
 		graphicsPipelineBuilder->getForwardRenderPass().getGraphicsPipeline().getShaderModules().front()->getShaderInfo());
 
 
@@ -485,7 +487,7 @@ void MiniVulkanRenderer::init(int width, int height)
 	window->showWindow();
 
 
-	addLight(lights, *resourceManager, LIGHT_TYPE_DIRECTIONAL, { 0.f, 20.f, 2.f }, { 0.f, -1.f, 0.f }, { 1.f, 1.f, 1.f }, 2.5f, true);
+	addLight(lights, *rm, LIGHT_TYPE_DIRECTIONAL, { 0.f, 20.f, 2.f }, { 0.f, -1.f, 0.f }, { 1.f, 1.f, 1.f }, 2.5f, true);
 
 	LogTimerEnd("init");
 }
@@ -606,7 +608,7 @@ void MiniVulkanRenderer::createBottomLevelAS()
 	std::vector<RayTracingBuilder::BlasInput> allBlas;
 	//allBlas.reserve(resourceManagement->getModelSum());
 
-	const auto& models = resourceManager->getModels();
+	const auto& models = rm->getModels();
 
 	for (const auto& model : models)
 	{
@@ -624,7 +626,7 @@ void MiniVulkanRenderer::createTopLevelAS()
 	//Log("start createTLAS");
 
 
-	const auto& instances = resourceManager->getInstances();
+	const auto& instances = rm->getInstances();
 	tlas.clear();
 	tlas.reserve(instances.size());
 
@@ -633,7 +635,7 @@ void MiniVulkanRenderer::createTopLevelAS()
 		VkAccelerationStructureInstanceKHR rayInst{};
 		uint32_t modelId = instance.objIndex;
 
-		GltfShadeMaterial& mat = resourceManager->materials[modelId];
+		GltfShadeMaterial& mat = rm->materials[modelId];
 
 		rayInst.transform = toTransformMatrixKHR(instance.transform);
 		rayInst.instanceCustomIndex = modelId;
@@ -1083,7 +1085,7 @@ bool MiniVulkanRenderer::uiLights(VkExtent2D screenSize, bool sizeChange, bool& 
 	if (addChecked)
 	{
 
-		addRandomLight(lights, *resourceManager);
+		addRandomLight(lights, *rm);
 		lightSizeChange = true;
 	}
 
@@ -1101,7 +1103,7 @@ bool MiniVulkanRenderer::uiLights(VkExtent2D screenSize, bool sizeChange, bool& 
 			int lightInstanceId = light.getInstanceId();
 			if (lightInstanceId != -1)
 			{
-				auto& instance = resourceManager->getInstances()[lightInstanceId];
+				auto& instance = rm->getInstances()[lightInstanceId];
 				instance.translation = pos;
 				instance.updateTransformByFactor();
 			}
@@ -1123,7 +1125,7 @@ bool MiniVulkanRenderer::uiLights(VkExtent2D screenSize, bool sizeChange, bool& 
 
 			if (ImGui::Button("remove"))
 			{
-				delLight(lights, *resourceManager, i);
+				delLight(lights, *rm, i);
 				lightSizeChange = true;
 				changed = true;
 			}
@@ -1162,7 +1164,7 @@ bool MiniVulkanRenderer::uiInstance(VkExtent2D screenSize, bool sizeChange)
 
 	static bool open = false;
 
-	auto& instance = resourceManager->getInstances();
+	auto& instance = rm->getInstances();
 
 	if (init == true)
 	{
@@ -1471,7 +1473,7 @@ void MiniVulkanRenderer::updateInstances()
 {
 
 	//int lightId =resourceManager->getInstanceId("LightCube");
-	auto& instances = resourceManager->getInstances();
+	auto& instances = rm->getInstances();
 	//if(lightId!= -1)
 	//{
 	//	
@@ -1920,7 +1922,7 @@ void MiniVulkanRenderer::dropCallback(GLFWwindow* window, int count, const char*
 	std::string extName = filename.substr(offset);
 	if (extName == ".gltf")
 	{
-		app->resourceManager->loadScene(filename);
+		app->rm->loadScene(filename);
 	}
 	app->buildRayTracing();
 
@@ -1940,8 +1942,8 @@ void MiniVulkanRenderer::cleanScene()
 
 	surfaceExtent = renderContext->getSurfaceExtent();
 
-	resourceManager.reset();
-	resourceManager = std::make_unique<ResourceManager>(*device);
+	rm.reset();
+	rm = std::make_unique<ResourceManager>(*device);
 
 
 	createOffScreenFrameBuffer();
@@ -1952,7 +1954,7 @@ void MiniVulkanRenderer::cleanScene()
 	const auto& descSetLayout = graphicsPipelineBuilder->getDescriptorSetLayout();
 	auto& rasterPipeline = graphicsPipelineBuilder->getForwardRenderPass().getGraphicsPipeline();
 	std::vector<std::shared_ptr<DescriptorSetLayout>> layouts{ descSetLayout };
-	renderContext->prepare(*postRenderPass, *resourceManager, layouts
+	renderContext->prepare(*postRenderPass, *rm, layouts
 		, rasterPipeline.getShaderModules().front()->getShaderInfo());
 }
 
@@ -2020,7 +2022,7 @@ void MiniVulkanRenderer::handleSizeChange()
 	const auto& descSetLayout = graphicsPipelineBuilder->getDescriptorSetLayout();
 	auto& rasterPipeline = graphicsPipelineBuilder->getForwardRenderPass().getGraphicsPipeline();
 	std::vector<std::shared_ptr<DescriptorSetLayout>> layouts{ descSetLayout };
-	renderContext->prepare(*postRenderPass, *resourceManager, layouts
+	renderContext->prepare(*postRenderPass, *rm, layouts
 		, rasterPipeline.getShaderModules().front()->getShaderInfo());
 
 
@@ -2258,7 +2260,7 @@ void MiniVulkanRenderer::updatePostDescriptorSet()
 	VkDescriptorImageInfo shadowMapInfo;
 	shadowMapInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
 	shadowMapInfo.imageView = renderTarget.getImageViewByIndex(0).getHandle();
-	shadowMapInfo.sampler = resourceManager->getDefaultSampler().getHandle();
+	shadowMapInfo.sampler = rm->getDefaultSampler().getHandle();
 
 	writes.push_back(postDescSetBind.makeWrite(postDescriptorSet, 2, &shadowMapInfo));
 
@@ -2323,7 +2325,7 @@ MiniVulkanRenderer::~MiniVulkanRenderer()
 	}
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
-	resourceManager.reset();
+	rm.reset();
 	offscreenRenderTarget.reset();
 
 

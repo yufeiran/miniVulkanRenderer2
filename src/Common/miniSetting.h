@@ -10,6 +10,7 @@ namespace mini
 	public:
 		bool ssr_on = false;
 		bool bloom_on = false;
+		bool light_cube = false;
 
 		inline void set(const std::string& key, const std::string& value)
 		{

@@ -7,8 +7,43 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include "ResourceManagement/boundingBox.h"
 #include <glm/gtc/type_ptr.hpp>
+#include <stb_image.h>
 
 
+bool loadImageDataToRGBA8(tinygltf::Image* image, const int image_idx, std::string* err, std::string* warn, int req_width, int req_height,
+	const unsigned char* bytes, int size, void* user_data)
+{
+	int w, h, comp;
+
+	unsigned char* data = stbi_load_from_memory(bytes, size, &w, &h, &comp, 4);
+
+	if (!data) {
+		if (err) {
+			*err = "Unknown image format.";
+		}
+		return false;
+	}
+
+	if (req_width > 0 && req_width != w)
+	{
+		if (warn) {
+			*warn = "Image width mismatch.";
+		}
+	}
+
+	image->width = w;
+	image->height = h;
+	image->component = 4;
+	image->bits = 8;
+	image->pixel_type = TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE;
+
+	image->image.resize(static_cast<size_t>(w * h * 4));
+	std::copy(data, data + w * h * 4, image->image.begin());
+
+	stbi_image_free(data);
+
+	return true;
+}
 
 template <class T, class Y>
 struct TypeCast
@@ -21,31 +56,36 @@ struct TypeCast
 
 
 using namespace mini;
+GltfLoader::GltfLoader()
+{
+	
+}
 void GltfLoader::loadScene(const std::string& filename, glm::mat4 transform)
 {
 	reset();
 
 
 	tinygltf::TinyGLTF tcontext;
+	tcontext.SetImageLoader(loadImageDataToRGBA8, nullptr);
 	std::string        warn, error;
 	//Log("Loading file:" + filename);
 
 	bool fileLoadOK = false;
 
-	auto func = [&](){
-			if(!tcontext.LoadASCIIFromFile(&tmodel, &error, &warn, filename))
-			{
-				assert(!"Error while loading scene");
-			}
-			fileLoadOK = true;
-	};
+	auto func = [&]() {
+		if (!tcontext.LoadASCIIFromFile(&tmodel, &error, &warn, filename))
+		{
+			assert(!"Error while loading scene");
+		}
+		fileLoadOK = true;
+		};
 
 	std::thread loadFileT(func);
 	loadFileT.detach();
 
 	using namespace std::chrono_literals;
 
-	while(fileLoadOK == false)
+	while (fileLoadOK == false)
 	{
 		LogWait("tinyGltf Load");
 
@@ -53,19 +93,19 @@ void GltfLoader::loadScene(const std::string& filename, glm::mat4 transform)
 	}
 	LogWaitEnd();
 
-	
 
 
-	if(warn.empty() == false)
+
+	if (warn.empty() == false)
 		Log(warn);
-	if(error.empty() == false)
+	if (error.empty() == false)
 		Log(error);
 
 
-	
+
 	importMaterials(tmodel);
 
-	importDrawableNodes(tmodel, transform, GltfAttributes::Normal | GltfAttributes::Texcoord_0 | GltfAttributes::Color_0 | GltfAttributes::Tangent );
+	importDrawableNodes(tmodel, transform, GltfAttributes::Normal | GltfAttributes::Texcoord_0 | GltfAttributes::Color_0 | GltfAttributes::Tangent);
 
 
 }
@@ -74,53 +114,53 @@ void GltfLoader::importMaterials(const tinygltf::Model& tmodel)
 {
 	materials.reserve(tmodel.materials.size());
 
-	for(auto& tmat : tmodel.materials)
+	for (auto& tmat : tmodel.materials)
 	{
 		GltfMaterial gmat;
 		gmat.tmaterial = &tmat; // Reference
 
-		gmat.alphaCutoff              = static_cast<float>(tmat.alphaCutoff);
-		gmat.alphaMode                = tmat.alphaMode == "MASK" ? 1 : (tmat.alphaMode == "BLEND" ? 2 : 0);
-		gmat.doubleSided              = tmat.doubleSided ? 1 : 0;
-		gmat.emissiveFactor           = tmat.emissiveFactor.size() == 3 ?
-									       glm::vec3(tmat.emissiveFactor[0], tmat.emissiveFactor[1], tmat.emissiveFactor[2]) :
-									       glm::vec3(0.f);
+		gmat.alphaCutoff = static_cast<float>(tmat.alphaCutoff);
+		gmat.alphaMode = tmat.alphaMode == "MASK" ? 1 : (tmat.alphaMode == "BLEND" ? 2 : 0);
+		gmat.doubleSided = tmat.doubleSided ? 1 : 0;
+		gmat.emissiveFactor = tmat.emissiveFactor.size() == 3 ?
+			glm::vec3(tmat.emissiveFactor[0], tmat.emissiveFactor[1], tmat.emissiveFactor[2]) :
+			glm::vec3(0.f);
 
-		gmat.emissiveTexture          = tmat.emissiveTexture.index;
-		gmat.normalTexture            = tmat.normalTexture.index;
-		gmat.normalTextureScale       = static_cast<float>(tmat.normalTexture.scale);
-		gmat.occlusionTexture         = tmat.occlusionTexture.index;
+		gmat.emissiveTexture = tmat.emissiveTexture.index;
+		gmat.normalTexture = tmat.normalTexture.index;
+		gmat.normalTextureScale = static_cast<float>(tmat.normalTexture.scale);
+		gmat.occlusionTexture = tmat.occlusionTexture.index;
 		gmat.occlusionTextureStrength = static_cast<float>(tmat.occlusionTexture.strength);
 
 		// PbrMetallicRoughness
 		auto& tpbr = tmat.pbrMetallicRoughness;
-		gmat.baseColorFactor  = 
+		gmat.baseColorFactor =
 			glm::vec4(tpbr.baseColorFactor[0], tpbr.baseColorFactor[1], tpbr.baseColorFactor[2], tpbr.baseColorFactor[3]);
-		gmat.baseColorTexture         = tpbr.baseColorTexture.index;
-		gmat.metallicFactor           = static_cast<float>(tpbr.metallicFactor);
+		gmat.baseColorTexture = tpbr.baseColorTexture.index;
+		gmat.metallicFactor = static_cast<float>(tpbr.metallicFactor);
 		gmat.metallicRoughnessTexture = tpbr.metallicRoughnessTexture.index;
-		gmat.roughnessFactor          = static_cast<float>(tpbr.roughnessFactor);
+		gmat.roughnessFactor = static_cast<float>(tpbr.roughnessFactor);
 
-		gmat.occlusionTexture         = tmat.occlusionTexture.index;
+		gmat.occlusionTexture = tmat.occlusionTexture.index;
 		gmat.occlusionTextureStrength = tmat.occlusionTexture.strength;
 
-		
+
 		gmat.transmissionFactor = 0;
 		gmat.transmissionTexture = -1;
 		// KHR_materials_transmission
-		if(tmat.extensions.find(KHR_MATERIALS_TRANSMISSION_EXTENSION_NAME)!=tmat.extensions.end())
+		if (tmat.extensions.find(KHR_MATERIALS_TRANSMISSION_EXTENSION_NAME) != tmat.extensions.end())
 		{
 			const auto& ext = tmat.extensions.find(KHR_MATERIALS_TRANSMISSION_EXTENSION_NAME)->second;
 			getFloat(ext, "transmissionFactor", gmat.transmissionFactor);
 			getTexId(ext, "transmissionTexture", gmat.transmissionTexture);
-			
+
 		}
 		else {
 			gmat.transmissionFactor = 0;
 			gmat.transmissionTexture = -1;
 		}
 
-		
+
 		//TODO: extension
 
 		materials.emplace_back(gmat);
@@ -129,7 +169,7 @@ void GltfLoader::importMaterials(const tinygltf::Model& tmodel)
 	}
 
 	// Make default mat
-	if(materials.empty())
+	if (materials.empty())
 	{
 		GltfMaterial gmat;
 		gmat.metallicFactor = 0;
@@ -149,44 +189,44 @@ void GltfLoader::importDrawableNodes(const tinygltf::Model& tmodel, glm::mat4 tr
 	checkRequiredExtensions(tmodel);
 
 	int          defaultScene = tmodel.defaultScene > -1 ? tmodel.defaultScene : 0;
-	const auto&  tscene       = tmodel.scenes[defaultScene];
+	const auto& tscene = tmodel.scenes[defaultScene];
 
 	// Finding used mesh
 	std::set<uint32_t> usedMeshes;
-	for(auto nodeIdx : tscene.nodes)
+	for (auto nodeIdx : tscene.nodes)
 	{
 		findUsedMeshes(tmodel, usedMeshes, nodeIdx);
 	}
 
 	// Find the number of vertex(attributes) and index
 
-	uint32_t nbIndex{0};
-	uint32_t primCnt{0};
+	uint32_t nbIndex{ 0 };
+	uint32_t primCnt{ 0 };
 
 	int nowIndex = 0;
-	for(const auto& m: usedMeshes)
+	for (const auto& m : usedMeshes)
 	{
-		LogProgressBar("mesh index",(double) ++nowIndex / (double)usedMeshes.size());
-		auto&                 tmesh = tmodel.meshes[m];
+		LogProgressBar("mesh index", (double) ++nowIndex / (double)usedMeshes.size());
+		auto& tmesh = tmodel.meshes[m];
 		std::vector<uint32_t> vprim;
-		for(const auto& primitive : tmesh.primitives)
+		for (const auto& primitive : tmesh.primitives)
 		{
-			if(primitive.mode != 4) // Triangle
+			if (primitive.mode != 4) // Triangle
 				continue;
 			const auto& posAccessor = tmodel.accessors[primitive.attributes.find("POSITION")->second];
 
-			if(primitive.indices > -1)
+			if (primitive.indices > -1)
 			{
 				const auto& indexAccessor = tmodel.accessors[primitive.indices];
 				nbIndex += static_cast<uint32_t>(indexAccessor.count);
 			}
-			else 
+			else
 			{
 				nbIndex += static_cast<uint32_t>(posAccessor.count);
 			}
 			vprim.emplace_back(primCnt++);
 		}
-		meshToPrimMeshes[m] = std::move(vprim);  
+		meshToPrimMeshes[m] = std::move(vprim);
 	}
 
 	// Reserving memory
@@ -194,11 +234,11 @@ void GltfLoader::importDrawableNodes(const tinygltf::Model& tmodel, glm::mat4 tr
 
 	// Convert all mesh/primitives+ to a single primitive per mesh
 	nowIndex = 0;
-	for(const auto& m : usedMeshes)
+	for (const auto& m : usedMeshes)
 	{
-		LogProgressBar("Importing mesh",(double) ++nowIndex / (double)usedMeshes.size());
-		auto& tmesh  = tmodel.meshes[m];
-		for(const auto& tprimitive : tmesh.primitives)
+		LogProgressBar("Importing mesh", (double) ++nowIndex / (double)usedMeshes.size());
+		auto& tmesh = tmodel.meshes[m];
+		for (const auto& tprimitive : tmesh.primitives)
 		{
 			processMesh(tmodel, tprimitive, requestedAttributes, forceRequested, tmesh.name);
 			primMeshes.back().tmesh = &tmesh;
@@ -207,23 +247,23 @@ void GltfLoader::importDrawableNodes(const tinygltf::Model& tmodel, glm::mat4 tr
 	}
 
 	// Fixing tangent
-	for(size_t i = 0; i < tangents.size(); i++)
+	for (size_t i = 0; i < tangents.size(); i++)
 	{
-		auto& t =tangents[i];
-		if(sqrtNorm(t) < 0.01f 
+		auto& t = tangents[i];
+		if (sqrtNorm(t) < 0.01f
 			//|| std::abs(t.w) < 0.5f
 			)
 		{
-			const auto& n     = normals[i];
-			const float sgn   = n.z > 0.0f ? 1.0f : -1.0f;
-			const float a     = -1.0f / (sgn + n.z);
-			const float b     = n.x * n.y * a;
-			t                 = glm::vec4(1.0f + sgn * n.x * n.x * a, sgn * b, -sgn * n.x, sgn);
+			const auto& n = normals[i];
+			const float sgn = n.z > 0.0f ? 1.0f : -1.0f;
+			const float a = -1.0f / (sgn + n.z);
+			const float b = n.x * n.y * a;
+			t = glm::vec4(1.0f + sgn * n.x * n.x * a, sgn * b, -sgn * n.x, sgn);
 		}
 	}
 
 	// Transforming the scene hierarchy to a flat list
-	for(auto nodeIdx : tscene.nodes)
+	for (auto nodeIdx : tscene.nodes)
 	{
 		processNode(tmodel, nodeIdx, transform);
 	}
@@ -267,42 +307,42 @@ void GltfLoader::processNode(const tinygltf::Model& tmodel, int& nodeIdx, const 
 {
 	const auto& tnode = tmodel.nodes[nodeIdx];
 
-	glm::mat4 matrix      = getLocalMatrix(tnode);
+	glm::mat4 matrix = getLocalMatrix(tnode);
 	glm::mat4 worldMatrix = parentMatrix * matrix;
 
-	if(tnode.mesh > -1)
+	if (tnode.mesh > -1)
 	{
 		const auto& meshes = meshToPrimMeshes[tnode.mesh];  // A mesh could have many primitives
-		for(const auto& mesh : meshes)
+		for (const auto& mesh : meshes)
 		{
 			GltfNode node;
-			node.primMesh     = mesh;
-			node.worldMatrix  = worldMatrix;
-			node.tnode        = &tnode;
+			node.primMesh = mesh;
+			node.worldMatrix = worldMatrix;
+			node.tnode = &tnode;
 			nodes.emplace_back(node);
 		}
 	}
-	else if(tnode.camera > -1)
+	else if (tnode.camera > -1)
 	{
 		GltfCamera camera;
 		camera.worldMatrix = worldMatrix;
-		camera.cam         = tmodel.cameras[tmodel.nodes[nodeIdx].camera];
+		camera.cam = tmodel.cameras[tmodel.nodes[nodeIdx].camera];
 
 		// TODO: support Iray extension
 		cameras.emplace_back(camera);
 	}
-	else if(tnode.extensions.find(KHR_LIGHTS_PUNCTUAL_EXTENSION_NAME) != tnode.extensions.end())
+	else if (tnode.extensions.find(KHR_LIGHTS_PUNCTUAL_EXTENSION_NAME) != tnode.extensions.end())
 	{
 		GltfLight    light;
-		const auto&  ext       = tnode.extensions.find(KHR_LIGHTS_PUNCTUAL_EXTENSION_NAME)->second;
-		auto         lightIdx  = ext.Get("light").GetNumberAsInt();
-		light.light            = tmodel.lights[lightIdx];
-		light.worldMatrix      = worldMatrix;
+		const auto& ext = tnode.extensions.find(KHR_LIGHTS_PUNCTUAL_EXTENSION_NAME)->second;
+		auto         lightIdx = ext.Get("light").GetNumberAsInt();
+		light.light = tmodel.lights[lightIdx];
+		light.worldMatrix = worldMatrix;
 		lights.emplace_back(light);
 	}
 
 	// Recursion
-	for(auto child : tnode.children)
+	for (auto child : tnode.children)
 	{
 		processNode(tmodel, child, worldMatrix);
 	}
@@ -313,115 +353,115 @@ void GltfLoader::processMesh(const tinygltf::Model& tmodel, const tinygltf::Prim
 {
 	// Only triangles are supported
 	// 0:point, 1:lines, 2:line_loop, 3:line_strip, 4:triangles, 5:triangle_strip, 6:triangle_fan
-	if(tmesh.mode != 4)
+	if (tmesh.mode != 4)
 		return;
 
 	GltfPrimMesh resultMesh;
-	resultMesh.name          = name;
+	resultMesh.name = name;
 	resultMesh.materialIndex = std::max(0, tmesh.material);
-	resultMesh.vertexOffset   = static_cast<uint32_t>(positions.size());
-	resultMesh.firstIndex    = static_cast<uint32_t>(indices.size());
+	resultMesh.vertexOffset = static_cast<uint32_t>(positions.size());
+	resultMesh.firstIndex = static_cast<uint32_t>(indices.size());
 
 	// Create a key made of the attributes, to see if we cache the primitive then we just reused it 
 	std::stringstream o;
-	for(auto& a: tmesh.attributes)
+	for (auto& a : tmesh.attributes)
 	{
 		o << a.first << a.second;
 	}
-	std::string key            = o.str();
+	std::string key = o.str();
 	bool        primMeshCached = false;
 
 	// Found a cache - will not need to append vertex
 	auto it = cachePrimMesh.find(key);
-	if(it != cachePrimMesh.end())
+	if (it != cachePrimMesh.end())
 	{
-		primMeshCached          = true;
-		GltfPrimMesh cacheMesh  = it->second;
-		resultMesh.vertexCount  = cacheMesh.vertexCount;
+		primMeshCached = true;
+		GltfPrimMesh cacheMesh = it->second;
+		resultMesh.vertexCount = cacheMesh.vertexCount;
 		resultMesh.vertexOffset = cacheMesh.vertexOffset;
 	}
 
 	// INDICES
-	if(tmesh.indices > -1)
+	if (tmesh.indices > -1)
 	{
 		const tinygltf::Accessor& indexAccessor = tmodel.accessors[tmesh.indices];
-		resultMesh.indexCount                   = static_cast<uint32_t>(indexAccessor.count);
+		resultMesh.indexCount = static_cast<uint32_t>(indexAccessor.count);
 
-		switch(indexAccessor.componentType)
+		switch (indexAccessor.componentType)
 		{
-			case TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT:{
-				primitiveIndices32u.resize(indexAccessor.count);
-				copyAccessorData(primitiveIndices32u, 0, tmodel, indexAccessor, 0, indexAccessor.count);
-				indices.insert(indices.end(), primitiveIndices32u.begin(), primitiveIndices32u.end());
-				break;
-			}
-			case TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT:{
-				primitiveIndices16u.resize(indexAccessor.count);
-				copyAccessorData(primitiveIndices16u, 0, tmodel, indexAccessor, 0, indexAccessor.count);
-				indices.insert(indices.end(), primitiveIndices16u.begin(), primitiveIndices16u.end());
-				break;
-			}
-			case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE:{
-				primitiveIndices8u.resize(indexAccessor.count);
-				copyAccessorData(primitiveIndices8u, 0, tmodel, indexAccessor, 0, indexAccessor.count);
-				indices.insert(indices.end(), primitiveIndices8u.begin(), primitiveIndices8u.end());
-				break;
-			}
-			default:
-				LogE("Index component type "+std::to_string(indexAccessor.componentType)+" not support!");
-				return;
+		case TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT: {
+			primitiveIndices32u.resize(indexAccessor.count);
+			copyAccessorData(primitiveIndices32u, 0, tmodel, indexAccessor, 0, indexAccessor.count);
+			indices.insert(indices.end(), primitiveIndices32u.begin(), primitiveIndices32u.end());
+			break;
+		}
+		case TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT: {
+			primitiveIndices16u.resize(indexAccessor.count);
+			copyAccessorData(primitiveIndices16u, 0, tmodel, indexAccessor, 0, indexAccessor.count);
+			indices.insert(indices.end(), primitiveIndices16u.begin(), primitiveIndices16u.end());
+			break;
+		}
+		case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE: {
+			primitiveIndices8u.resize(indexAccessor.count);
+			copyAccessorData(primitiveIndices8u, 0, tmodel, indexAccessor, 0, indexAccessor.count);
+			indices.insert(indices.end(), primitiveIndices8u.begin(), primitiveIndices8u.end());
+			break;
+		}
+		default:
+			LogE("Index component type " + std::to_string(indexAccessor.componentType) + " not support!");
+			return;
 		}
 	}
-	else 
+	else
 	{
 		// Primitive without indices, creating them
 		const auto& accessor = tmodel.accessors[tmesh.attributes.find("POSITION")->second];
-		for(auto i = 0; i < accessor.count; i++)
+		for (auto i = 0; i < accessor.count; i++)
 			indices.push_back(i);
 		resultMesh.indexCount = static_cast<uint32_t>(accessor.count);
 	}
 
-	if(primMeshCached == false) // Need to add this primitive
+	if (primMeshCached == false) // Need to add this primitive
 	{
 		// POSITION
 		{
 			const bool hadPosition = getAttribute<glm::vec3>(tmodel, tmesh, positions, "POSITION");
-			if(!hadPosition)
+			if (!hadPosition)
 			{
 				LogE("This gltf have no POSITION attribute.\n");
 				return;
 			}
 			// keep the size of this primitive
-			const auto& accessor   = tmodel.accessors[tmesh.attributes.find("POSITION")->second];
+			const auto& accessor = tmodel.accessors[tmesh.attributes.find("POSITION")->second];
 			resultMesh.vertexCount = static_cast<uint32_t>(accessor.count);
-			if(!accessor.minValues.empty())
+			if (!accessor.minValues.empty())
 			{
 				resultMesh.posMin = glm::vec3(accessor.minValues[0], accessor.minValues[1], accessor.minValues[2]);
 			}
 			else
 			{
 				resultMesh.posMin = glm::vec3(std::numeric_limits<float>::max());
-				for(const auto& p : positions)
+				for (const auto& p : positions)
 				{
-					for(int i = 0; i < 3; i++)
+					for (int i = 0; i < 3; i++)
 					{
-						if(p[i] < resultMesh.posMin[i])
+						if (p[i] < resultMesh.posMin[i])
 							resultMesh.posMin[i] = p[i];
 					}
 				}
 			}
-			if(!accessor.maxValues.empty())
+			if (!accessor.maxValues.empty())
 			{
 				resultMesh.posMax = glm::vec3(accessor.maxValues[0], accessor.maxValues[1], accessor.maxValues[2]);
 			}
-			else 
+			else
 			{
 				resultMesh.posMax = glm::vec3(-std::numeric_limits<float>::max());
-				for(const auto& p : positions)
+				for (const auto& p : positions)
 				{
-					for(int i = 0; i < 3; i++)
+					for (int i = 0; i < 3; i++)
 					{
-						if(p[i] > resultMesh.posMax[i])
+						if (p[i] > resultMesh.posMax[i])
 							resultMesh.posMax[i] = p[i];
 					}
 				}
@@ -431,32 +471,32 @@ void GltfLoader::processMesh(const tinygltf::Model& tmodel, const tinygltf::Prim
 
 
 		// NORMAL
-		if(hasFlag(requestedAttributes, GltfAttributes::Normal))
+		if (hasFlag(requestedAttributes, GltfAttributes::Normal))
 		{
 			bool normalCreated = getAttribute<glm::vec3>(tmodel, tmesh, normals, "NORMAL");
 
-			if(!normalCreated && hasFlag(forceRequested, GltfAttributes::Normal))
+			if (!normalCreated && hasFlag(forceRequested, GltfAttributes::Normal))
 				createNormals(resultMesh);
 		}
 
 		// TEXCOORD_0
-		if(hasFlag(requestedAttributes, GltfAttributes::Texcoord_0))
+		if (hasFlag(requestedAttributes, GltfAttributes::Texcoord_0))
 		{
 			bool texcoordCreated = getAttribute<glm::vec2>(tmodel, tmesh, texcoords0, "TEXCOORD_0");
-			if(!texcoordCreated)
+			if (!texcoordCreated)
 				texcoordCreated = getAttribute<glm::vec2>(tmodel, tmesh, texcoords0, "TEXCOORD");
-			if(!texcoordCreated && hasFlag(forceRequested, GltfAttributes::Texcoord_0))
+			if (!texcoordCreated && hasFlag(forceRequested, GltfAttributes::Texcoord_0))
 				createTexcoords(resultMesh);
 		}
 
 
 		// TANGENT
-		if(hasFlag(requestedAttributes, GltfAttributes::Tangent))
+		if (hasFlag(requestedAttributes, GltfAttributes::Tangent))
 		{
 			std::vector<glm::vec4> gltfTangents;
 			bool tangentCreated = getAttribute<glm::vec4>(tmodel, tmesh, gltfTangents, "TANGENT");
 
-			if(!tangentCreated && hasFlag(forceRequested, GltfAttributes::Tangent))
+			if (!tangentCreated && hasFlag(forceRequested, GltfAttributes::Tangent))
 			{
 				//Log("No tangent found, creating them");
 				createTangents(resultMesh);
@@ -467,7 +507,7 @@ void GltfLoader::processMesh(const tinygltf::Model& tmodel, const tinygltf::Prim
 				std::vector<glm::vec3> tangent;
 				std::vector<glm::vec3> bitangent;
 
-				for(uint32_t a = 0; a < resultMesh.vertexCount; a++)
+				for (uint32_t a = 0; a < resultMesh.vertexCount; a++)
 				{
 					const auto& gt = gltfTangents[a];
 					const auto& n = normals[resultMesh.vertexOffset + a];
@@ -475,14 +515,14 @@ void GltfLoader::processMesh(const tinygltf::Model& tmodel, const tinygltf::Prim
 					glm::vec3 t = gt;
 					glm::vec3 b = glm::cross(n, t);
 
-					if(gt.w == -1.0)
+					if (gt.w == -1.0)
 					{
 						t = t;
 						b = -b;
-						
+
 					}
 
-					
+
 					tangents.push_back(gt);
 					bitangents.push_back(b);
 
@@ -491,19 +531,19 @@ void GltfLoader::processMesh(const tinygltf::Model& tmodel, const tinygltf::Prim
 				}
 
 			}
-				
+
 		}
 
 
 		// COLOR_0
-		if(hasFlag(requestedAttributes, GltfAttributes::Color_0))
+		if (hasFlag(requestedAttributes, GltfAttributes::Color_0))
 		{
 			bool colorCreated = getAttribute<glm::vec4>(tmodel, tmesh, colors0, "COLOR_0");
-			if(!colorCreated && hasFlag(forceRequested, GltfAttributes::Color_0))
+			if (!colorCreated && hasFlag(forceRequested, GltfAttributes::Color_0))
 				createColors(resultMesh);
 		}
 	}
-	
+
 	cachePrimMesh[key] = resultMesh;
 
 	primMeshes.emplace_back(resultMesh);
@@ -516,7 +556,7 @@ void GltfLoader::computeSceneDimensions()
 {
 	BBox scenceBBox;
 
-	for(const auto& node : nodes)
+	for (const auto& node : nodes)
 	{
 		const auto& mesh = primMeshes[node.primMesh];
 
@@ -525,16 +565,16 @@ void GltfLoader::computeSceneDimensions()
 		scenceBBox.insert(bbox);
 	}
 
-	if(scenceBBox.isEmpty() || !scenceBBox.isVolume())
+	if (scenceBBox.isEmpty() || !scenceBBox.isVolume())
 	{
 		LogE("gltf: Scene bounding box invalid , Setting to: [-1,-1,-1], [1,1,1]");
-		scenceBBox.insert({-1.0f, -1.0f, -1.0f});
-		scenceBBox.insert({1.0f, 1.0f, 1.0f});
+		scenceBBox.insert({ -1.0f, -1.0f, -1.0f });
+		scenceBBox.insert({ 1.0f, 1.0f, 1.0f });
 	}
 
-	dimensions.min    = scenceBBox.getMin();
-	dimensions.max    = scenceBBox.getMax();
-	dimensions.size   = scenceBBox.extents();
+	dimensions.min = scenceBBox.getMin();
+	dimensions.max = scenceBBox.getMax();
+	dimensions.size = scenceBBox.extents();
 	dimensions.center = scenceBBox.center();
 	dimensions.radius = scenceBBox.radius();
 
@@ -543,16 +583,16 @@ void GltfLoader::computeSceneDimensions()
 
 void GltfLoader::computeCamera()
 {
-	for(auto& camera : cameras)
+	for (auto& camera : cameras)
 	{
-		if(camera.eye == camera.center)
+		if (camera.eye == camera.center)
 		{
-			camera.worldMatrix = glm::translate(glm::mat4{1},camera.eye);
+			camera.worldMatrix = glm::translate(glm::mat4{ 1 }, camera.eye);
 			float distance = glm::length(dimensions.center - camera.eye);
-			glm::mat3  rotMat{1};
-			camera.center = {0, 0, -distance};
+			glm::mat3  rotMat{ 1 };
+			camera.center = { 0, 0, -distance };
 			camera.center = camera.eye + (rotMat * camera.center);
-			camera.up     = {0, 1, 0};
+			camera.up = { 0, 1, 0 };
 		}
 	}
 }
@@ -563,9 +603,9 @@ void GltfLoader::checkRequiredExtensions(const tinygltf::Model& tmodel)
 		KHR_LIGHTS_PUNCTUAL_EXTENSION_NAME
 	};
 
-	for(auto& e : tmodel.extensionsRequired)
+	for (auto& e : tmodel.extensionsRequired)
 	{
-		if(supportedExtensions.find(e) == supportedExtensions.end())
+		if (supportedExtensions.find(e) == supportedExtensions.end())
 		{
 			LogW("The extension " + e + " is REQUIRED and not supported");
 		}
@@ -576,9 +616,9 @@ void GltfLoader::checkRequiredExtensions(const tinygltf::Model& tmodel)
 void GltfLoader::findUsedMeshes(const tinygltf::Model& tmodel, std::set<uint32_t>& usedMeshes, int nodeIdx)
 {
 	const auto& node = tmodel.nodes[nodeIdx];
-	if(node.mesh >= 0)
+	if (node.mesh >= 0)
 		usedMeshes.insert(node.mesh);
-	for(const auto& c : node.children)
+	for (const auto& c : node.children)
 		findUsedMeshes(tmodel, usedMeshes, c);
 }
 
@@ -586,22 +626,22 @@ void GltfLoader::createNormals(GltfPrimMesh& resultMesh)
 {
 	// Compute the normals
 	std::vector<glm::vec3> geonormal(resultMesh.vertexCount);
-	for(size_t i = 0; i < resultMesh.indexCount; i += 3)
+	for (size_t i = 0; i < resultMesh.indexCount; i += 3)
 	{
 		uint32_t      ind0 = indices[resultMesh.firstIndex + i + 0];
 		uint32_t      ind1 = indices[resultMesh.firstIndex + i + 1];
 		uint32_t      ind2 = indices[resultMesh.firstIndex + i + 2];
-		const auto&   pos0 = positions[ind0 + resultMesh.vertexOffset];
-		const auto&   pos1 = positions[ind1 + resultMesh.vertexOffset];
-		const auto&   pos2 = positions[ind2 + resultMesh.vertexOffset];
-		const auto    v1   = glm::normalize(pos1 - pos0);
-		const auto    v2   = glm::normalize(pos2 - pos0);
-		const auto    n    = glm::cross(v1, v2);
-		geonormal[ind0]   += n;
-		geonormal[ind1]   += n;
-		geonormal[ind2]   += n;
+		const auto& pos0 = positions[ind0 + resultMesh.vertexOffset];
+		const auto& pos1 = positions[ind1 + resultMesh.vertexOffset];
+		const auto& pos2 = positions[ind2 + resultMesh.vertexOffset];
+		const auto    v1 = glm::normalize(pos1 - pos0);
+		const auto    v2 = glm::normalize(pos2 - pos0);
+		const auto    n = glm::cross(v1, v2);
+		geonormal[ind0] += n;
+		geonormal[ind1] += n;
+		geonormal[ind2] += n;
 	}
-	for(auto& n: geonormal)
+	for (auto& n : geonormal)
 		n = glm::normalize(n);
 
 	normals.insert(normals.end(), geonormal.begin(), geonormal.end());
@@ -610,9 +650,9 @@ void GltfLoader::createNormals(GltfPrimMesh& resultMesh)
 void GltfLoader::createTexcoords(GltfPrimMesh& resultMesh)
 {
 	// Cube map projection
-	for(uint32_t i = 0; i < resultMesh.vertexCount; i++)
+	for (uint32_t i = 0; i < resultMesh.vertexCount; i++)
 	{
-		const auto& pos  = positions[resultMesh.vertexOffset + i];
+		const auto& pos = positions[resultMesh.vertexOffset + i];
 		float       absX = fabs(pos.x);
 		float       absY = fabs(pos.y);
 		float       absZ = fabs(pos.z);
@@ -624,65 +664,65 @@ void GltfLoader::createTexcoords(GltfPrimMesh& resultMesh)
 		float maxAxis{}, uc{}, vc{};   // Zero-initialize in case pos = {NaN, NaN, NaN}
 
 		// POSITIVE X
-		if(isXPositive && absX >= absY && absX >= absZ)
+		if (isXPositive && absX >= absY && absX >= absZ)
 		{
 			// u (0 to 1) goes from +z to -z
 			// v (0 to 1) gose from -y to +y
 			maxAxis = absX;
-			uc      = -pos.z;
-			vc      = pos.y;
+			uc = -pos.z;
+			vc = pos.y;
 		}
 		// NEGATIVE X
-		if(!isXPositive && absX >= absY && absX >= absZ)
+		if (!isXPositive && absX >= absY && absX >= absZ)
 		{
 			// u (0 to 1) goes from -z to +z
 			// v (0 to 1) gose from -y to +y
 			maxAxis = absX;
-			uc      = pos.z;
-			vc      = pos.y;
+			uc = pos.z;
+			vc = pos.y;
 		}
 		// POSITIVE Y
-		if(isYPositive && absY >= absX && absY >= absZ)
+		if (isYPositive && absY >= absX && absY >= absZ)
 		{
 			// u (0 to 1) goes from -x to +x
 			// v (0 to 1) gose from +z to -z
 			maxAxis = absY;
-			uc      = pos.x;
-			vc      = -pos.z;
+			uc = pos.x;
+			vc = -pos.z;
 		}
 		// NEGATIVE Y
-		if(!isYPositive && absY >= absX && absY >= absZ)
+		if (!isYPositive && absY >= absX && absY >= absZ)
 		{
 			// u (0 to 1) goes from -x to +x
 			// v (0 to 1) gose from -z to +z
 			maxAxis = absY;
-			uc      = pos.x;
-			vc      = pos.z;
+			uc = pos.x;
+			vc = pos.z;
 		}
 		// POSITIVE Z
-		if(isZPositive && absZ >= absX && absZ >= absY)
+		if (isZPositive && absZ >= absX && absZ >= absY)
 		{
 			// u (0 to 1) goes from -x to +x
 			// v (0 to 1) gose from -y to +y
 			maxAxis = absZ;
-			uc      = pos.x;
-			vc      = pos.y;
+			uc = pos.x;
+			vc = pos.y;
 		}
 		// NEGATIVE Z
-		if(!isZPositive && absZ >= absX && absZ >= absY)
+		if (!isZPositive && absZ >= absX && absZ >= absY)
 		{
 			// u (0 to 1) goes from +x to -x
 			// v (0 to 1) gose from -y to +y
 			maxAxis = absZ;
-			uc      = -pos.x;
-			vc      = pos.y;
+			uc = -pos.x;
+			vc = pos.y;
 		}
 
 		// Convert range from -1 to 1 to 0 to 1
 		float u = 0.5f * (uc / maxAxis + 1.0f);
 		float v = 0.5f * (vc / maxAxis + 1.0f);
 
-		texcoords0.emplace_back(u,v);
+		texcoords0.emplace_back(u, v);
 	}
 }
 
@@ -692,7 +732,7 @@ void GltfLoader::createTangents(GltfPrimMesh& resultMesh)
 	std::vector<glm::vec3> bitangent(resultMesh.vertexCount);
 
 	// Reference  http://foundationsofgameenginedev.com/FGED2-sample.pdf
-	for(size_t i = 0; i < resultMesh.indexCount; i += 3)
+	for (size_t i = 0; i < resultMesh.indexCount; i += 3)
 	{
 		// local index
 		uint32_t i0 = indices[resultMesh.firstIndex + i + 0];
@@ -723,7 +763,7 @@ void GltfLoader::createTangents(GltfPrimMesh& resultMesh)
 
 		float r = 1.0f;
 		float a = duvE1.x * duvE2.y - duvE2.x * duvE1.y;
-		if(fabs(a) > 0) // catch degenerated UV
+		if (fabs(a) > 0) // catch degenerated UV
 		{
 			//Log("Degenerated UV");
 			r = 1.0f / a;
@@ -741,7 +781,7 @@ void GltfLoader::createTangents(GltfPrimMesh& resultMesh)
 		bitangent[i2] += b;
 	}
 
-	for(uint32_t a = 0; a < resultMesh.vertexCount; a++)
+	for (uint32_t a = 0; a < resultMesh.vertexCount; a++)
 	{
 		const auto& t = tangent[a];
 		const auto& b = bitangent[a];
@@ -751,16 +791,16 @@ void GltfLoader::createTangents(GltfPrimMesh& resultMesh)
 		glm::vec3 otangent = glm::normalize(t - (glm::dot(n, t) * n));
 
 		// In case the tangent is invalid
-		if(std::isnan(otangent.x) || std::isnan(otangent.y) || std::isnan(otangent.z)){
+		if (std::isnan(otangent.x) || std::isnan(otangent.y) || std::isnan(otangent.z)) {
 			otangent = glm::vec3(0, 0, 0);
 		}
 
-		if(otangent == glm::vec3(0, 0, 0))
+		if (otangent == glm::vec3(0, 0, 0))
 		{
 			//Log("Invalid tangent, creating a new one");
-			if(fabsf(n.x) > fabsf(n.y))
+			if (fabsf(n.x) > fabsf(n.y))
 				otangent = glm::vec3(n.z, 0, -n.x) / sqrtf(n.x * n.x + n.z * n.z);
-			else 
+			else
 				otangent = glm::vec3(0, -n.z, n.y) / sqrtf(n.y * n.y + n.z * n.z);
 			//otangent = glm::vec3(0, -n.z, n.y) / sqrtf(n.y * n.y + n.z * n.z);
 		}
@@ -769,7 +809,7 @@ void GltfLoader::createTangents(GltfPrimMesh& resultMesh)
 		float handedness = (glm::dot(glm::cross(n, t), b) < 0.0f) ? 1.0f : -1.0f;
 
 
-		
+
 		glm::vec3 obitangent = glm::normalize(glm::cross(n, otangent) * handedness);
 
 		//if(handedness == -1.0f)
@@ -778,7 +818,7 @@ void GltfLoader::createTangents(GltfPrimMesh& resultMesh)
 		//	obitangent = -obitangent;
 		//}
 
-		tangents.emplace_back(otangent.x, otangent.y, otangent.z,handedness);
+		tangents.emplace_back(otangent.x, otangent.y, otangent.z, handedness);
 		bitangents.emplace_back(obitangent.x, obitangent.y, obitangent.z);
 
 	}
@@ -793,21 +833,21 @@ void GltfLoader::createColors(GltfPrimMesh& resultMesh)
 
 glm::mat4 getLocalMatrix(const tinygltf::Node& tnode)
 {
-	glm::mat4 mtranslation{1};
-	glm::mat4 mscale{1};
-	glm::mat4 mrot{1};
-	glm::mat4 matrix{1};
-	
-	
+	glm::mat4 mtranslation{ 1 };
+	glm::mat4 mscale{ 1 };
+	glm::mat4 mrot{ 1 };
+	glm::mat4 matrix{ 1 };
+
+
 
 	glm::vec4 vrotation[4];
 
 
-	if(!tnode.translation.empty())
-		mtranslation = glm::translate(mtranslation,{tnode.translation[0], tnode.translation[1], tnode.translation[2]});
-	if(!tnode.scale.empty())
-		mscale = glm::scale(mscale, {tnode.scale[0], tnode.scale[1], tnode.scale[2]});
-	if(!tnode.rotation.empty())
+	if (!tnode.translation.empty())
+		mtranslation = glm::translate(mtranslation, { tnode.translation[0], tnode.translation[1], tnode.translation[2] });
+	if (!tnode.scale.empty())
+		mscale = glm::scale(mscale, { tnode.scale[0], tnode.scale[1], tnode.scale[2] });
+	if (!tnode.rotation.empty())
 	{
 		glm::quat rotation;
 
@@ -817,12 +857,12 @@ glm::mat4 getLocalMatrix(const tinygltf::Node& tnode)
 		mrot = glm::mat4_cast(rotation);
 
 	}
-	if(!tnode.matrix.empty())
+	if (!tnode.matrix.empty())
 	{
 		// Maybe wrong direction!!!
-		for(int i = 0; i < 4; i++)
+		for (int i = 0; i < 4; i++)
 		{
-			for(int j = 0; j < 4; j++)
+			for (int j = 0; j < 4; j++)
 			{
 				matrix[i][j] = static_cast<float>(tnode.matrix[i * 4 + j]);
 			}

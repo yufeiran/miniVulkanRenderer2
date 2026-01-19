@@ -30,6 +30,8 @@ ResourceManager::ResourceManager(Device& device):
 	clampToEdgeSampler = std::make_unique<Sampler>(device,VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
 	mirroredRepeatSampler = std::make_unique<Sampler>(device,VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT);
 
+
+
 	loadLightCube();
 }
 

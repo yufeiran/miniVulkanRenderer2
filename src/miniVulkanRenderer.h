@@ -75,7 +75,7 @@ public:
 	void load();
 
 
-	void init(int width = 1600, int height = 1080);
+	void init(int width = 2560, int height = 1440);
 	void initImGUI();
 	void createOffScreenFrameBuffer();
 	void initRayTracingRender();
@@ -211,7 +211,7 @@ private:
 	std::unique_ptr<Device>          device;
 	VkSurfaceKHR surface{};
 
-	std::unique_ptr<ResourceManager> resourceManager;
+	std::unique_ptr<ResourceManager> rm;
 
 	std::unique_ptr<RenderContext> renderContext;
 

@@ -127,6 +127,8 @@ inline GltfAttributes operator&(GltfAttributes lhs, GltfAttributes rhs)
 class GltfLoader
 {
 public:
+	GltfLoader();
+
 	void loadScene(const std::string& filename, glm::mat4 transform = glm::mat4{1});
 
 	// Import all materials in a vector of GltfMaterial structure
