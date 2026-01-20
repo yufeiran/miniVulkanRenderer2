@@ -806,7 +806,7 @@ void GltfLoader::createTangents(GltfPrimMesh& resultMesh)
 		}
 
 		// Calculate handedness
-		float handedness = (glm::dot(glm::cross(n, t), b) < 0.0f) ? 1.0f : -1.0f;
+		float handedness = (glm::dot(glm::cross(n, t), b) < 0.0f) ? -1.0f : 1.0f;
 
 
 

@@ -230,9 +230,9 @@ void MiniVulkanRenderer::loadSponza()
 
 	//resourceManager->loadScene("D://yufeiran/model/AMD/PBR/PBR.gltf", objMat);
 
-	//rm->loadScene("D://yufeiran/model/AMD/Shadow/Shadow.gltf", objMat);
+	rm->loadScene("D://yufeiran/model/AMD/Shadow/Shadow.gltf", objMat);
 
-	rm->loadScene("D://yufeiran/model/debug/flower.gltf", objMat);
+	//rm->loadScene("D://yufeiran/model/debug/flower.gltf", objMat);
 
 
 
@@ -648,7 +648,21 @@ void MiniVulkanRenderer::createTopLevelAS()
 		}
 
 		rayInst.flags = flags;
-		rayInst.mask = 0xFF; // Only be hit if rayMask & instance.mask != 0
+		// Only be hit if rayMask & instance.mask != 0
+		// Light Mask = 0x02 other = 0x01
+		if (instance.type == INSTANCE_TYPE_NORMAL)
+		{
+			rayInst.mask = 0x01;
+		}
+		else if(instance.type == INSTANCE_TYPE_LIGHT_CUBE)
+		{
+			rayInst.mask = 0x02;
+		}
+		else
+		{
+			rayInst.mask = 0x01;
+		}
+
 		rayInst.instanceShaderBindingTableRecordOffset = 0;
 		tlas.emplace_back(rayInst);
 	}
@@ -1264,7 +1278,7 @@ bool MiniVulkanRenderer::uiSettings(VkExtent2D screenSize, bool sizeChange)
 
 	if (init == true)
 	{
-		ImGui::SetNextWindowPos(ImVec2(screenSize.width - windowWidth - 50, 50));
+		ImGui::SetNextWindowPos(ImVec2(screenSize.width - windowWidth - 50,screenSize.height - windowHeight - 50));
 		ImGui::SetNextWindowSize(ImVec2(windowWidth, windowHeight));
 
 		init = false;

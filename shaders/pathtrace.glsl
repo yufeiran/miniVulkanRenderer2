@@ -231,7 +231,7 @@ vec3 PathTrace(Ray r)
 
                 traceRayEXT(topLevelAS,   // acceleration structure
                             rayFlags,     // rayFlags
-                            0xFF,         // cullMask
+                            0x01,         // cullMask ONLY INSTANCE_TYPE_NORMAL
                             0,            // sbtRecordOffset
                             0,            // sbtRecordStride
                             1,            // missIndex

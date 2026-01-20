@@ -41,14 +41,13 @@ layout(binding= eGlobals) uniform _GlobalUniforms{
 };
 
 
-
-
 layout(location = 1) in vec3 inWorldPos;
 layout(location = 2) in vec3 inWorldNormal;
 layout(location = 3) in vec3 inViewDir;
 layout(location = 4) in vec2 inTexCoord;
 layout(location = 5) in vec3 inTangent;
-layout(location = 6) in vec3 inBitangent;
+layout(location = 6) in float inTangentSign;
+// layout(location = 6) in vec3 inBitangent;
 
 
 layout(location = 7) in vec3 inModelPos;
@@ -69,8 +68,36 @@ vec3 toneMap(vec3 color)
     return color / (color + vec3(1.0));
 }
 
+mat3 getTBNFromUV(vec3 N, vec3 p, vec2 uv) {
+    // 获取像素在屏幕空间的导数
+    vec3 dp1 = dFdx(p);
+    vec3 dp2 = dFdy(p);
+    vec2 duv1 = dFdx(uv);
+    vec2 duv2 = dFdy(uv);
+
+    // 求解线性方程组
+    vec3 dp2perp = cross(dp2, N);
+    vec3 dp1perp = cross(N, dp1);
+    vec3 T = dp2perp * duv1.x + dp1perp * duv2.x;
+    vec3 B = dp2perp * duv1.y + dp1perp * duv2.y;
+
+    // 构建互相垂直的分量
+    float invmax = inversesqrt(max(dot(T,T), dot(B,B)));
+    return mat3(T * invmax, B * invmax, N);
+}
+
 void main() {
+    
+    vec3 N = normalize(inWorldNormal);
+    vec3 T = normalize(inTangent);
+
+    T = normalize(T - dot(T, N) * N);
+
+    vec3 B = cross(N, T) * inTangentSign;
+    
+    
     // Material of the object 
+
     ObjDesc    objResource = objDesc.i[pcRaster.objIndex];
     MatIndices matIndices  = MatIndices(objResource.materialIndexAddress);
     Materials  materials   = Materials(objResource.materialAddress);
@@ -82,10 +109,10 @@ void main() {
 
     State state;
     state.position = inWorldPos;
-    state.normal   = normalize(inWorldNormal);
+    state.normal   = N;
     state.texCoord = inTexCoord;
-    state.tangent  = normalize(inTangent);
-    state.bitangent = normalize(inBitangent);
+    state.tangent  = T;
+    state.bitangent = B;
 
     int objIndex = pcRaster.objIndex;
 
@@ -102,7 +129,7 @@ void main() {
         
         state.mat.emission = light.color.xyz * max(light.intensity,1.0);
     }
-    
+
         
     gPosition = inWorldPos;
     gNormal   = state.normal ;

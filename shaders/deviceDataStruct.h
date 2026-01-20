@@ -168,7 +168,7 @@ struct Vertex
 	vec3 pos;
 	vec3 normal;
 	vec4 color;
-	vec3 tangent;
+	vec4 tangent;
 	vec3 bitangent;
 	vec2 texCoord;
 };
