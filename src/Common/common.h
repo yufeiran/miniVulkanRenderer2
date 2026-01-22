@@ -14,6 +14,9 @@
 #include <memory>
 #include <sstream>
 #include <cstring>
+
+#include "hostDataStruct.h"
+
 #include "miniLog.h"
 #include "miniSetting.h"
 #define GLM_FORCE_RADIANS
@@ -68,45 +71,53 @@ namespace mini
 		}                                                           \
 	} while (0)
 
-template<class T>
-using BindingMap = std::map<uint32_t, std::map<uint32_t, T>>;
+	template<class T>
+	using BindingMap = std::map<uint32_t, std::map<uint32_t, T>>;
 
-const VkIndexType indexType = VK_INDEX_TYPE_UINT32;
+	const VkIndexType indexType = VK_INDEX_TYPE_UINT32;
 
 
-template <typename T, typename TFlag>
-inline bool hasFlag(T item, TFlag flag)  { return (item & flag) == flag; }
+	template <typename T, typename TFlag>
+	inline bool hasFlag(T item, TFlag flag) { return (item & flag) == flag; }
 
-template<class integral>
-constexpr integral align_up(integral x,size_t a) noexcept
-{
-	return integral((x + (integral(a) - 1)) & ~integral(a - 1));
-}
+	template<class integral>
+	constexpr integral align_up(integral x, size_t a) noexcept
+	{
+		return integral((x + (integral(a) - 1)) & ~integral(a - 1));
+	}
 
-inline bool isDepthOnlyFormat(VkFormat format) {
-	switch (format) {
+	inline bool isDepthOnlyFormat(VkFormat format) {
+		switch (format) {
 		case VK_FORMAT_D16_UNORM:
 		case VK_FORMAT_D32_SFLOAT:
 			return true;
 		default:
 			return false;
 		}
-}
+	}
 
-inline bool isDepthStencilFormat(VkFormat format) {
-	switch (format) {
-			case VK_FORMAT_D16_UNORM_S8_UINT:
-			case VK_FORMAT_D24_UNORM_S8_UINT:
-			case VK_FORMAT_D32_SFLOAT_S8_UINT:
-				return true;
-			default:
-				return isDepthOnlyFormat(format);
-			}
-}
+	inline bool isDepthStencilFormat(VkFormat format) {
+		switch (format) {
+		case VK_FORMAT_D16_UNORM_S8_UINT:
+		case VK_FORMAT_D24_UNORM_S8_UINT:
+		case VK_FORMAT_D32_SFLOAT_S8_UINT:
+			return true;
+		default:
+			return isDepthOnlyFormat(format);
+		}
+	}
 
 
-inline float lerp(float a, float b, float f)
-{
-	return a + f * (b - a);
-}
+	inline float lerp(float a, float b, float f)
+	{
+		return a + f * (b - a);
+	}
+
+
+	enum TextureType
+	{
+		TEXTURE_TYPE_SRGB = 0,
+		TEXTURE_TYPE_LINEAR = 1,
+	};
+
 } // namespace mini

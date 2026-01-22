@@ -387,7 +387,7 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 		int32_t meshNormalTxtIndex = mat.normalTexture;
 		int32_t meshTransmissionTxtIndex = mat.transmissionTexture;
 
-		std::vector<tinygltf::Image*> meshTxt;
+		std::vector<std::pair<TextureType,tinygltf::Image*>> meshTxt;
 
 		if(meshColorTxtIndex != -1)
 		{
@@ -396,8 +396,7 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 
 			// retarget image index
 			mat.pbrBaseColorTexture = textures.size() + meshTxt.size();
-			meshTxt.emplace_back(meshColrTxt);
-
+			meshTxt.emplace_back(TEXTURE_TYPE_LINEAR, meshColrTxt);
 		}
 
 
@@ -408,7 +407,7 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 
 			// retarget image index
 			mat.pbrMetallicRoughnessTexture = textures.size() + meshTxt.size();
-			meshTxt.emplace_back(meshMetallicRoughnessTxt);
+			meshTxt.emplace_back(TEXTURE_TYPE_LINEAR, meshMetallicRoughnessTxt);
 
 		}
 
@@ -419,7 +418,7 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 
 			// retarget image index
 			mat.emissiveTexture = textures.size() + meshTxt.size();
-			meshTxt.emplace_back(meshEmissiveTxt);
+			meshTxt.emplace_back(TEXTURE_TYPE_SRGB, meshEmissiveTxt);
 
 		}
 		if(meshNormalTxtIndex != -1)
@@ -429,7 +428,7 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 
 			// retarget image index
 			mat.normalTexture = textures.size() + meshTxt.size();
-			meshTxt.emplace_back(meshNormalTxt);
+			meshTxt.emplace_back(TEXTURE_TYPE_LINEAR,meshNormalTxt);
 
 		}
 		if(meshTransmissionTxtIndex != -1 )
@@ -439,7 +438,7 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 
 			// retarget image index
 			mat.transmissionTexture = textures.size() + meshTxt.size();
-			meshTxt.emplace_back(meshTransmissionTxt);
+			meshTxt.emplace_back(TEXTURE_TYPE_LINEAR,meshTransmissionTxt);
 		}
 
 		// per face material
@@ -529,7 +528,7 @@ void ResourceManager::loadHDR(const std::string& filename, bool flipTexture)
 
 }
 
-void ResourceManager::createTextureImages(const std::vector<tinygltf::Image*>& loadImages, bool flipTexture)
+void ResourceManager::createTextureImages(const std::vector<std::pair<TextureType,tinygltf::Image*>>& loadImages, bool flipTexture)
 {
 		if(loadImages.empty() && textures.empty())
 	{
@@ -552,10 +551,23 @@ void ResourceManager::createTextureImages(const std::vector<tinygltf::Image*>& l
 	}
 	else
 	{
-		for(const auto& gltfImage : loadImages)
+		for(const auto& it : loadImages)
 		{
+			auto gltfImage = it.second;
+			auto type = it.first;
+
 			VkExtent2D                 imageSize{(uint32_t) gltfImage->width , (uint32_t) gltfImage->height};
-			std::unique_ptr<Image>     image     = std::make_unique<Image>(device, imageSize, gltfImage->image.size(),(void*)(&gltfImage->image[0]),VK_FORMAT_R8G8B8A8_SRGB);
+			VkFormat 			       format = VK_FORMAT_R8G8B8A8_SRGB;
+			if (type == TEXTURE_TYPE_LINEAR)
+			{
+				format = VK_FORMAT_R8G8B8A8_UNORM;
+			}
+			else if (type == TEXTURE_TYPE_SRGB)
+			{
+				format = VK_FORMAT_R8G8B8A8_SRGB;
+			}
+
+			std::unique_ptr<Image>     image     = std::make_unique<Image>(device, imageSize, gltfImage->image.size(),(void*)(&gltfImage->image[0]),format);
 			std::unique_ptr<ImageView> imageView = std::make_unique<ImageView>(*image);
 		
 			Texture texture;
@@ -571,7 +583,7 @@ void ResourceManager::createTextureImages(const std::vector<tinygltf::Image*>& l
 	}
 }
 
-void ResourceManager::createTextureImages(const std::vector<std::string>& texturesStr, const std::string &modelPath, bool flipTexture)
+void ResourceManager::createTextureImages(const std::vector<std::pair<TextureType, std::string>>& texturesStr, const std::string &modelPath, bool flipTexture)
 {
 
 	if(texturesStr.empty() && textures.empty())
@@ -595,11 +607,25 @@ void ResourceManager::createTextureImages(const std::vector<std::string>& textur
 	}
 	else
 	{
-		for(const auto& textureStr : texturesStr)
+		for(const auto& it : texturesStr)
 		{
+			auto textureStr = it.second;
+			auto type = it.first;
+
+			auto format = VK_FORMAT_R8G8B8A8_SRGB;
+			if (type == TEXTURE_TYPE_LINEAR)
+			{
+				format = VK_FORMAT_R8G8B8A8_UNORM;
+			}
+			else if (type == TEXTURE_TYPE_SRGB)
+			{
+				format = VK_FORMAT_R8G8B8A8_SRGB;
+			}
+
 			std::string imagePath = modelPath + textureStr;
+
 			Log("imagePath"+imagePath);
-			std::unique_ptr<Image>     image     = std::make_unique<Image>(device,imagePath,flipTexture);
+			std::unique_ptr<Image>     image     = std::make_unique<Image>(device,imagePath,flipTexture,format);
 			std::unique_ptr<ImageView> imageView = std::make_unique<ImageView>(*image);
 		
 			Texture texture;

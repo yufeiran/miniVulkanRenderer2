@@ -45,7 +45,10 @@ void main(){
     vec3 origin = vec3(uni.viewInverse * vec4(0,0,0,1));
 
    
-    mat3 normalMatrix = mat3(pcRaster.modelMatrix); 
+    //mat3 normalMatrix = mat3(pcRaster.modelMatrix); 
+    mat3 normalMatrix = transpose(inverse(mat3(pcRaster.modelMatrix)));
+
+
 
     outWorldPos = vec3(pcRaster.modelMatrix * vec4(inPosition, 1.0));
     outViewDir     = vec3(outWorldPos - origin);

@@ -129,11 +129,12 @@ void main() {
         
         state.mat.emission = light.color.xyz * max(light.intensity,1.0);
     }
-
+    float sign = inTangentSign;
         
     gPosition = inWorldPos;
     gNormal   = state.normal ;
     gAlbedoSpce = SRGBtoLINEAR(vec4(state.mat.albedo, state.mat.alpha));
+    // gAlbedoSpce = vec4(sign > 0 ? vec3(1,0,0) : (sign < 0 ? vec3(0,0,1) : vec3(0,1,0)), 1.0);
     gMetalRough = vec4(state.mat.metallic, state.mat.roughness, 0.0, 0.0);
     gEmissive = vec4(state.mat.emission, 1.0);
 

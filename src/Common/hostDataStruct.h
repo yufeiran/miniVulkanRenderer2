@@ -1,9 +1,12 @@
-// 用来存同步在GPU内存和CPU内存的结构,比如uniform结构
-#ifndef COMMON_DEVICE_DATA_STRUCT
-#define COMMON_DEVICE_DATA_STRUCT
+#pragma once
 
 #ifdef __cplusplus
-#include"../src/Common/common.h"
+#include <glm/glm.hpp>
+
+#include <glm/mat4x4.hpp>
+#include <glm/vec4.hpp>
+
+#include <glm/gtc/matrix_transform.hpp>
 using vec2 = glm::vec2;
 using vec3 = glm::vec3;
 using vec4 = glm::vec4;
@@ -12,79 +15,79 @@ using uint = unsigned int;
 #endif
 
 #ifdef __cplusplus
-	#define START_ENUM(a) enum a{ 
-	#define END_ENUM() }
+#define START_ENUM(a) enum a{ 
+#define END_ENUM() }
 #else 
-	#define START_ENUM(a) const uint
-	#define END_ENUM() 
+#define START_ENUM(a) const uint
+#define END_ENUM() 
 #endif
 
 START_ENUM(SceneBindings)
-	eGlobals           = 0,
-	eObjDescs          = 1,
-	eTextures          = 2,
-	eCubeMap           = 3,
-	eDiffuseIrradiance = 4,
-	eDirShadowMap      = 5,
-	ePointShadowMap    = 6,
-	eLight             = 7,
-	eSSAOSamples	   = 8
+eGlobals = 0,
+eObjDescs = 1,
+eTextures = 2,
+eCubeMap = 3,
+eDiffuseIrradiance = 4,
+eDirShadowMap = 5,
+ePointShadowMap = 6,
+eLight = 7,
+eSSAOSamples = 8
 END_ENUM();
 
 START_ENUM(PBBloomBindings)
-	epbbloomInput = 0,
-	epbInputSize = 1
+epbbloomInput = 0,
+epbInputSize = 1
 END_ENUM();
 
 
 START_ENUM(RtBindings)
-	eTlas     = 0,  // Top-level acceleration structure
-	eOutImage = 1
+eTlas = 0,  // Top-level acceleration structure
+eOutImage = 1
 END_ENUM();
 
 START_ENUM(GBufferType)
-	eGPosition          = 0,
-	eGNormal            = 1,
-	eGAlbedo            = 2,
-	eGMetalRough        = 3,
-	eGEmission          = 4,
-	eGSSAO              = 5,
-	eGSSAOBlur          = 6,
-	eGPositionViewSpace = 7,
-	eGNormalViewSpace   = 8,
-	eGDepth             = 9
+eGPosition = 0,
+eGNormal = 1,
+eGAlbedo = 2,
+eGMetalRough = 3,
+eGEmission = 4,
+eGSSAO = 5,
+eGSSAOBlur = 6,
+eGPositionViewSpace = 7,
+eGNormalViewSpace = 8,
+eGDepth = 9
 END_ENUM();
 
 START_ENUM(SSAOBindings)
-	eSSAOSAMPLE = 0,
-	eSSAONoise  = 1,
-	eSSAOPosition   = 2,
-	eSSAONormal     = 3,
-	eSSAOAlbedo     = 4,
-	eSSAODepth      = 5
+eSSAOSAMPLE = 0,
+eSSAONoise = 1,
+eSSAOPosition = 2,
+eSSAONormal = 3,
+eSSAOAlbedo = 4,
+eSSAODepth = 5
 END_ENUM();
 
 START_ENUM(SSAOBlurBindings)
-    eSSAOInput = 0
+eSSAOInput = 0
 END_ENUM();
 
 START_ENUM(SSRBindings)
-	eSSRColor = 0,
-	eSSRDepth = 1,
-	eSSRNormal = 2,
-	eSSRPosition = 3,
-	eSSRMetalRough = 4
+eSSRColor = 0,
+eSSRDepth = 1,
+eSSRNormal = 2,
+eSSRPosition = 3,
+eSSRMetalRough = 4
 END_ENUM();
 
 START_ENUM(HDRToCubeMapBindings)
-	eHDRInput = 0,
-	eHDRToCubeMapUniforms = 1
+eHDRInput = 0,
+eHDRToCubeMapUniforms = 1
 
 END_ENUM();
 
 START_ENUM(DiffuseIrradianceBindings)
-	eDiffuseIrradianceInput = 0,
-	eDiffuseIrradianceUniforms = 1
+eDiffuseIrradianceInput = 0,
+eDiffuseIrradianceUniforms = 1
 END_ENUM();
 
 
@@ -93,21 +96,21 @@ struct  HDRToCubeMapUniforms
 	mat4 proj;
 	mat4 view[6];
 };
-	
+
 
 START_ENUM(DebugMode)
-	eNoDebug   = 0,  //
-	eBaseColor = 1,  //
-	eNormal    = 2,  //
-	eMetallic  = 3,  //
-	eEmissive  = 4,  //
-	eAlpha     = 5,  //
-	eRoughness = 6,  //
-	eTexCoord  = 7,  //
-	eTangent   = 8,  //
-	eBitangent = 9,  //
-	eSpecular  = 10, //
-	eSSAO      = 11  //
+eNoDebug = 0,  //
+eBaseColor = 1,  //
+eNormal = 2,  //
+eMetallic = 3,  //
+eEmissive = 4,  //
+eAlpha = 5,  //
+eRoughness = 6,  //
+eTexCoord = 7,  //
+eTangent = 8,  //
+eBitangent = 9,  //
+eSpecular = 10, //
+eSSAO = 11  //
 
 END_ENUM();
 
@@ -163,21 +166,21 @@ struct GlobalUniforms
 
 };
 
-struct Vertex
+struct alignas(16) Vertex
 {
 	vec3 pos;
-	float pad0;
+	float _pad0;
 
 	vec3 normal;
-	float pad1;
+	float _pad1;
 
 	vec4 color;
 	vec4 tangent;
 	vec3 bitangent;
-	float pad2;
+	float _pad2;
 
 	vec2 texCoord;
-	vec2 pad3;
+	vec2 _pad3;
 };
 
 
@@ -213,7 +216,7 @@ struct PushConstantRay
 	int   maxDepth;
 	int   pbrMode;        // 0-Disney, 1-Gltf
 	int   debugMode;      // 0:no degbug 1:normal 
-	float skyLightIntensity; 
+	float skyLightIntensity;
 	int   totalFrameCount;
 };
 
@@ -261,7 +264,7 @@ struct GltfShadeMaterial
 	// PBR
 	vec4  pbrBaseColorFactor;
 
-    int   pbrBaseColorTexture;
+	int   pbrBaseColorTexture;
 	int   pbrOcclusionTexture;
 
 	float pbrMetallicFactor;
@@ -278,7 +281,7 @@ struct GltfShadeMaterial
 	int   khrSpecularGlossinessTexture;
 	int   emissiveTexture;
 
-	vec3  emissiveFactor; 
+	vec3  emissiveFactor;
 	int   alphaMode;
 
 	float alphaCutoff;
@@ -298,7 +301,7 @@ struct GltfShadeMaterial
 	vec3  anisotropyDirection;
 	float anisotropy;
 
-	vec3  attenuationColor ;
+	vec3  attenuationColor;
 	float thicknessFactor;
 	int   thicknessTexture;
 	float attenuationDistance;
@@ -314,6 +317,3 @@ struct GltfShadeMaterial
 };
 
 // for raytracing
-
-
-#endif

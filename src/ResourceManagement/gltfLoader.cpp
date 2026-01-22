@@ -504,16 +504,14 @@ void GltfLoader::processMesh(const tinygltf::Model& tmodel, const tinygltf::Prim
 			else
 			{
 				//Log("Tangent found, using them");
-				std::vector<glm::vec3> tangent;
-				std::vector<glm::vec3> bitangent;
 
 				for (uint32_t a = 0; a < resultMesh.vertexCount; a++)
 				{
 					const auto& gt = gltfTangents[a];
 					const auto& n = normals[resultMesh.vertexOffset + a];
 
-					glm::vec3 t = gt;
-					glm::vec3 b = glm::cross(n, t);
+					glm::vec4 t = gt;
+					glm::vec3 b = glm::cross(n, glm::vec3(t));
 
 					if (gt.w == -1.0)
 					{

@@ -26,7 +26,7 @@ void ObjLoader::loadModel(const std::string& filename)
 		m.illum            = material.illum;
 		if(!material.diffuse_texname.empty())
 		{
-			textures.push_back(material.diffuse_texname);
+			textures.emplace_back(TEXTURE_TYPE_SRGB,material.diffuse_texname);
 			m.textureID = static_cast<int>(textures.size()) - 1;
 		}
 

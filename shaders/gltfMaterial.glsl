@@ -86,14 +86,21 @@ void GetMaterialsAndTextures(inout State state,int instanceCustomIndex)
     //apply normal map if this material have a nomal map
     if(material.normalTexture > -1)
     {
-        vec3 normalVector = textureLod(textureSamplers[nonuniformEXT(material.normalTexture)], state.texCoord, 0).xyz;
-        normalVector      = normalize(normalVector * 2.0 - 1.0);
-        normalVector     *= vec3(material.normalTextureScale, material.normalTextureScale, 1.0);
-        state.normal      = normalize(TBN * normalVector);
+        // vec3 normalVector = textureLod(textureSamplers[nonuniformEXT(material.normalTexture)], state.texCoord, 0).xyz;
+        // normalVector      = normalize(normalVector * 2.0 - 1.0);
+        // normalVector     *= vec3(material.normalTextureScale, material.normalTextureScale, 1.0);
+        // state.normal      = normalize(TBN * normalVector);
+        vec3 rawVector = textureLod(textureSamplers[nonuniformEXT(material.normalTexture)], state.texCoord, 0).xyz;
+        vec3 normalVector = rawVector * 2.0 - 1.0;
+
+        normalVector.y = normalVector.y * -1.0; // invert Y for opengl normal map
+        normalVector.xy * = material.normalTextureScale;
+
+        vec3 worldNormal = TBN * normalVector;
+        state.normal = normalize(worldNormal);
 
 
     }
-
     // bool isInside = dot(state.normal, r.direction) > 0.0;
 
     // state.ffnormal = isInside ? -state.normal : state.normal;

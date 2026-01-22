@@ -188,6 +188,7 @@ public:
 private:
 	bool makeCubeMapEveryTime = false;
 	bool canRaytracing = false;
+	bool enableRayTracing = true;
 	bool useRaytracing = false;
 	int width, height;
 	VkExtent2D surfaceExtent{};

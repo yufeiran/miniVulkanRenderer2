@@ -2,7 +2,6 @@
 
 #include"Common/common.h"
 #include"framebuffer.h"
-#include"../shaders/deviceDataStruct.h"
 
 namespace mini
 {

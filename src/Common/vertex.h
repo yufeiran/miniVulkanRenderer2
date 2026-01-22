@@ -1,10 +1,12 @@
 #pragma once 
 #include "Common/common.h"
-#include "../shaders/deviceDataStruct.h"
+
+
+
+
 
 namespace mini
 {
-
 
 
 static VkVertexInputBindingDescription getBindingDescription() {

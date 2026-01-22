@@ -4,7 +4,6 @@
 #include "Vulkan/renderPass.h"
 #include "buffer.h"
 #include "descriptorSetLayout.h"
-#include "../shaders/deviceDataStruct.h"
 #include "Common/vertex.h"
 
 

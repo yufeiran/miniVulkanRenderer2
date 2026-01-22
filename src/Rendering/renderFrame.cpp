@@ -13,7 +13,6 @@
 
 
 
-#include"../shaders/deviceDataStruct.h"
 #include"Vulkan/buffer.h"
 #include"ResourceManagement/ResourceManager.h"
 #include"Vulkan/sampler.h"

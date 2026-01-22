@@ -1,7 +1,6 @@
 #pragma once
 #include"Common/common.h"
 #include "glm/matrix.hpp"
-#include "../shaders/deviceDataStruct.h"
 
 
 namespace mini

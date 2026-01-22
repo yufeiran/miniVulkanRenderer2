@@ -301,6 +301,10 @@ void MiniVulkanRenderer::loadShowCase()
 
 MiniVulkanRenderer::MiniVulkanRenderer()
 {
+
+
+
+
 	volkInitialize();
 }
 
@@ -476,7 +480,7 @@ void MiniVulkanRenderer::init(int width, int height)
 	initImGUI();
 	ImGui_ImplGlfw_InitForVulkan(window->getHandle(), true);
 
-	if (canRaytracing)
+	if (canRaytracing && enableRayTracing)
 	{
 		buildRayTracing();
 	}
@@ -1938,7 +1942,11 @@ void MiniVulkanRenderer::dropCallback(GLFWwindow* window, int count, const char*
 	{
 		app->rm->loadScene(filename);
 	}
-	app->buildRayTracing();
+	if (app->canRaytracing == true && app->enableRayTracing == true)
+	{
+		app->buildRayTracing();
+	}
+
 
 
 
@@ -2006,7 +2014,7 @@ void MiniVulkanRenderer::handleSizeChange()
 
 	createOffScreenFrameBuffer();
 
-	if (canRaytracing == true)
+	if (canRaytracing == true && enableRayTracing == true)
 	{
 		updateRtDescriptorSet();
 	}

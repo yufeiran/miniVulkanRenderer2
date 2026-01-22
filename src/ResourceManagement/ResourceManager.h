@@ -2,7 +2,6 @@
 #include "Common/common.h"
 #include "Common/light.h"
 #include "Vulkan/texture.h"
-#include "../shaders/deviceDataStruct.h"
 #include "Vulkan/sampler.h"
 #include "Vulkan/commandPool.h"
 #include "ResourceManagement/gltfLoader.h"
@@ -34,6 +33,7 @@ namespace mini
 		INSTANCE_TYPE_LIGHT_CUBE = 1
 
 	};
+
 
 	struct ObjInstance
 	{
@@ -78,9 +78,9 @@ namespace mini
 
 		void loadHDR(const std::string& filename, bool flipTexture = true);
 
-		void createTextureImages(const std::vector<tinygltf::Image*>& loadImages, bool flipTexture = false);
+		void createTextureImages(const std::vector<std::pair<TextureType,tinygltf::Image*>>& loadImages, bool flipTexture = false);
 
-		void createTextureImages(const std::vector<std::string>& textures, const std::string& modelPath, bool flipTexture = false);
+		void createTextureImages(const std::vector<std::pair<TextureType,std::string>>& textures, const std::string& modelPath, bool flipTexture = false);
 
 		int32_t getInstanceId(const std::string name);
 

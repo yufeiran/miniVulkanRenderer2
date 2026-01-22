@@ -25,11 +25,15 @@ struct MaterialObj
 struct VertexObj
 {
 	glm::vec3 pos;
+	float _pad0;
 	glm::vec3 normal;
+	float _pad1;
 	glm::vec4 color;
-	glm::vec3 tangent;
+	glm::vec4 tangent;
 	glm::vec3 bitangent;
+	float _pad2;
 	glm::vec2 texCoord;
+	glm::vec2 _pad3;
 };
 
 struct shapeObj
@@ -47,6 +51,6 @@ public:
 	std::vector<VertexObj>   vertices;
 	std::vector<uint32_t>    indices;
 	std::vector<MaterialObj> materials;
-	std::vector<std::string> textures;
+	std::vector<std::pair<mini::TextureType, std::string>> textures;
 	std::vector<int32_t>     matIndx;
 };

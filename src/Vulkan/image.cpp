@@ -107,7 +107,7 @@ Image::Image(Device& device, const VkExtent2D& extent, size_t size, const void* 
 	transitionImageLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
-Image::Image(Device& device, const std::string& filename, bool flipTexture):device(device),name(filename),imageType(CREATED_IMG)
+Image::Image(Device& device, const std::string& filename, bool flipTexture,VkFormat inFormat):device(device),name(filename),imageType(CREATED_IMG)
 {
 	int texWidth, texHeight, texChannels;
 
@@ -140,7 +140,7 @@ Image::Image(Device& device, const std::string& filename, bool flipTexture):devi
 	imageInfo.mipLevels = 1;
 	imageInfo.arrayLayers = 1;
 
-	imageInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
+	imageInfo.format = inFormat;
 	format = imageInfo.format;
 	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 

@@ -56,8 +56,7 @@ file(GLOB_RECURSE GLSL_SOURCE_FILES
     "${PROJECT_SOURCE_DIR}/shaders/*.rchit"
     "${PROJECT_SOURCE_DIR}/shaders/*.rahit"
     "${PROJECT_SOURCE_DIR}/shaders/*.rmiss"
-    )
-
+)
 ## iterate each shader
 foreach(GLSL ${GLSL_SOURCE_FILES})
   message(STATUS "BUILDING SHADER")
