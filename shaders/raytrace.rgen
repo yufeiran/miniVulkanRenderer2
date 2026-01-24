@@ -72,7 +72,7 @@ void main()
         avgHitValue = vec3(0.0, 0.0, 0.0);
     }
     // Do accumulation over time 
-    if(pcRay.frame > 0)
+    if(pcRay.frame > 1)
     {
         float a        = 1.0f / float(pcRay.frame + 1);
         vec3  oldColor = imageLoad(image, ivec2(gl_LaunchIDEXT.xy)).xyz;

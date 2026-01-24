@@ -199,6 +199,7 @@ vec3 PathTrace(Ray r)
                 float d        = length(lDir);
                 lightIntensity = lightIntensity / (d *d);
                 lightDistance  = 1.0/ (LIGHT_QUADRATIC * d * d + LIGHT_LINEAR * d + LIGHT_CONSTANT + 0.0001) *  lightIntensity;
+                lightDistance  = d; 
                     //(LIGHT_QUADRATIC * d * d + LIGHT_LINEAR * d + LIGHT_CONSTANT + 0.0001);
                 L              = normalize(-lDir);   
             }
@@ -238,7 +239,7 @@ vec3 PathTrace(Ray r)
                             state.position,     // ray origin
                             0.01,          // ray min range
                             -L,            // ray direction
-                            lightDistance - 0.5,         // ray max range
+                            lightDistance ,         // ray max range
                             1             // payload layout(location = 1)
                 );
 
@@ -249,6 +250,17 @@ vec3 PathTrace(Ray r)
                         Li = vec3(0);
                     }
                     radiance += Li;
+                    //debug
+                    // if first bounce in shadow, show red 
+                    // if (depth == 0)
+                    // {
+                    //     radiance = vec3(1,0,0);
+                    // }
+                    // else if(depth ==1)
+                    // {
+                    //     radiance = vec3(0,1,0);
+                    // }
+
                 }
 
             }

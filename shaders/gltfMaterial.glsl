@@ -94,7 +94,7 @@ void GetMaterialsAndTextures(inout State state,int instanceCustomIndex)
         vec3 normalVector = rawVector * 2.0 - 1.0;
 
         normalVector.y = normalVector.y * -1.0; // invert Y for opengl normal map
-        normalVector.xy * = material.normalTextureScale;
+        normalVector.xy *= material.normalTextureScale;
 
         vec3 worldNormal = TBN * normalVector;
         state.normal = normalize(worldNormal);
