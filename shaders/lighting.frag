@@ -300,7 +300,7 @@ void main() {
     state.position = fragPos;
     state.normal = subpassLoad(inputNormal).rgb;
     state.ffnormal = dot(state.normal, viewDir) >= 0.0 ? state.normal : -state.normal;
-    createCoordinateSystem(state.ffnormal, state.tangent, state.bitangent);
+    // createCoordinateSystem(state.ffnormal, state.tangent, state.bitangent);
 
     state.mat.albedo = subpassLoad(inputAlbedo).rgb;
     state.mat.metallic = subpassLoad(inputMetalRough).r;

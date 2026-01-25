@@ -62,8 +62,13 @@ ShadeState GetShadeState(in hitPayload hstate)
     
     worldTangent       = normalize(worldTangent - dot(worldTangent , worldNormal) * worldNormal);
     // vec3 worldBinormal = cross(worldNormal, worldTangent) * v0.tangent.w;
-    vec3 bitangent     = normalize(v0.bitangent.xyz * barycentrics.x + v1.bitangent.xyz * barycentrics.y + v2.bitangent.xyz * barycentrics.z);
-    vec3 worldBinormal = normalize(vec3(mat4(hstate.objectToWorld) *  vec4(bitangent.xyz, 0))); // Transforming the bitangent to world space
+    //vec3 bitangent     = normalize(v0.bitangent.xyz * barycentrics.x + v1.bitangent.xyz * barycentrics.y + v2.bitangent.xyz * barycentrics.z);
+    vec3 bitangent = cross(normal, tangent) * v0.tangent.w;
+
+    vec3 worldBitangent = cross(worldNormal, worldTangent) * v0.tangent.w;
+    
+    // vec3 worldBinormal = normalize(vec3(mat4(hstate.objectToWorld) *  vec4(bitangent.xyz, 0))); // Transforming the bitangent to world space
+
     //vec3 worldBinormal = normalize(vec3(bitangent * hstate.worldToObject)); // Transforming the bitangent to world space
 
     vec4 color      = v0.color * barycentrics.x + v1.color * barycentrics.y + v2.color * barycentrics.z;
@@ -78,7 +83,7 @@ ShadeState GetShadeState(in hitPayload hstate)
     sstate.position      = worldPos;
     sstate.textCoords[0] = texCoord;
     sstate.tangentU[0]   = worldTangent;
-    sstate.tangentV[0]   = worldBinormal;
+    sstate.tangentV[0]   = worldBitangent;
     sstate.color         = color.rgb;
     sstate.matIndex      = matIdx;
 

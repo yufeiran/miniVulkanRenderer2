@@ -127,7 +127,7 @@ vec3 PathTrace(Ray r)
         state.ffnormal = isInside ? -state.normal : state.normal;
 
         state.ffnormal = dot(state.normal, r.direction) <= 0.0 ? state.normal : -state.normal;
-        createCoordinateSystem(state.ffnormal, state.tangent, state.bitangent);
+        // createCoordinateSystem(state.ffnormal, state.tangent, state.bitangent);
 
 
         if(pcRay.debugMode !=  eNoDebug)
