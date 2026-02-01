@@ -223,26 +223,45 @@ vec3 PbrSample(in State state, vec3 V, vec3 N, inout vec3 L, inout float pdf, in
     // https://viclw17.github.io/2018/08/05/raytracing-dielectric-materials
     if(rnd(seed) < transWeight)
     {
-        float eta = state.eta;
+        bool entering = dot(N, V) > 0.0;
+        float ior = state.mat.ior;
+        float eta = entering ? (1.0 / ior) : ior; 
+
+        vec3 n_eff = entering ? N : -N;
+
+
 
         float n1          = 1.0;
         float n2          = state.mat.ior;
         float R0          = (n1 - n2) / (n1 + n2);
         vec3  H           = GgxSampling(state.mat.roughness, r1, r2);
-        H                 = state.tangent * H.x + state.bitangent * H.y + N * H.z;
+        H                 = state.tangent * H.x + state.bitangent * H.y + n_eff * H.z;
         float VdotH       = dot(V,H);
         float F           = F_Schlick(R0 * R0, 1.0, VdotH);   // Reflection
         float discriminat = 1.0 - eta * eta * (1.0 - VdotH * VdotH); // (Total internal reflection)
 
+        float selectionProb = transWeight;
         // Reflection/Total internal reflection
         if(discriminat < 0.0 || rnd(seed) < F)
         {
+            // Fresnel Reflection
+
             L = normalize(reflect(-V, H));
+            selectionProb *= F;
+
+            pdf = selectionProb;
+            brdf = state.mat.f0 * F;
         }
         else 
         {
+            // Refraction 
+
             // Find the pure refeactive ray
             L = normalize(refract(-V, H, eta));
+            selectionProb *= (1.0 - F);
+
+            brdf = EvalDielectricRefraction(state, V, N, L, H, pdf);
+            pdf *= selectionProb;
 
             // Cought rays perpendicular to surface, and simply continue
             if(isnan(L.x) || isnan(L.y) || isnan(L.z))
@@ -250,8 +269,6 @@ vec3 PbrSample(in State state, vec3 V, vec3 N, inout vec3 L, inout float pdf, in
                 L = -V;
             }
         }
-        // Transmission
-        brdf = EvalDielectricRefraction(state, V, H, L, H, pdf);
         
         
 
@@ -267,6 +284,8 @@ vec3 PbrSample(in State state, vec3 V, vec3 N, inout vec3 L, inout float pdf, in
         vec3 B = state.bitangent;
 
         // f_r = k_d * f_lambert + k_s * f_cook-torrance
+
+        float selectionProb = 1.0 - transWeight;
 
         // cal f_lambert
         if(probability < diffuseRatio) // sample diffuse
@@ -301,6 +320,7 @@ vec3 PbrSample(in State state, vec3 V, vec3 N, inout vec3 L, inout float pdf, in
 
         // brdf *= (1.0 - transWeight);
         // pdf  *= (1.0 - transWeight);
+        pdf *= selectionProb;
 
     }
     return brdf;

@@ -231,6 +231,12 @@ void MiniVulkanRenderer::loadSponza()
 	rm->loadScene("D://yufeiran/model/AMD/PBR/PBR.gltf", objMat);
 
 	//rm->loadScene("D://yufeiran/model/Copper/Copper.gltf", objMat);
+	//rm->loadScene("D://yufeiran/model/glass/glass.gltf", objMat);
+
+	objMat = glm::mat4(1.0f);
+	objMat = glm::translate(objMat, { 0,-1.5,0 });
+	objMat = glm::scale(objMat, { 1,1, 1 });
+	//rm->loadScene(getAssetPath("plane/plane.gltf"), objMat);
 
 	//rm->loadScene("D://yufeiran/model/AMD/Shadow/Shadow.gltf", objMat);
 
