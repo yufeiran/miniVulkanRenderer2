@@ -35,7 +35,7 @@ ImageView::ImageView(Image& image ,VkFormat format, VkImageViewType viewType)
 	}
 
 	createInfo.subresourceRange.baseMipLevel = 0;
-	createInfo.subresourceRange.levelCount = 1;
+	createInfo.subresourceRange.levelCount = image.getMipLevels();
 	createInfo.subresourceRange.baseArrayLayer = 0;
 
 	if(viewType == VK_IMAGE_VIEW_TYPE_CUBE)

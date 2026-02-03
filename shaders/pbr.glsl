@@ -300,6 +300,7 @@ vec3 PbrSample(in State state, vec3 V, vec3 N, inout vec3 L, inout float pdf, in
             brdf = EvalDiffuseGltf(state, f0, f90, V, N, L, H, pdf);
             //pdf *= (1.0 - state.mat.subsurface) * diffuseRatio;
             //pdf *= 1.0 * diffuseRatio;
+            pdf *= diffuseRatio;
         }
         // cal f_cook-torrance
         else 

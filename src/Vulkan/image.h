@@ -5,83 +5,89 @@
 
 namespace mini
 {
-class Device;
-class Buffer;
-class DeviceMemory;
+	class Device;
+	class Buffer;
+	class DeviceMemory;
 
-/* Image 要么是从swapchain里弄出来的，要么是自己创建出来的
-*  所以需要两种创建函数，分别用来接受swapchain创建好的Image和自己创建的
-*/
+	/* Image 要么是从swapchain里弄出来的，要么是自己创建出来的
+	*  所以需要两种创建函数，分别用来接受swapchain创建好的Image和自己创建的
+	*/
 
-enum ImageType{SWAPCHAIN_IMG,CREATED_IMG};
-class Image
-{
-public:
-	Image(Device& device, VkImage handle, const VkExtent2D& extent, VkFormat format,
-		VkImageUsageFlags imageUsage,VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT);
+	enum ImageType { SWAPCHAIN_IMG, CREATED_IMG };
+	class Image
+	{
+	public:
+		Image(Device& device, VkImage handle, const VkExtent2D& extent, VkFormat format,
+			VkImageUsageFlags imageUsage, VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT);
 
-	Image(Device& device, const VkExtent2D& extent, VkFormat format,
-		VkImageUsageFlags imageUsage,int layerCount = 1, VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT);
+		Image(Device& device, const VkExtent2D& extent, VkFormat format,
+			VkImageUsageFlags imageUsage, int layerCount = 1, VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT);
 
-	Image(Device& device, const VkExtent2D& extent, size_t size, const void* data, VkFormat format = VK_FORMAT_R8G8B8A8_UNORM);
+		Image(Device& device, const VkExtent2D& extent, size_t size, const void* data, VkFormat format = VK_FORMAT_R8G8B8A8_UNORM, bool needMipmap = true);
 
-	Image(Device& device, const std::string& filename="../assets/images/yamato.jpg", bool flipTexture = false,VkFormat format = VK_FORMAT_R8G8B8A8_UNORM);
+		Image(Device& device, const std::string& filename = "../assets/images/yamato.jpg", bool flipTexture = false, VkFormat format = VK_FORMAT_R8G8B8A8_UNORM, bool needMipmap = true);
 
-	// for cubemap
-	Image(Device& device, const std::vector<std::string>& filenames,bool flipTexture = false);
+		// for cubemap
+		Image(Device& device, const std::vector<std::string>& filenames, bool flipTexture = false, bool needMipmap = true);
 
-	Image(Image&& other);
+		Image(Image&& other);
 
-	~Image();
+		~Image();
 
-	VkImage getHandle() const;
+		VkImage getHandle() const;
 
-	Device& getDevice() const;
+		Device& getDevice() const;
 
-	VkFormat getFormat() const;
+		VkFormat getFormat() const;
 
-	VkExtent2D getExtent() const;
+		VkExtent2D getExtent() const;
 
-	VkImageUsageFlags getUsage() const;
+		VkImageUsageFlags getUsage() const;
 
-	VkSampleCountFlagBits getSampleCount() const;
+		VkSampleCountFlagBits getSampleCount() const;
 
-	inline int getLayers() const{return layers;}
+		inline int getLayers() const { return layers; }
+
+		uint32_t getMipLevels() const { return mipLevels; }
 
 	
-private:
 
 
-	void bindImageMemory(DeviceMemory& deviceMemory);
+	private:
+		void generateMipmaps(VkImage image,uint32_t texWidth, uint32_t texHeight, uint32_t mipLevels,uint32_t layerCount = 1);
 
-	void transitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayout, int layerCount = 1);
+		void bindImageMemory(DeviceMemory& deviceMemory);
 
-	void copyBufferToImage(Buffer& buffer, int layerCount = 1);
-	
-	Device& device;
+		void transitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t layerCount = 1, uint32_t mipLevels = 1);
 
-	ImageType imageType;
+		void copyBufferToImage(Buffer& buffer, int layerCount = 1);
 
-	int layers{1};
+		Device& device;
 
-	VkImage handle{ VK_NULL_HANDLE };
+		ImageType imageType;
 
-	std::unique_ptr<DeviceMemory> deviceMemory;
+		int layers{ 1 };
 
-	VkExtent2D extent{};
+		uint32_t mipLevels{ 1 };
 
-	VkFormat format{};
+		VkImage handle{ VK_NULL_HANDLE };
 
-	VkImageUsageFlags usage{};
+		std::unique_ptr<DeviceMemory> deviceMemory;
 
-	VkSampleCountFlagBits sampleCount{};
+		VkExtent2D extent{};
 
-	VkImageTiling tiling{};
+		VkFormat format{};
 
-	VkImageSubresource subresource{};
+		VkImageUsageFlags usage{};
 
-	std::string name;
+		VkSampleCountFlagBits sampleCount{};
+
+		VkImageTiling tiling{};
+
+		VkImageSubresource subresource{};
+
+		std::string name;
 
 
-};
+	};
 }

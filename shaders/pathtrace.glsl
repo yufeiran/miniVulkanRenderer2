@@ -69,7 +69,7 @@ vec3 DebugInfo(in State state)
     return vec3(1000, 0 , 0);
 }
 
-vec3 PathTrace(Ray r)
+vec3 PathTrace(Ray r, uint seed)
 {
 
     vec3 radiance   = vec3(0.0);
@@ -277,6 +277,15 @@ vec3 PathTrace(Ray r)
         r.origin    = OffsetRay(sstate.position, dot(bsdfSampleRec.L, state.ffnormal) > 0 ? state.ffnormal : -state.ffnormal );
         //r.origin = OffsetRay(sstate.position, dot(bsdfSampleRec.L, state.ffnormal) > 0 ? state.ffnormal : -state.ffnormal);
 
+        if(depth >=3){
+            float p = max(throughput.r,max(throughput.g, throughput.b));
+            
+            if(rnd(seed) > p){
+                break;
+            };
+            throughput /= p;
+        }
+
 
     }
 
@@ -305,7 +314,7 @@ vec3 samplePixel(ivec2 imageCoords, ivec2 sizeImage)
 
     Ray ray = Ray(originWorld.xyz, direction.xyz);
 
-    vec3 radiance = PathTrace(ray);
+    vec3 radiance = PathTrace(ray, prd.seed);
 
     return radiance;
     
