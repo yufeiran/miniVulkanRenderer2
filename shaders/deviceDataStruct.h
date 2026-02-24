@@ -215,6 +215,7 @@ struct PushConstantRay
 	int   debugMode;      // 0:no degbug 1:normal 
 	float skyLightIntensity; 
 	int   totalFrameCount;
+	float pixelSpreadAngle;
 };
 
 struct PushConstantPost

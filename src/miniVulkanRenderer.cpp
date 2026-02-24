@@ -228,10 +228,10 @@ void MiniVulkanRenderer::loadSponza()
 
 	//rm->loadScene("D://yufeiran/model/AMD/GI/GI.gltf", objMat);
 
-	//rm->loadScene("D://yufeiran/model/AMD/PBR/PBR.gltf", objMat);
+	rm->loadScene("D://yufeiran/model/AMD/PBR/PBR.gltf", objMat);
 	//rm->loadScene("D://yufeiran/model/AMD/Caustics/Caustics.gltf", objMat);
 
-	rm->loadScene("D://yufeiran/model/Copper/Copper.gltf", objMat);
+	//rm->loadScene("D://yufeiran/model/Copper/Copper.gltf", objMat);
 	//rm->loadScene("D://yufeiran/model/glass/glass.gltf", objMat);
 
 	objMat = glm::mat4(1.0f);
@@ -2338,6 +2338,10 @@ void MiniVulkanRenderer::updateFrame()
 	}
 	pcRay.frame++;
 	pcRay.totalFrameCount = frameCount;
+	
+	float fovY_radians = glm::radians(camera.getFov());
+	float pixelSpreadAngle = 2.0f * tan(fovY_radians / 2.0f) / float(window->getFramebufferSize().height);
+	pcRay.pixelSpreadAngle = pixelSpreadAngle;
 }
 
 

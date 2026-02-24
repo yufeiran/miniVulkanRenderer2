@@ -5,6 +5,19 @@
 #include "deviceDataStruct.h"
 #include "layouts.glsl" 
 
+float ComputeTextureLod(vec3 normal, vec3 rayDir, float hitDist, vec2 texSize,float uvScale, float lodBias)
+{
+    const float pixelSpreadAngle = 0.001;
+
+    float coneWidth = hitDist * pixelSpreadAngle;
+
+    float NdotV = abs(dot(normal, -rayDir));
+    float projectFactor = 1.0 / max(NdotV,0.05);
+
+    float texelsCovered = coneWidth * projectFactor * max(texSize.x, texSize.y) * uvScale;
+
+    return max(0.0, log2(texelsCovered) + lodBias);
+}
 
 vec4 SRGBtoLINEAR(vec4 srgbIn)
 {
@@ -30,7 +43,18 @@ void GetMetallicRoughness(inout State state, in GltfShadeMaterial material, int 
     baseColor = material.pbrBaseColorFactor;
     if(material.pbrBaseColorTexture > -1)
     {
-        baseColor *= SRGBtoLINEAR(textureLod(textureSamplers[nonuniformEXT(material.pbrBaseColorTexture)], state.texCoord, 0));
+        int texID = nonuniformEXT(material.pbrBaseColorTexture);
+
+    #ifdef IS_RAY_TRACING_SHADER
+        float lodBias = -1.0;
+        float uvScale = 1.0;
+
+        ivec2 texSize = textureSize(textureSamplers[texID], 0);
+        float lod = ComputeTextureLod(state.normal, -state.viewDir, prd.hitT, vec2(texSize), uvScale, lodBias);
+        baseColor *= SRGBtoLINEAR(textureLod(textureSamplers[texID], state.texCoord, lod)); 
+    #else
+        baseColor *= SRGBtoLINEAR(texture(textureSamplers[nonuniformEXT(material.pbrBaseColorTexture)], state.texCoord));
+    #endif
         //baseColor *= textureLod(textureSamplers[nonuniformEXT(material.pbrBaseColorTexture)], state.texCoord, 0);
     }
 
@@ -41,7 +65,15 @@ void GetMetallicRoughness(inout State state, in GltfShadeMaterial material, int 
     {
         // Roughness is stored in the 'g' channel, metallic is stored in the 'b' channel.
         // This layout intentionally reserves the 'r' channel for (optional) occlusion map data
-        vec4 mrSample = textureLod(textureSamplers[nonuniformEXT(material.pbrMetallicRoughnessTexture)], state.texCoord, 0);
+        #ifdef IS_RAY_TRACING_SHADER
+            ivec2 texSize = textureSize(textureSamplers[nonuniformEXT(material.pbrMetallicRoughnessTexture)], 0);
+            float lodBias = -1.0;
+            float uvScale = 1.0;
+            float lod = ComputeTextureLod(state.normal, -state.viewDir, prd.hitT, vec2(texSize), uvScale, lodBias);
+            vec4 mrSample = textureLod(textureSamplers[nonuniformEXT(material.pbrMetallicRoughnessTexture)], state.texCoord, lod);
+        #else
+            vec4 mrSample = texture(textureSamplers[nonuniformEXT(material.pbrMetallicRoughnessTexture)], state.texCoord);
+        #endif
         perceptualRoughness = mrSample.g * perceptualRoughness;
         metallic            = mrSample.b * metallic;
 
@@ -90,9 +122,17 @@ void GetMaterialsAndTextures(inout State state,int instanceCustomIndex)
         // normalVector      = normalize(normalVector * 2.0 - 1.0);
         // normalVector     *= vec3(material.normalTextureScale, material.normalTextureScale, 1.0);
         // state.normal      = normalize(TBN * normalVector);
+    #ifdef IS_RAY_TRACING_SHADER
+        ivec2 texSize = textureSize(textureSamplers[nonuniformEXT(material.normalTexture)], 0);
+        float lodBias = -1.0;
+        float uvScale = 1.0;
+        float lod = ComputeTextureLod(state.normal, -state.viewDir, prd.hitT, vec2(texSize), uvScale, lodBias);
+        vec3 rawVector = textureLod(textureSamplers[nonuniformEXT(material.normalTexture)], state.texCoord, lod).xyz;
+    #else
         vec3 rawVector = textureLod(textureSamplers[nonuniformEXT(material.normalTexture)], state.texCoord, 0).xyz;
-        vec3 normalVector = rawVector * 2.0 - 1.0;
+    #endif
 
+        vec3 normalVector = rawVector * 2.0 - 1.0; // convert from [0,1] to [-1,1]
         normalVector.y = normalVector.y * -1.0; // invert Y for opengl normal map
         normalVector.xy *= material.normalTextureScale;
 
@@ -111,8 +151,16 @@ void GetMaterialsAndTextures(inout State state,int instanceCustomIndex)
     state.mat.emission = material.emissiveFactor;
     if(material.emissiveTexture > -1)
     {
-        state.mat.emission *= 
-            SRGBtoLINEAR(textureLod(textureSamplers[nonuniformEXT(material.emissiveTexture)], state.texCoord, 0)).rgb;
+        #ifdef IS_RAY_TRACING_SHADER
+            ivec2 texSize = textureSize(textureSamplers[nonuniformEXT(material.emissiveTexture)], 0);
+            float lodBias = -1.0;
+            float uvScale = 1.0;
+            float lod = ComputeTextureLod(state.normal, -state.viewDir, prd.hitT, vec2(texSize), uvScale, lodBias);
+            vec4 emissiveSample = textureLod(textureSamplers[nonuniformEXT(material.emissiveTexture)], state.texCoord, lod);
+        #else
+            vec4 emissiveSample = texture(textureSamplers[nonuniformEXT(material.emissiveTexture)], state.texCoord);
+        #endif
+        state.mat.emission *= SRGBtoLINEAR(emissiveSample).rgb;
     }
 
     // Basic material
@@ -128,7 +176,16 @@ void GetMaterialsAndTextures(inout State state,int instanceCustomIndex)
     state.mat.transmission = material.transmissionFactor;
     if(material.transmissionTexture > -1)
     {
-        state.mat.transmission *= textureLod(textureSamplers[nonuniformEXT(material.transmissionTexture)], state.texCoord, 0).r;
+        #ifdef IS_RAY_TRACING_SHADER
+            ivec2 texSize = textureSize(textureSamplers[nonuniformEXT(material.transmissionTexture)], 0);
+            float lodBias = -1.0;
+            float uvScale = 1.0;
+            float lod = ComputeTextureLod(state.normal, -state.viewDir, prd.hitT, vec2(texSize), uvScale, lodBias);
+            float transmissionSample = textureLod(textureSamplers[nonuniformEXT(material.transmissionTexture)], state.texCoord, lod).r;
+        #else
+            float transmissionSample = textureLod(textureSamplers[nonuniformEXT(material.transmissionTexture)], state.texCoord, 0).r;
+        #endif
+        state.mat.transmission *= transmissionSample;
     }
 
     // KHR_materials_ior

@@ -4,6 +4,7 @@
 #include "random.glsl"
 #include "shadeState.glsl"
 
+#define IS_RAY_TRACING_SHADER 1
 #include "gltfMaterial.glsl"
 #include "pbr.glsl"
 
@@ -113,6 +114,7 @@ vec3 PathTrace(Ray r, uint seed)
         state.isEmitter      = false;
         state.specularBounce = false;
         state.isSubsurface   = false;
+        state.viewDir        = -r.direction;
 
     
 

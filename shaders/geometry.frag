@@ -113,6 +113,7 @@ void main() {
     state.texCoord = inTexCoord;
     state.tangent  = T;
     state.bitangent = B;
+    state.viewDir  = inViewDir;
 
     int objIndex = pcRaster.objIndex;
 

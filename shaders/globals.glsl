@@ -84,6 +84,7 @@ struct State
     vec3   tangent;
     vec3   bitangent;
     vec2   texCoord;
+    vec3   viewDir;
 
     bool   isEmitter;
     bool   specularBounce;
