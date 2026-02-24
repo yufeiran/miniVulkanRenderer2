@@ -160,29 +160,11 @@ vec3 PathTrace(Ray r, uint seed)
         // Add absoption (transmission / volume)
         throughput *= exp(-absorption * prd.hitT);
 
-        // Light and environment contribution
-        // TODO:add cubemap light
-
-        // Sampling for the next ray
-        // find next direction and weight
-        bsdfSampleRec.f = Sample(state, -r.direction, state.ffnormal, bsdfSampleRec.L, bsdfSampleRec.pdf, prd.seed);
-
-        // Set absorption only if the ray is currently inside the object
-        // if(dot(state.ffnormal, bsdfSampleRec.L) < 0.0)
-        // {
-        //     absorption = - log(state.mat.attenuationColor) / vec3(state.mat.attenuationDistance);
-        // }
 
 
 
-        if(bsdfSampleRec.pdf > 0.0)
-        {
-            throughput *= bsdfSampleRec.f * abs(dot(state.ffnormal, bsdfSampleRec.L)) / bsdfSampleRec.pdf;
-        }
-        else 
-        {
-            break;
-        }
+
+
 
         for(int i = 0; i < lightsUni.lightCount; i++)
         {
@@ -221,9 +203,9 @@ vec3 PathTrace(Ray r, uint seed)
 
                 
                 directBsdf.f = PbrEval(state, -r.direction, state.ffnormal, -L,directBsdf.pdf);
-                float misWeightBsdf = max(0, powerHeuristic(directBsdf.pdf, lightPdf));
                 
-                Li = misWeightBsdf * lightColor * directBsdf.f * abs(dot(state.ffnormal, L)) * lightIntensity * throughput / directBsdf.pdf;
+                Li = lightColor * lightIntensity* directBsdf.f * abs(dot(state.ffnormal, L))  * throughput;
+                if (any(isnan(Li)) || dot(Li, Li) < 0.0001) continue;
             }
 
             if(state.mat.transmission > 0.0 && isInside || dot(state.ffnormal, L)<0)
@@ -269,10 +251,27 @@ vec3 PathTrace(Ray r, uint seed)
 
 
         }
+        // Light and environment contribution
+        // TODO:add cubemap light
 
-        
+        // Sampling for the next ray
+        // find next direction and weight
+        bsdfSampleRec.f = Sample(state, -r.direction, state.ffnormal, bsdfSampleRec.L, bsdfSampleRec.pdf, prd.seed);
 
+        // Set absorption only if the ray is currently inside the object
+        // if(dot(state.ffnormal, bsdfSampleRec.L) < 0.0)
+        // {
+        //     absorption = - log(state.mat.attenuationColor) / vec3(state.mat.attenuationDistance);
+        // }
 
+        if(bsdfSampleRec.pdf > 0.0)
+        {
+            throughput *= bsdfSampleRec.f * abs(dot(state.ffnormal, bsdfSampleRec.L)) / bsdfSampleRec.pdf;
+        }
+        else 
+        {
+            break;
+        }
 
         r.direction = bsdfSampleRec.L;
         //r.origin    = sstate.position;
