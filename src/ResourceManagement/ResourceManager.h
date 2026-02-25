@@ -93,6 +93,7 @@ namespace mini
 		Texture& getCubeMapTexture() { return cubeMapTexture; }
 		Texture& getHdrTexture() { return hdrTexture; }
 		ImageView& getHdrImageView() { return *hdrImageView; }
+		ImageView& getCubeMapImageView() { return *cubeMapView; }
 
 
 		const std::vector<std::unique_ptr<ObjModel>>& getModels() const { return objModel; }

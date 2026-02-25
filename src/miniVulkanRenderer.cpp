@@ -228,8 +228,10 @@ void MiniVulkanRenderer::loadSponza()
 
 	//rm->loadScene("D://yufeiran/model/AMD/GI/GI.gltf", objMat);
 
-	rm->loadScene("D://yufeiran/model/AMD/PBR/PBR.gltf", objMat);
+	//rm->loadScene("D://yufeiran/model/AMD/PBR/PBR.gltf", objMat);
 	//rm->loadScene("D://yufeiran/model/AMD/Caustics/Caustics.gltf", objMat);
+	//rm->loadScene("D://yufeiran/model/Inazuma/gltf/Inazuma.gltf", objMat);
+	rm->loadScene("D://yufeiran/model/mingshen/mingshen/gltf/mingshen.gltf", objMat);
 
 	//rm->loadScene("D://yufeiran/model/Copper/Copper.gltf", objMat);
 	//rm->loadScene("D://yufeiran/model/glass/glass.gltf", objMat);
@@ -408,6 +410,8 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	std::string dikhololo_night_8k_Names = getAssetPath("HDRI/dikhololo_night_8k.hdr");
 
+	std::string qwantani_moon_noon_puresky_4k_Names = getAssetPath("HDRI/qwantani_moon_noon_puresky_4k.hdr");
+
 
 
 
@@ -423,7 +427,8 @@ void MiniVulkanRenderer::init(int width, int height)
 	//loadSponza();
 	rm->loadCubemap(HornstullsStrandCubeMapNames);
 
-	rm->loadHDR(dikhololo_night_4k_Names);
+	//rm->loadHDR(dikhololo_night_4k_Names);
+	rm->loadHDR(qwantani_moon_noon_puresky_4k_Names);
 
 
 

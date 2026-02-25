@@ -62,7 +62,7 @@ void main()
     {
 
         vec3 newSample = samplePixel(imageCoords, imageRes);
-        totalHitValues += clamp(newSample,0.0,1.0);
+        totalHitValues += clamp(newSample,0.0,100.0);
     
     }
 
@@ -71,7 +71,6 @@ void main()
     if( isnan(avgHitValue.r) || isnan(avgHitValue.g) || isnan(avgHitValue.b) ) {
         avgHitValue = vec3(0.0, 0.0, 0.0);
     }
-    vec3 clampedHitValue = min(avgHitValue, vec3(20.0));
     // Do accumulation over time 
     if(pcRay.frame > 1)
     {

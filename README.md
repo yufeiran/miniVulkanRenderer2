@@ -1,44 +1,45 @@
-# miniVulkanRenderer2
-
 <div align="center">
-<img src="assets/logo.png">
-<p>
- A mini renderer using Vulkan
+  <img src="assets/logo.png" alt="miniVulkanRenderer2 Logo" width="150">
+  
+  <h3>miniVulkanRenderer2</h3>
+  <p>A Lightweight & Modern Vulkan Renderer</p>
+
+  <img src="assets/SacredSakura.png" alt="Grand Narukami Shrine Render">
+  <p><em><b>Grand Narukami Shrine</b> from Genshin Impact. Rendered in real-time with Path Tracing.</em></p>
 </div>
 
- ## 0. TODO
+
+## 🌟 Features
+ * **Path Trace**: Hardware-accelerated ray tracing with Next Event Estimation (NEE).
+ * **PBR Material**: Standard Metallic-Roughness workflow with Alpha Clipping.
+ * **Render Graph**: Vulkan SubPass management.
+ * **Global Illumination**: Screen Space Ambient Occlusion (SSAO) & Screen Space Reflections (SSR)
+ * **Post-Processing**: Physically Based Bloom
+
+## 🖼️ Gallery
+
+[Screenshot Gallery](Screenshot.md)
+
+## 🚀 Build & Install 
+[Install Guide](Install.md)
+
+## 📋 TODO
  - [x] Linux Support
- - [ ] Compute Shader(Bloom / Animation)
- - [ ] OpenXR Support
+ - [ ] Compute Shader (Bloom / Animation)
+ - [ ] FSR
+ - [ ] VR Support
  - [ ] MacOS Support
- - [ ] Rendering performance optimization
  - [ ] Configurable render quality options
- ## 1 Install && Build
 
- ### 1.1 Linux
- Ubuntu 24.04:
-```
-sudo apt update
-sudo apt install libvulkan-dev vulkan-tools vulkan-utility-libraries-dev libglfw3-dev vulkan-validationlayers
-
-```
-
- ## 2. Features
- * PBR
- * PathTrace
- * SubPass
- * SSAO
- * SSR
- * Physical Based Bloom
-
-## 3. Screenshot
-![raytracing](assets/screenshot/shadowMappingPoint_raytracing.png)
-
-[Detail](Screenshot.md)
  
-## 4. ThirdParty
-* imgui 
-* tinygltf
-* tinyobjloader
-* volk
-* stb_image
+## 📚 Third-Party Libraries
+* [imgui](https://github.com/ocornut/imgui)
+* [tinygltf](https://github.com/syoyo/tinygltf)
+* [tinyobjloader](https://github.com/tinyobjloader/tinyobjloader)
+* [volk](https://github.com/zeux/volk)
+* [stb_image](https://github.com/nothings/stb)
+
+## ❤️ Acknowledgements
+
+* **Assets**: Scene model from *Genshin Impact*.
+* **Pair Programming**: Thanks to ✨Gemini for helping me fix bugs.
