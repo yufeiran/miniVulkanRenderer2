@@ -166,6 +166,7 @@ void mini::MakeCubeMapPipeline::createHDRToCubeMapUniforms()
 
 	//create buffer
 	hdrToCubeMapUniforms = std::make_unique<Buffer>(device, sizeof(hdrToCubeMapUniformsData), reinterpret_cast<void*>(&hdrToCubeMapUniformsData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	hdrToCubeMapUniforms->setName("HDRToCubeMapUniforms");
 }
 
 void mini::MakeCubeMapPipeline::createDescriptorSetLayout()

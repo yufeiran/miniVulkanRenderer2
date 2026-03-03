@@ -231,9 +231,9 @@ void MiniVulkanRenderer::loadSponza()
 	//rm->loadScene("D://yufeiran/model/AMD/PBR/PBR.gltf", objMat);
 	//rm->loadScene("D://yufeiran/model/AMD/Caustics/Caustics.gltf", objMat);
 	//rm->loadScene("D://yufeiran/model/Inazuma/gltf/Inazuma.gltf", objMat);
-	rm->loadScene("D://yufeiran/model/mingshen/mingshen/gltf/mingshen.gltf", objMat);
+	//rm->loadScene("D://yufeiran/model/mingshen/mingshen/gltf/mingshen.gltf", objMat);
 
-	//rm->loadScene("D://yufeiran/model/Copper/Copper.gltf", objMat);
+	rm->loadScene("D://yufeiran/model/Copper/Copper.gltf", objMat);
 	//rm->loadScene("D://yufeiran/model/glass/glass.gltf", objMat);
 
 	objMat = glm::mat4(1.0f);
@@ -312,7 +312,7 @@ void MiniVulkanRenderer::loadShowCase()
 
 MiniVulkanRenderer::MiniVulkanRenderer()
 {
-
+	initLogFile("mini.log");
 
 
 
@@ -609,16 +609,21 @@ auto MiniVulkanRenderer::objModelToVkGeometryKHR(const ObjModel& model)
 
 void MiniVulkanRenderer::buildRayTracing()
 {
-	tlas.clear();
-
-	LogTimerStart("build AS");
 	initRayTracingRender();
-	createBottomLevelAS();
-	createTopLevelAS();
-	LogTimerEnd("build AS");
+	buildAS();
 	createRtDescriptorSet();
 	createRtPipeline();
 	createRtShaderBindingTable();
+}
+
+void MiniVulkanRenderer::buildAS()
+{	
+	tlas.clear();
+
+	LogTimerStart("build AS");
+	createBottomLevelAS();
+	createTopLevelAS();
+	LogTimerEnd("build AS");
 }
 
 void MiniVulkanRenderer::createBottomLevelAS()
@@ -883,6 +888,7 @@ void MiniVulkanRenderer::createRtShaderBindingTable()
 		VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT
 		| VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR,
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	rtSBTBuffer->setName("RtSBTBuffer");
 
 	// Find the SBT address of each group
 	VkBufferDeviceAddressInfo info{ VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO, nullptr, rtSBTBuffer->getHandle() };
@@ -1353,8 +1359,7 @@ void MiniVulkanRenderer::loop()
 
 	while (!window->shouldClose()) {
 		calFps();
-		processIO();
-
+	
 		if (useRaytracing != lastCanRaytracingMode)
 		{
 			lastCanRaytracingMode = useRaytracing;
@@ -1494,7 +1499,7 @@ void MiniVulkanRenderer::loop()
 
 		sizeChange = false;
 
-
+		processIO();
 	}
 	device->waitIdle();
 }
@@ -1538,6 +1543,14 @@ void MiniVulkanRenderer::updateInstances()
 	}
 
 	rayTracingBuilder->buildTlas(tlas, rtFlags, true);
+}
+
+void MiniVulkanRenderer::updateSceneDescriptors()
+{
+	auto& cubeMapImageView = makeCubeMapPipeline->getCubeMapRenderTarget().getImageViewByIndex(0);
+	auto& diffuseIrrImageView = makeCubeMapPipeline->getDiffuseIrradianceRenderTarget().getImageViewByIndex(0);
+	graphicsPipelineBuilder->updateDescriptorSet(shadowPipelineBuilder->getDirRenderTarget(), shadowPipelineBuilder->getPointRenderTarget(), *offscreenRenderTarget
+		, cubeMapImageView, diffuseIrrImageView);
 }
 
 void MiniVulkanRenderer::rasterize(CommandBuffer& cmd, VkClearColorValue defaultClearColor)
@@ -1947,7 +1960,16 @@ void MiniVulkanRenderer::dropCallback(GLFWwindow* window, int count, const char*
 {
 
 	auto app = static_cast<MiniVulkanRenderer*>(glfwGetWindowUserPointer(window));
-	app->cleanScene();
+
+	
+	vkDeviceWaitIdle(app->device->getHandle());
+	app->resetFrame();
+	app->rm->clearScene();
+	for (int i = 0; i < app->lights.size(); i++) {
+		int newInstanceId = app->rm->addLightCubeInstance(app->lights[i], i);
+		app->lights[i].setInstanceId(newInstanceId);
+	}
+
 	const char* filename_ = path[0];
 	std::string filename = filename_;
 	auto offset = filename.find_last_of('.');
@@ -1958,12 +1980,23 @@ void MiniVulkanRenderer::dropCallback(GLFWwindow* window, int count, const char*
 	}
 	if (app->canRaytracing == true && app->enableRayTracing == true)
 	{
-		app->buildRayTracing();
+		app->buildAS();
 	}
+	app->graphicsPipelineBuilder->createObjDescriptionBuffer();
 
+	app->graphicsPipelineBuilder->updateDescriptorSet(
+		app->shadowPipelineBuilder->getDirRenderTarget(),
+		app->shadowPipelineBuilder->getPointRenderTarget(),
+		*app->offscreenRenderTarget,
+		app->makeCubeMapPipeline->getCubeMapRenderTarget().getImageViewByIndex(0),
+		app->makeCubeMapPipeline->getDiffuseIrradianceRenderTarget().getImageViewByIndex(0)
+	);
 
-
-
+	if (app->canRaytracing && app->enableRayTracing) {
+		app->updateRtDescriptorSet();
+	}
+	app->device->waitIdle();
+	Log("Reload Finish!");
 }
 
 void MiniVulkanRenderer::cleanScene()
@@ -2368,7 +2401,7 @@ MiniVulkanRenderer::~MiniVulkanRenderer()
 	rm.reset();
 	offscreenRenderTarget.reset();
 
-
+	closeLogFile();
 }
 
 

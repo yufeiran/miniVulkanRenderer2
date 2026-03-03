@@ -242,6 +242,7 @@ void SSAOPipelineBuilder::createSSAOBuffers()
 	}
 
 	ssaoSamplesBuffer = std::make_unique<Buffer>(device, ssaoKernel, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT|VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
+	ssaoSamplesBuffer->setName("SSAO Sample Kernel Buffer");
 
 	std::vector<glm::vec3> ssaoNoise;
 	for(unsigned int i = 0; i < 16; i++)

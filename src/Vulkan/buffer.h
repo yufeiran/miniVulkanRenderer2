@@ -32,10 +32,10 @@ public:
 
 	uint32_t getSize();
 
-	// 从cpu内存中拷贝数据到buffer的GPU内存中，先map 再copy 最后 unmap
+	void setName(const char* name);
+
 	void map(const void* rawData, uint32_t size);
 
-	// 持久的map 到mapAddress上
 	void persistentMap(uint32_t size);
 
 	void unpersistentMap();

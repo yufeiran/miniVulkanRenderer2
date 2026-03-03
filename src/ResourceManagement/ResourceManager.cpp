@@ -30,6 +30,7 @@ ResourceManager::ResourceManager(Device& device):
 	clampToEdgeSampler = std::make_unique<Sampler>(device,VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
 	mirroredRepeatSampler = std::make_unique<Sampler>(device,VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT);
 
+	createDummyTexture();
 
 
 	loadLightCube();
@@ -39,6 +40,23 @@ ResourceManager::~ResourceManager()
 {
 	textures.clear();
 	
+}
+
+void ResourceManager::clearScene()
+{
+	objModel.clear();
+	objDesc.clear();
+	instances.clear();
+	materials.clear();
+	textures.clear();
+	images.clear();
+	imageViews.clear();
+	gltfLoader.reset();
+
+	lightCubeObjIndex = -1;
+
+	createDummyTexture();
+	loadLightCube();
 }
 
 void ResourceManager::draw(CommandBuffer& cmd,PushConstantRaster& pcRaster)
@@ -297,6 +315,13 @@ void ResourceManager::loadObjModel(std::string name, std::string path, glm::mat4
 	model->indexBuffer    = std::make_unique<Buffer>(device, loader.indices, static_cast<VkBufferUsageFlagBits>( VK_BUFFER_USAGE_INDEX_BUFFER_BIT | rayTracingFlags));
 	model->matColorBuffer = std::make_unique<Buffer>(device, mVec, static_cast<VkBufferUsageFlagBits>( VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | flag));
 	model->matIndexBuffer = std::make_unique<Buffer>(device, loader.matIndx, static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | flag));
+	
+	model->vertexBuffer->setName((name + "_vertexBuffer").c_str());
+	model->indexBuffer->setName((name + "_indexBuffer").c_str());
+	model->matColorBuffer->setName((name + "_matColorBuffer").c_str());
+	model->matIndexBuffer->setName((name + "_matIndexBuffer").c_str());
+
+
 
 	auto txtOffset = static_cast<uint32_t>(textures.size());
 	auto pos=path.find_last_of("/");
@@ -463,6 +488,10 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 		model->matColorBuffer = std::make_unique<Buffer>(device, matColor, static_cast<VkBufferUsageFlagBits>( VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | flag));
 		model->matIndexBuffer = std::make_unique<Buffer>(device, matIndex, static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | flag));
 
+		model->vertexBuffer->setName((m.name + "_vertexBuffer").c_str());
+		model->indexBuffer->setName((m.name + "_indexBuffer").c_str());
+		model->matColorBuffer->setName((m.name + "_matColorBuffer").c_str());
+		model->matIndexBuffer->setName((m.name + "_matIndexBuffer").c_str());
 		
 		ObjDesc desc={};
 		desc.txtOffset            = txtOffset;
@@ -659,6 +688,19 @@ int ResourceManager::getLightCubeObjId()
 {
 
 	return lightCubeObjIndex;
+}
+
+void ResourceManager::createDummyTexture()
+{
+	if (dummyImage) return; // already created
+
+	auto WHITE_PIXEL = 0xffffffff;
+	dummyImage = std::make_unique<Image>(device, VkExtent2D{ 1, 1 }, sizeof(uint32_t), (void*)(&WHITE_PIXEL), VK_FORMAT_R8G8B8A8_UNORM);
+	dummyImageView = std::make_unique<ImageView>(*dummyImage);
+	dummyTexture.image = dummyImage->getHandle();
+	dummyTexture.descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	dummyTexture.descriptor.imageView = dummyImageView->getHandle();
+	dummyTexture.descriptor.sampler = defaultSampler->getHandle();
 }
 
 void ObjInstance::updateFactorBytransform()

@@ -365,6 +365,7 @@ void PBBloomPipelineBuilder::createBloomSizeBuffers()
 		std::vector<glm::vec2> tempVec(1, bloomInputTextureSizes[i]);
 		auto bloomSizeBuffer = std::make_unique<Buffer>(device, tempVec,
 			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+		bloomSizeBuffer->setName(("Bloom Size Buffer " + std::to_string(i)).c_str());
 		bloomSizeBuffers.push_back(std::move(bloomSizeBuffer));
 	}
 }

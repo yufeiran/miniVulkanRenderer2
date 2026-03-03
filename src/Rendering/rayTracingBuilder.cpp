@@ -80,6 +80,7 @@ void RayTracingBuilder::buildBlas(const std::vector<BlasInput>& input, VkBuildAc
 	scratchBuffer=std::make_unique<Buffer>(device,static_cast<uint32_t>(maxScratchSize),
 		VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT|VK_BUFFER_USAGE_STORAGE_BUFFER_BIT|VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	scratchBuffer->setName("Scratch Buffer for BLAS build");
 
 	VkDeviceAddress           scratchAddress = scratchBuffer->getBufferDeviceAddress();
 
@@ -169,6 +170,7 @@ void RayTracingBuilder::buildTlas(const std::vector<VkAccelerationStructureInsta
 	instancesBuffer.reset();
 	instancesBuffer = std::make_unique<Buffer>(device,instances,
 		(VkBufferUsageFlagBits)(VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT|VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR));
+	instancesBuffer->setName("Instance Buffer for TLAS build");
 
 	VkDeviceAddress instBufferAddr = instancesBuffer->getBufferDeviceAddress();
 
@@ -343,6 +345,7 @@ void RayTracingBuilder::cmdCreateTlas(CommandBuffer& cmdBuf, uint32_t countInsta
 	scratchBuffer = std::make_unique<Buffer>(device,static_cast<uint32_t>( sizeInfo.buildScratchSize),
 		VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT|VK_BUFFER_USAGE_STORAGE_BUFFER_BIT|VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 	VkDeviceAddress scratchAddress = scratchBuffer->getBufferDeviceAddress();
+	scratchBuffer->setName("Scratch Buffer for TLAS build");
 
 	// Update build information
 	buildInfo.srcAccelerationStructure   = update ? tlas.accel : VK_NULL_HANDLE;

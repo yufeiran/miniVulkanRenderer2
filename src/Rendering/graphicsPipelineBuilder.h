@@ -45,7 +45,7 @@ namespace mini
 		//GraphicsPipeline&                    getRasterPipeline()      const { return *rasterPipeline; }
 		RenderPass& getRasterRenderPass() { return *rasterRenderPass; }
 		GeometryRenderPass& getForwardRenderPass() { return *geomRenderPass; }
-
+		void createObjDescriptionBuffer();
 	private:
 
 
@@ -53,7 +53,7 @@ namespace mini
 		void createDescriptorSetLayout();
 		//void createRasterPipeline();
 		void createUniformBuffer();
-		void createObjDescriptionBuffer();
+		
 
 		void createSSAOBuffers();
 

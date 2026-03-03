@@ -70,7 +70,7 @@ public:
 
 	~MiniVulkanRenderer();
 
-	// init-----------------
+	// init -----------------
 
 	void load();
 
@@ -81,8 +81,9 @@ public:
 	void initRayTracingRender();
 
 
-	// init raytracing-------
+	// init raytracing -------
 	void buildRayTracing();
+	void buildAS();
 	void createBottomLevelAS();
 	void createTopLevelAS();
 	void createRtDescriptorSet();
@@ -94,27 +95,24 @@ public:
 
 	void rasterize(CommandBuffer& cmd, VkClearColorValue defaultClearColor);
 
-	// ui---------------------
+	// ui ---------------------
 	void renderUI(std::vector<VkClearValue>& clearValues, VkExtent2D screenSize, bool sizeChange, bool& lightSizeChange);
-
 	bool uiLights(VkExtent2D screenSize, bool sizeChange, bool& lightSizeChange);
-
 	bool uiSettings(VkExtent2D screenSize, bool sizeChange);
-
 	bool uiInstance(VkExtent2D screenSize, bool sizeChange = false);
 
-	//post -----------------
+	// post -----------------
 	void initPostRender(VkFormat postSurfaceColorFormat);
 	void updatePostDescriptorSet();
 
 	void resetFrame();
 	void updateFrame();
 
+	// main loop -----------------
 	void loop();
 
-
 	void updateInstances();
-
+	void updateSceneDescriptors();
 
 	void processIO();
 	void keyControl();
@@ -181,8 +179,6 @@ public:
 	};
 
 	std::vector<Light> lights = {
-
-
 	};
 
 private:
@@ -198,13 +194,11 @@ private:
 	int maxFrames{ 10000 };
 	const int MAX_FRAMES_LIMIT = { 10000 };
 
-
 	VkFormat defaultSurfaceColorFormat = VK_FORMAT_R8G8B8A8_SRGB;
 	VkFormat defaultSurfaceDepthFormat = VK_FORMAT_X8_D24_UNORM_PACK32;
 
 	VkFormat offscreenColorFormat{ VK_FORMAT_R32G32B32A32_SFLOAT };
 	VkFormat offscreenDepthFormat{ VK_FORMAT_X8_D24_UNORM_PACK32 };
-
 
 	std::unique_ptr<Instance>        instance;
 	std::unique_ptr<GUIWindow>       window;
@@ -225,25 +219,12 @@ private:
 	std::unique_ptr<RenderTarget> offscreenRenderTarget;
 	std::unique_ptr<FrameBuffer> offscreenFramebuffer;
 
-
-
-
-
 	std::unique_ptr<GraphicsPipelineBuilder> graphicsPipelineBuilder;
-
-
 	std::unique_ptr<ShadowPipelineBuilder>   shadowPipelineBuilder;
-
 	std::unique_ptr<SSAOPipelineBuilder>     ssaoPipelineBuilder;
-
 	std::unique_ptr<SSRPipelineBuilder>      ssrPipelineBuilder;
-
 	std::unique_ptr<PBBloomPipelineBuilder>  pbbloomPipelineBuilder;
-
 	std::unique_ptr<MakeCubeMapPipeline>     makeCubeMapPipeline;
-
-
-
 
 	// Raytracing pipeline data
 	VkPhysicalDeviceRayTracingPipelinePropertiesKHR    rtProperties{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR };
@@ -265,8 +246,6 @@ private:
 	std::vector<VkAccelerationStructureInstanceKHR>    tlas;
 	VkBuildAccelerationStructureFlagsKHR               rtFlags;
 
-
-
 	// post pipeline data
 	std::vector<std::unique_ptr<ShaderModule>>         postShaderModules;
 	std::vector<std::shared_ptr<DescriptorSetLayout>>  postDescriptorSetLayouts;
@@ -286,8 +265,6 @@ private:
 	void loadShowCase();
 	void loadSponza();
 	void loadFeatures();
-
-
 
 };
 

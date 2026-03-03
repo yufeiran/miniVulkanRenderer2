@@ -7,7 +7,9 @@ namespace mini
 	enum LOG_TYPE { INFO_TYPE, ERROR_TYPE, WARNING_TYPE,NONE_TYPE };
 	const int LOG_TYPE_SUM = 3;
 
-	void outputTag(LOG_TYPE logType = INFO_TYPE);
+	void initLogFile(const std::string& filePath = "miniVulkanRenderer2.log");
+	void closeLogFile();
+	void outputTag(LOG_TYPE logType = INFO_TYPE,bool writeToFile = true);
 	void Log(const char* message, LOG_TYPE logType = INFO_TYPE);
 	void Log(const std::string message, LOG_TYPE logType = INFO_TYPE);
 	void LogI(const char* message);
@@ -30,6 +32,8 @@ namespace mini
 
 	void LogTimerStart(const std::string& jobName);
 	void LogTimerEnd(const std::string& jobName);
+
+	std::string toHex(uint64_t value);
 
 }
 

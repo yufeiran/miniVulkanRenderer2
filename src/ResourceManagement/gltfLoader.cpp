@@ -293,6 +293,7 @@ void GltfLoader::reset()
 	texcoords0.clear();
 	texcoords1.clear();
 	colors0.clear();
+	bitangents.clear(); 
 	cachePrimMesh.clear();
 
 	tmodel = tinygltf::Model();

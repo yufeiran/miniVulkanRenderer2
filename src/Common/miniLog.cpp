@@ -11,6 +11,11 @@
 
 namespace mini {
 
+std::ofstream& getLogFile() {
+	static std::ofstream instance;
+	return instance;
+}
+
 const char LOG_TYPE_STR[3][10] = {
 	"INFO","ERROR","WARN"
 };
@@ -25,7 +30,32 @@ const int LOG_TYPE_COLOR[LOG_TYPE_SUM] = {
 HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
 #endif
 
-void outputTag(LOG_TYPE logType)
+std::string toHex(uint64_t handle) {
+	std::stringstream stream;
+	// Prefix with '0x' and output in hexadecimal
+	stream << "0x" << std::hex << handle;
+	return stream.str();
+}
+
+void initLogFile(const std::string& filePath)
+{
+	getLogFile().open(filePath, std::ios::out | std::ios::trunc);
+	if (!getLogFile().is_open())
+	{
+		LogE("Failed to open log file: " + filePath);
+	}
+}
+
+void closeLogFile()
+{
+	if (getLogFile().is_open())
+	{
+		getLogFile().flush();
+		getLogFile().close();
+	}
+}
+
+void outputTag(LOG_TYPE logType,bool writeToFile)
 {
 	if(logType!=NONE_TYPE)
 	{	std::cout << "[";
@@ -39,6 +69,11 @@ void outputTag(LOG_TYPE logType)
 		SetConsoleTextAttribute(handle, FOREGROUND_INTENSITY | 7);
 #endif
 		std::cout << "] ";
+
+		if (writeToFile && getLogFile().is_open())
+		{
+			getLogFile() << "[" << LOG_TYPE_STR[logType] << "] ";
+		}
 	}
 }
 
@@ -46,6 +81,10 @@ void Log(const char* message, LOG_TYPE logType)
 {
 	outputTag(logType);
 	std::cout<< message << std::endl;
+	if (getLogFile().is_open())
+	{
+		getLogFile() << message << std::endl;
+	}
 }
 
 void Log(const std::string message, LOG_TYPE logType)
@@ -107,6 +146,10 @@ void LogLogo()
 		char lineBuf[200];
 		logoFile.getline(lineBuf,200);
 		std::cout<<lineBuf<<std::endl;
+		if (getLogFile().is_open())
+		{
+			getLogFile() << lineBuf << std::endl;
+		}
 	}
 }
 
@@ -127,7 +170,7 @@ void LogProgressBar(const std::string& title, double percent)
 		int a;
 	}
 	printf("\r");
-	outputTag();
+	outputTag(INFO_TYPE,false);
 	printf("%s \t[%s",title.c_str(),progressBarData);
 	for(int i=0;i<progressLen-nowProgressCount - 1;i++)
 	{
@@ -137,6 +180,10 @@ void LogProgressBar(const std::string& title, double percent)
 	if(percent == 1.0f)
 	{
 		printf("\n");
+		if(getLogFile().is_open())
+		{
+			getLogFile() << title << " \t[" << progressBarData << "] 100%" << std::endl;
+		}
 	}
 
 }
@@ -161,6 +208,11 @@ void LogWaitEnd()
 	printf("\r");
 	outputTag();
 	printf("%s\n",waitMessage.c_str());
+
+	if (getLogFile().is_open())
+	{
+		getLogFile() << waitMessage << std::endl;
+	}
 	waitMessage.clear();
 }
 

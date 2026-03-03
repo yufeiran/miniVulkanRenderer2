@@ -477,6 +477,7 @@ void GraphicsPipelineBuilder::createUniformBuffer()
 {
 	globalsBuffer = std::make_unique<Buffer>(device, static_cast<VkDeviceSize>(sizeof(GlobalUniforms)),
 		static_cast<VkBufferUsageFlags>(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT));
+	globalsBuffer->setName("Global Uniforms Buffer");
 
 }
 
@@ -484,7 +485,12 @@ void GraphicsPipelineBuilder::createUniformBuffer()
 
 void GraphicsPipelineBuilder::createObjDescriptionBuffer()
 {
+	if (objDescBuffer)
+	{
+		objDescBuffer.reset();
+	}
 	objDescBuffer = std::make_unique<Buffer>(device, resourceManager.objDesc, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
+	objDescBuffer->setName("Object Description Buffer");
 }
 
 
@@ -512,6 +518,7 @@ void GraphicsPipelineBuilder::createSSAOBuffers()
 	}
 
 	ssaoSamplesBuffer = std::make_unique<Buffer>(device, ssaoKernel, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
+	ssaoSamplesBuffer->setName("SSAO Samples Buffer");
 
 	std::vector<glm::vec3> ssaoNoise;
 	for (unsigned int i = 0; i < 16; i++)
@@ -548,9 +555,14 @@ void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& dirShadowRenderT
 	{
 		diit.emplace_back(texture.descriptor);
 	}
+
+	int maxTextures = 1000;
+	VkDescriptorImageInfo dummyInfo = resourceManager.getDummyTexture().descriptor;
+	while (diit.size() < maxTextures) {
+		diit.emplace_back(dummyInfo);
+	}
+
 	writes.emplace_back(descSetBindings.makeWriteArray(descSet, SceneBindings::eTextures, diit.data()));
-
-
 
 
 	VkDescriptorImageInfo cubeMapInfo;
@@ -594,69 +606,54 @@ void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& dirShadowRenderT
 	std::array<VkDescriptorImageInfo, GBufferCount> descriptors{};
 
 	// Position
-
 	descriptors[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	// ָ�� Input attachment ��Դ��ͼ
 	descriptors[0].imageView = offscreenRenderTarget.getImageViewByIndex(2).getHandle();
 	descriptors[0].sampler = resourceManager.getDefaultSampler().getHandle();
 
 	// Normal
 	descriptors[1].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	// ָ�� Input attachment ��Դ��ͼ
 	descriptors[1].imageView = offscreenRenderTarget.getImageViewByIndex(3).getHandle();;
 	descriptors[1].sampler = resourceManager.getDefaultSampler().getHandle();
 
 	// Albedo
 	descriptors[2].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	// ָ�� Input attachment ��Դ��ͼ
 	descriptors[2].imageView = offscreenRenderTarget.getImageViewByIndex(4).getHandle();;
 	descriptors[2].sampler = resourceManager.getDefaultSampler().getHandle();
 
 	// MetalRough
 	descriptors[3].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	// ָ�� Input attachment ��Դ��ͼ
 	descriptors[3].imageView = offscreenRenderTarget.getImageViewByIndex(5).getHandle();;
 	descriptors[3].sampler = resourceManager.getDefaultSampler().getHandle();
 
 	// emssion
 	descriptors[4].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	// ָ�� Input attachment ��Դ��ͼ
 	descriptors[4].imageView = offscreenRenderTarget.getImageViewByIndex(6).getHandle();
 	descriptors[4].sampler = resourceManager.getDefaultSampler().getHandle();
 
 	// SSAO
 	descriptors[5].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	// ָ�� Input attachment ��Դ��ͼ
 	descriptors[5].imageView = offscreenRenderTarget.getImageViewByIndex(7).getHandle();
 	descriptors[5].sampler = resourceManager.getDefaultSampler().getHandle();
 
 	// SSAO Blur 
 	descriptors[6].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	// ָ�� Input attachment ��Դ��ͼ
 	descriptors[6].imageView = offscreenRenderTarget.getImageViewByIndex(8).getHandle();
 	descriptors[6].sampler = resourceManager.getDefaultSampler().getHandle();
 
 	// Position in view space
-
 	descriptors[7].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	// ָ�� Input attachment ��Դ��ͼ
 	descriptors[7].imageView = offscreenRenderTarget.getImageViewByIndex(9).getHandle();
 	descriptors[7].sampler = resourceManager.getDefaultSampler().getHandle();
 
 	// Normal
 	descriptors[8].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	// ָ�� Input attachment ��Դ��ͼ
 	descriptors[8].imageView = offscreenRenderTarget.getImageViewByIndex(10).getHandle();;
 	descriptors[8].sampler = resourceManager.getDefaultSampler().getHandle();
 
-
 	// Depth
 	descriptors[9].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	// ָ�� Input attachment ��Դ��ͼ
 	descriptors[9].imageView = offscreenRenderTarget.getImageViewByIndex(1).getHandle();;
 	descriptors[9].sampler = resourceManager.getDefaultSampler().getHandle();
-
-
 
 
 	std::array<VkWriteDescriptorSet, GBufferCount> writeDescriptorSets{};
@@ -672,7 +669,6 @@ void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& dirShadowRenderT
 	}
 
 
-	// ����Դ�󶨵���������
 	vkUpdateDescriptorSets(device.getHandle(), writeDescriptorSets.size(), writeDescriptorSets.data(), 0, nullptr);
 
 
@@ -775,6 +771,7 @@ void GraphicsPipelineBuilder::createLightUniformsBuffer()
 {
 	lightUniformsBuffer = std::make_unique<Buffer>(device, static_cast<VkDeviceSize>(sizeof(LightUniforms)),
 		static_cast<VkBufferUsageFlags>(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT));
+	lightUniformsBuffer->setName("Light Uniforms Buffer");
 }
 
 void GraphicsPipelineBuilder::updateLightUniformsBuffer(CommandBuffer& cmd, const std::vector<Light>& shadowLights)

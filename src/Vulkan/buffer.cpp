@@ -28,6 +28,8 @@ Buffer::Buffer(Device& device, VkDeviceSize size, VkBufferUsageFlags usage,VkMem
 	deviceMemory = std::make_unique<DeviceMemory>(device,*this, properties,flags);
 
 	bindBufferMemory(*deviceMemory);
+
+	Log("[ALLOC] Buffer created: " + toHex((uint64_t)handle) + " size " + toHex((uint64_t)size));
 }
 
 Buffer::Buffer(Device& device,VkDeviceSize size, const void* data, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
@@ -39,12 +41,14 @@ Buffer::Buffer(Device& device,VkDeviceSize size, const void* data, VkBufferUsage
 	stagingBuffer.map(data, size);
 
 	device.copyBuffer(stagingBuffer, *this, size);
+	Log("[ALLOC] Buffer created: " + toHex((uint64_t)handle) + " size " + toHex((uint64_t)size));
 }
 
 Buffer::~Buffer()
 {
 	if (handle != VK_NULL_HANDLE)
 	{
+		Log("[FREE] Buffer destroyed: " + toHex((uint64_t)handle));
 		vkDestroyBuffer(device.getHandle(), handle, nullptr);
 	}
 }
@@ -66,6 +70,15 @@ VkBuffer Buffer::getHandle()
 uint32_t Buffer::getSize()
 {
 	return size;
+}
+
+void Buffer::setName(const char* name)
+{
+	VkDebugUtilsObjectNameInfoEXT nameInfo { VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT };
+	nameInfo.objectType = VK_OBJECT_TYPE_BUFFER;
+	nameInfo.objectHandle = reinterpret_cast<uint64_t>(handle);
+	nameInfo.pObjectName = name;
+	vkSetDebugUtilsObjectNameEXT(device.getHandle(), &nameInfo);
 }
 
 void Buffer::map(const void* rawData, uint32_t size)

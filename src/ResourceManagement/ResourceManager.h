@@ -61,6 +61,8 @@ namespace mini
 		ResourceManager(Device& device);
 		~ResourceManager();
 
+		void clearScene();
+
 		void draw(CommandBuffer& cmd, PushConstantRaster& pcRaster);
 
 		void loadLightCube();
@@ -86,15 +88,19 @@ namespace mini
 
 		int getLightCubeObjId();
 
+		void createDummyTexture();
+
 		Sampler& getDefaultSampler() { return *defaultSampler; }
 		Sampler& getRepeatSampler() { return *repeatSampler; }
 		Sampler& getClampToEdgeSampler() { return *clampToEdgeSampler; }
+		Sampler& getDummySampler() { return *defaultSampler; }
 
 		Texture& getCubeMapTexture() { return cubeMapTexture; }
 		Texture& getHdrTexture() { return hdrTexture; }
+		Texture& getDummyTexture() { return dummyTexture; }
 		ImageView& getHdrImageView() { return *hdrImageView; }
 		ImageView& getCubeMapImageView() { return *cubeMapView; }
-
+		ImageView& getDummyImageView() { return *dummyImageView; }
 
 		const std::vector<std::unique_ptr<ObjModel>>& getModels() const { return objModel; }
 		std::vector<ObjInstance>& getInstances() { return instances; }
@@ -112,8 +118,6 @@ namespace mini
 		std::unique_ptr<Sampler>                  mirroredRepeatSampler;
 		std::unique_ptr<Sampler>                  clampToEdgeSampler;
 
-
-
 		GltfLoader                                gltfLoader;
 
 	private:
@@ -125,6 +129,10 @@ namespace mini
 		std::unique_ptr<Image>                    hdrImage;
 		std::unique_ptr<ImageView>                hdrImageView;
 		Texture                                   hdrTexture;
+
+		std::unique_ptr<Image>					  dummyImage; // 1x1 white texture to bind when some texture is missing
+		std::unique_ptr<ImageView>		          dummyImageView;
+		Texture								      dummyTexture;
 
 		std::map<std::string, uint32_t> modelMap;
 
