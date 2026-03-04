@@ -1509,6 +1509,8 @@ auto start = std::chrono::system_clock::now();
 void MiniVulkanRenderer::updateInstances()
 {
 
+	static std::vector<VkAccelerationStructureInstanceKHR> oldTlas=tlas;
+	
 	//int lightId =resourceManager->getInstanceId("LightCube");
 	auto& instances = rm->getInstances();
 	//if(lightId!= -1)
@@ -1521,10 +1523,6 @@ void MiniVulkanRenderer::updateInstances()
 
 	//	lightInstance.transform = glm::translate(glm::mat4(1.0f),light.getPosition());
 	//}
-
-
-
-
 
 	if (useRaytracing == false)
 	{
@@ -1542,7 +1540,28 @@ void MiniVulkanRenderer::updateInstances()
 		tinst.transform = toTransformMatrixKHR(inst.transform);
 	}
 
-	rayTracingBuilder->buildTlas(tlas, rtFlags, true);
+	bool needUpdate = false;
+	if (tlas.size() != oldTlas.size())
+	{
+		needUpdate = true;
+	}
+	else {
+		for (int i = 0; i < tlas.size(); i++)
+		{
+			if(memcmp(&tlas[i],&oldTlas[i],sizeof(tlas[i]))!=0)
+			{
+				needUpdate = true;
+				break;
+			}
+		}
+	}
+	if (needUpdate == true)
+	{
+		rayTracingBuilder->buildTlas(tlas, rtFlags, true);
+	}
+
+	oldTlas = tlas;
+
 }
 
 void MiniVulkanRenderer::updateSceneDescriptors()

@@ -36,6 +36,20 @@ RayTracingBuilder::~RayTracingBuilder()
 
 void RayTracingBuilder::buildBlas(const std::vector<BlasInput>& input, VkBuildAccelerationStructureFlagsKHR flags)
 {
+	if (blasVec.size() > 0)
+	{
+		for(auto &accel:blasVec)
+		{
+			if(accel.accel!=VK_NULL_HANDLE)
+			{
+				vkDestroyAccelerationStructureKHR(device.getHandle(),accel.accel,nullptr);
+			}
+			if(accel.buffer!=nullptr)
+			{
+				accel.buffer->~Buffer();
+			}
+		}
+	}
 	blasVec.clear();
 	Log("start buildBlas");
 	auto         nbBlas = static_cast<uint32_t>(input.size());
