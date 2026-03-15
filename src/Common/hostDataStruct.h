@@ -7,6 +7,7 @@
 #include <glm/vec4.hpp>
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <Common/miniLog.h>
 using vec2 = glm::vec2;
 using vec3 = glm::vec3;
 using vec4 = glm::vec4;
@@ -245,35 +246,43 @@ struct GltfShadeMaterial
 {
 
 	int type; // type = 0  Blinn-Phong type = 1 PBR
+	float pad0[3];
 
 	// Blinn-Phong
 	vec3  ambient;
+	float pad1;
 
 	vec3  diffuse;
-	vec3  specular;
-	vec3  transmittance;
-	vec3  emission;
+	float pad2;
 
+	vec3  specular;
+	float pad3;
+
+	vec3  transmittance;
+	float pad4;
+
+	vec3  emission;
 	float shininess;
 
 	float dissolve;
 	int   illum;
-
 	int   textureId;
-
+	int   pad5;
 
 	// PBR
 	vec4  pbrBaseColorFactor;
 
 	int   pbrBaseColorTexture;
 	int   pbrOcclusionTexture;
-
 	float pbrMetallicFactor;
 	float pbrRoughnessFactor;
+
 	int   pbrMetallicRoughnessTexture;
 	float pbrOcclusionTextureStrength;
+	int   pad6[2];
 
 	vec4  khrDiffuseFactor;   // KHR_materials_pbrSpecularGlossiness
+
 	vec3  khrSpecularFactor;
 	int   khrDiffuseTexture;
 
@@ -293,10 +302,8 @@ struct GltfShadeMaterial
 	mat4  uvTransform;
 
 	int   unlit;
-
 	float transmissionFactor;
 	int   transmissionTexture;
-
 	float ior;
 
 	vec3  anisotropyDirection;
@@ -304,17 +311,23 @@ struct GltfShadeMaterial
 
 	vec3  attenuationColor;
 	float thicknessFactor;
+
 	int   thicknessTexture;
 	float attenuationDistance;
-
 	float clearcoatFactor;
 	float clearcoatRoughness;
 
 	int   clearcoatTexture;
 	int   clearcoatRoughnessTexture;
-	vec4  sheen;
-	int   pad;
+	int   pad7[2];
 
+	vec4  sheen;
 };
+
+inline void checkMaterialSize()
+{
+	static_assert(sizeof(GltfShadeMaterial) % 16 == 0, "GltfShadeMaterial size must be a multiple of 16 bytes");
+	mini::Log("Sizeof GltfShadeMaterial: " + std::to_string(sizeof(GltfShadeMaterial)) + " bytes");
+}
 
 // for raytracing

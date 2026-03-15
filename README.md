@@ -9,21 +9,21 @@
 </div>
 
 
-## 🌟 Features
+## Features
  * **Path Trace**: Hardware-accelerated ray tracing with Next Event Estimation (NEE).
  * **PBR Material**: Standard Metallic-Roughness workflow with Alpha Clipping.
  * **Render Graph**: Vulkan SubPass management.
  * **Global Illumination**: Screen Space Ambient Occlusion (SSAO) & Screen Space Reflections (SSR)
  * **Post-Processing**: Physically Based Bloom
 
-## 🖼️ Gallery
+## Gallery
 
 [Screenshot Gallery](Screenshot.md)
 
-## 🚀 Build & Install 
+## Build & Install 
 [Install Guide](Install.md)
 
-## 📋 TODO
+## TODO
  - [x] Linux Support
  - [ ] Compute Shader (Bloom / Animation)
  - [ ] FSR
@@ -32,14 +32,14 @@
  - [ ] Configurable render quality options
 
  
-## 📚 Third-Party Libraries
+## Third-Party Libraries
 * [imgui](https://github.com/ocornut/imgui)
 * [tinygltf](https://github.com/syoyo/tinygltf)
 * [tinyobjloader](https://github.com/tinyobjloader/tinyobjloader)
 * [volk](https://github.com/zeux/volk)
 * [stb_image](https://github.com/nothings/stb)
 
-## ❤️ Acknowledgements
+## Acknowledgements
 
 * **Assets**: Scene model from *Genshin Impact*.
 * **Pair Programming**: Thanks to ✨Gemini for helping me fix bugs.

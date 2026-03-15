@@ -9,7 +9,7 @@
 #include "Vulkan/sampler.h"
 #include <glm/gtx/euler_angles.hpp>
 
-
+#include <stb_image.h>
 
 
 #include "imgui.h"
@@ -228,12 +228,12 @@ void MiniVulkanRenderer::loadSponza()
 
 	//rm->loadScene("D://yufeiran/model/AMD/GI/GI.gltf", objMat);
 
-	//rm->loadScene("D://yufeiran/model/AMD/PBR/PBR.gltf", objMat);
+	rm->loadScene("D://yufeiran/model/AMD/PBR/PBR.gltf", objMat);
 	//rm->loadScene("D://yufeiran/model/AMD/Caustics/Caustics.gltf", objMat);
 	//rm->loadScene("D://yufeiran/model/Inazuma/gltf/Inazuma.gltf", objMat);
 	//rm->loadScene("D://yufeiran/model/mingshen/mingshen/gltf/mingshen.gltf", objMat);
 
-	rm->loadScene("D://yufeiran/model/Copper/Copper.gltf", objMat);
+	//rm->loadScene("D://yufeiran/model/Copper/Copper.gltf", objMat);
 	//rm->loadScene("D://yufeiran/model/glass/glass.gltf", objMat);
 
 	objMat = glm::mat4(1.0f);
@@ -312,9 +312,8 @@ void MiniVulkanRenderer::loadShowCase()
 
 MiniVulkanRenderer::MiniVulkanRenderer()
 {
+	checkMaterialSize();
 	initLogFile("mini.log");
-
-
 
 	volkInitialize();
 }
@@ -472,9 +471,6 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	graphicsPipelineBuilder->updateDescriptorSet(shadowMapRenderTarget, PointShadowMapRenderPass, *offscreenRenderTarget,
 		cubemapImageView, diffuseIrrImageView);
-
-
-
 
 
 	initPostRender(renderContext->getSwapchainImageFormat());
@@ -1980,7 +1976,6 @@ void MiniVulkanRenderer::dropCallback(GLFWwindow* window, int count, const char*
 
 	auto app = static_cast<MiniVulkanRenderer*>(glfwGetWindowUserPointer(window));
 
-	
 	vkDeviceWaitIdle(app->device->getHandle());
 	app->resetFrame();
 	app->rm->clearScene();
@@ -1995,7 +1990,9 @@ void MiniVulkanRenderer::dropCallback(GLFWwindow* window, int count, const char*
 	std::string extName = filename.substr(offset);
 	if (extName == ".gltf")
 	{
-		app->rm->loadScene(filename);
+		glm::mat4 objMat = glm::mat4(1.0f);
+		objMat = glm::mat4(1.0f);
+		app->rm->loadScene(filename,objMat,true);
 	}
 	if (app->canRaytracing == true && app->enableRayTracing == true)
 	{

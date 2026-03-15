@@ -50,7 +50,7 @@ namespace mini
 
 		uint32_t getMipLevels() const { return mipLevels; }
 
-	
+		void setName(const char* name);
 
 
 	private:

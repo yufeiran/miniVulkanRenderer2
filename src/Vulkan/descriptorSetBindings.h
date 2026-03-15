@@ -33,6 +33,18 @@ public:
 
 	void setBinding(const std::vector<VkDescriptorSetLayoutBinding>& bindings){this->bindings = bindings;}
 
+	VkDescriptorSetLayoutBinding& getBinding(uint32_t binding) 
+	{
+		for(auto& b : bindings)
+		{
+			if(b.binding == binding)
+			{
+				return b;
+			}
+		}
+		assert(0 && "binding not found");
+	}
+
 	void clear(){bindings.clear();}
 
 	std::unique_ptr<DescriptorSetLayout> createLayout(Device&                          device,

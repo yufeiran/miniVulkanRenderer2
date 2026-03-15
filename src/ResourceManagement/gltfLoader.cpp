@@ -13,6 +13,7 @@
 bool loadImageDataToRGBA8(tinygltf::Image* image, const int image_idx, std::string* err, std::string* warn, int req_width, int req_height,
 	const unsigned char* bytes, int size, void* user_data)
 {
+
 	int w, h, comp;
 
 	unsigned char* data = stbi_load_from_memory(bytes, size, &w, &h, &comp, 4);

@@ -398,7 +398,7 @@ void GraphicsPipelineBuilder::update(CommandBuffer& cmd, Camera& camera, VkExten
 
 void GraphicsPipelineBuilder::createDescriptorSetLayout()
 {
-	auto nbTxt = static_cast<uint32_t>(resourceManager.textures.size());
+	auto nbTxt = 1000; // Fixed size to allow loading new scenes with more textures.
 
 	// Camera matrices 
 	descSetBindings.addBinding(SceneBindings::eGlobals, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
@@ -467,11 +467,7 @@ void GraphicsPipelineBuilder::createDescriptorSetLayout()
 	ssaoBlurDescPool = ssaoBlurDescSetBindings.createPool(device, 1);
 	ssaoBlurDescSet = ssaoBlurDescPool->allocateDescriptorSet(*ssaoBlurDescSetLayout);
 
-
-
 }
-
-
 
 void GraphicsPipelineBuilder::createUniformBuffer()
 {
@@ -480,8 +476,6 @@ void GraphicsPipelineBuilder::createUniformBuffer()
 	globalsBuffer->setName("Global Uniforms Buffer");
 
 }
-
-
 
 void GraphicsPipelineBuilder::createObjDescriptionBuffer()
 {
@@ -492,8 +486,6 @@ void GraphicsPipelineBuilder::createObjDescriptionBuffer()
 	objDescBuffer = std::make_unique<Buffer>(device, resourceManager.objDesc, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
 	objDescBuffer->setName("Object Description Buffer");
 }
-
-
 
 void GraphicsPipelineBuilder::createSSAOBuffers()
 {
@@ -553,6 +545,7 @@ void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& dirShadowRenderT
 	std::vector<VkDescriptorImageInfo> diit;
 	for (auto& texture : resourceManager.textures)
 	{
+		if (diit.size() >= 1000) break; // Safety cap
 		diit.emplace_back(texture.descriptor);
 	}
 
@@ -562,6 +555,8 @@ void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& dirShadowRenderT
 		diit.emplace_back(dummyInfo);
 	}
 
+	auto& bindings = descSetBindings.getBinding(SceneBindings::eTextures);
+	bindings.descriptorCount = static_cast<uint32_t>(diit.size());
 	writes.emplace_back(descSetBindings.makeWriteArray(descSet, SceneBindings::eTextures, diit.data()));
 
 
@@ -595,12 +590,7 @@ void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& dirShadowRenderT
 	VkDescriptorBufferInfo lightUnif{ lightUniformsBuffer->getHandle(), 0, VK_WHOLE_SIZE };
 	writes.emplace_back(descSetBindings.makeWrite(descSet, SceneBindings::eLight, &lightUnif));
 
-
-
-
 	vkUpdateDescriptorSets(device.getHandle(), static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
-
-
 
 	const int GBufferCount = 10;
 	std::array<VkDescriptorImageInfo, GBufferCount> descriptors{};
@@ -668,9 +658,7 @@ void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& dirShadowRenderT
 		writeDescriptorSets[i].pImageInfo = &descriptors[i];
 	}
 
-
 	vkUpdateDescriptorSets(device.getHandle(), writeDescriptorSets.size(), writeDescriptorSets.data(), 0, nullptr);
-
 
 	// SSAO
 	VkDescriptorBufferInfo ssaoSampleBufferInfo{ ssaoSamplesBuffer->getHandle(), 0, VK_WHOLE_SIZE };
@@ -716,9 +704,6 @@ void GraphicsPipelineBuilder::updateDescriptorSet(RenderTarget& dirShadowRenderT
 	ssaoBlurWrites.emplace_back(ssaoBlurDescSetBindings.makeWrite(ssaoBlurDescSet, SSAOBlurBindings::eSSAOInput, &ssaoInputInfo));
 
 	vkUpdateDescriptorSets(device.getHandle(), static_cast<uint32_t>(ssaoBlurWrites.size()), ssaoBlurWrites.data(), 0, nullptr);
-
-
-
 
 }
 

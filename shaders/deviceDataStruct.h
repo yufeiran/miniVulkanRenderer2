@@ -166,18 +166,18 @@ struct GlobalUniforms
 struct Vertex
 {
 	vec3 pos;
-	float pad0;
+	float _pad0;
 
 	vec3 normal;
-	float pad1;
+	float _pad1;
 
 	vec4 color;
 	vec4 tangent;
 	vec3 bitangent;
-	float pad2;
+	float _pad2;
 
 	vec2 texCoord;
-	vec2 pad3;
+	vec2 _pad3;
 };
 
 
@@ -242,35 +242,43 @@ struct GltfShadeMaterial
 {
 
 	int type; // type = 0  Blinn-Phong type = 1 PBR
+	float pad0[3];
 
 	// Blinn-Phong
 	vec3  ambient;
+	float pad1;
 
 	vec3  diffuse;
-	vec3  specular;
-	vec3  transmittance;
-	vec3  emission;
+	float pad2;
 
+	vec3  specular;
+	float pad3;
+
+	vec3  transmittance;
+	float pad4;
+
+	vec3  emission;
 	float shininess;
 
 	float dissolve;
 	int   illum;
-
 	int   textureId;
-
+	int   pad5;
 
 	// PBR
 	vec4  pbrBaseColorFactor;
 
-    int   pbrBaseColorTexture;
+	int   pbrBaseColorTexture;
 	int   pbrOcclusionTexture;
-
 	float pbrMetallicFactor;
 	float pbrRoughnessFactor;
+
 	int   pbrMetallicRoughnessTexture;
 	float pbrOcclusionTextureStrength;
+	int   pad6[2];
 
 	vec4  khrDiffuseFactor;   // KHR_materials_pbrSpecularGlossiness
+
 	vec3  khrSpecularFactor;
 	int   khrDiffuseTexture;
 
@@ -279,7 +287,7 @@ struct GltfShadeMaterial
 	int   khrSpecularGlossinessTexture;
 	int   emissiveTexture;
 
-	vec3  emissiveFactor; 
+	vec3  emissiveFactor;
 	int   alphaMode;
 
 	float alphaCutoff;
@@ -290,28 +298,26 @@ struct GltfShadeMaterial
 	mat4  uvTransform;
 
 	int   unlit;
-
 	float transmissionFactor;
 	int   transmissionTexture;
-
 	float ior;
 
 	vec3  anisotropyDirection;
 	float anisotropy;
 
-	vec3  attenuationColor ;
+	vec3  attenuationColor;
 	float thicknessFactor;
+
 	int   thicknessTexture;
 	float attenuationDistance;
-
 	float clearcoatFactor;
 	float clearcoatRoughness;
 
 	int   clearcoatTexture;
 	int   clearcoatRoughnessTexture;
-	vec4  sheen;
-	int   pad;
+	int   pad7[2];
 
+	vec4  sheen;
 };
 
 // for raytracing

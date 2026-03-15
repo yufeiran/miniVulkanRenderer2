@@ -52,6 +52,8 @@ void ResourceManager::clearScene()
 	images.clear();
 	imageViews.clear();
 	gltfLoader.reset();
+	gltfLoader = GltfLoader();
+
 
 	lightCubeObjIndex = -1;
 
@@ -190,7 +192,6 @@ void initMaterial(GltfShadeMaterial& mat)
 	mat.clearcoatTexture = -1;
 	mat.clearcoatRoughnessTexture = -1;
 	mat.sheen = {0.0, 0.0, 0.0, 0.0};
-	mat.pad;
 }
 
 GltfShadeMaterial  toMaterial(GltfMaterial& gltfm)
@@ -370,9 +371,11 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 
 		// get now mesh indices and vertexs
 		std::vector<uint32_t> indices;
-		std::vector<VertexObj> vertices;
+		std::vector<Vertex> vertices;
 		std::vector<GltfShadeMaterial> matColor;
 		std::vector<int32_t> matIndex;
+
+		Log("Sizeof(Vertex): " + std::to_string(sizeof(Vertex)));
 
 
 		// ========================== prepar mat ============================
@@ -384,7 +387,7 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 
 		for(int i = m.vertexOffset; i < m.vertexOffset + m.vertexCount; i++)
 		{
-			VertexObj v;
+			Vertex v;
 			v.pos      = gltfLoader.positions[i];
 			v.normal   = gltfLoader.normals[i];
 			v.color    = gltfLoader.colors0[i];
@@ -470,7 +473,7 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 		// face sum no equal to vertexcount / 3 !!!
 		for(int i = 0; i < m.indexCount; i++)
 		{
-			matColor.emplace_back(mat);
+		matColor.emplace_back(mat);
 			matIndex.emplace_back(0);
 		}
 
@@ -478,13 +481,13 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 		createTextureImages(meshTxt,flipTexture);
 
 		// create buffer
-		// Create the buffers on Device and copy vertices , indices and materials 
 		VkBufferUsageFlags flag           = VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
 		VkBufferUsageFlags rayTracingFlags = 
 		flag | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
 
 		model->vertexBuffer   = std::make_unique<Buffer>(device, vertices, static_cast<VkBufferUsageFlagBits>( VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | rayTracingFlags));
 		model->indexBuffer    = std::make_unique<Buffer>(device, indices, static_cast<VkBufferUsageFlagBits>( VK_BUFFER_USAGE_INDEX_BUFFER_BIT | rayTracingFlags));
+		Log("Sizeof(matColor): " + std::to_string(sizeof(GltfShadeMaterial)*matColor.size())+ " sizeof(GltfShadeMaterial) "+ std::to_string(sizeof(GltfShadeMaterial)) + " count: "+std::to_string(matColor.size()));
 		model->matColorBuffer = std::make_unique<Buffer>(device, matColor, static_cast<VkBufferUsageFlagBits>( VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | flag));
 		model->matIndexBuffer = std::make_unique<Buffer>(device, matIndex, static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | flag));
 
@@ -499,8 +502,6 @@ void ResourceManager::loadScene(const std::string& filename, glm::mat4 transform
 		desc.indexAddress         = model->indexBuffer->getBufferDeviceAddress();
 		desc.materialAddress      = model->matColorBuffer->getBufferDeviceAddress();
 		desc.materialIndexAddress = model->matIndexBuffer->getBufferDeviceAddress();
-
-
 
 		gltfToGobalMeshMap[primMeshesIndex] = objModel.size();
 		primMeshesIndex++;
@@ -573,6 +574,7 @@ void ResourceManager::createTextureImages(const std::vector<std::pair<TextureTyp
 		texture.descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		texture.descriptor.imageView   = imageView->getHandle();
 		texture.descriptor.sampler     = defaultSampler->getHandle();
+		image->setName("defaultTexture");
 
 		images.push_back(std::move(image));
 		imageViews.push_back(std::move(imageView));
@@ -598,6 +600,8 @@ void ResourceManager::createTextureImages(const std::vector<std::pair<TextureTyp
 
 			std::unique_ptr<Image>     image     = std::make_unique<Image>(device, imageSize, gltfImage->image.size(),(void*)(&gltfImage->image[0]),format);
 			std::unique_ptr<ImageView> imageView = std::make_unique<ImageView>(*image);
+
+			image->setName(gltfImage->name.c_str());
 		
 			Texture texture;
 			texture.image                  = image->getHandle();
@@ -624,6 +628,8 @@ void ResourceManager::createTextureImages(const std::vector<std::pair<TextureTyp
 		std::unique_ptr<ImageView>  imageView     = std::make_unique<ImageView>(*image);
 
 		Texture texture;
+
+		image->setName("defaultTexture");
 
 		texture.image  = image->getHandle();
 		texture.descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -656,6 +662,8 @@ void ResourceManager::createTextureImages(const std::vector<std::pair<TextureTyp
 			Log("imagePath"+imagePath);
 			std::unique_ptr<Image>     image     = std::make_unique<Image>(device,imagePath,flipTexture,format);
 			std::unique_ptr<ImageView> imageView = std::make_unique<ImageView>(*image);
+
+			image->setName(textureStr.c_str());
 		
 			Texture texture;
 			texture.image                  = image->getHandle();
@@ -694,13 +702,13 @@ void ResourceManager::createDummyTexture()
 {
 	if (dummyImage) return; // already created
 
-	auto WHITE_PIXEL = 0xffffffff;
-	dummyImage = std::make_unique<Image>(device, VkExtent2D{ 1, 1 }, sizeof(uint32_t), (void*)(&WHITE_PIXEL), VK_FORMAT_R8G8B8A8_UNORM);
-	dummyImageView = std::make_unique<ImageView>(*dummyImage);
-	dummyTexture.image = dummyImage->getHandle();
-	dummyTexture.descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	dummyTexture.descriptor.imageView = dummyImageView->getHandle();
-	dummyTexture.descriptor.sampler = defaultSampler->getHandle();
+		auto WHITE_PIXEL = 0xffffffff;
+		dummyImage = std::make_unique<Image>(device, VkExtent2D{ 1, 1 }, sizeof(uint32_t), (void*)(&WHITE_PIXEL), VK_FORMAT_R8G8B8A8_UNORM);
+		dummyImageView = std::make_unique<ImageView>(*dummyImage);
+		dummyTexture.image = dummyImage->getHandle();
+		dummyTexture.descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		dummyTexture.descriptor.imageView = dummyImageView->getHandle();
+		dummyTexture.descriptor.sampler = defaultSampler->getHandle();
 }
 
 void ObjInstance::updateFactorBytransform()

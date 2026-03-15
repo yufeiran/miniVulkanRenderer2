@@ -129,6 +129,7 @@ namespace mini
 
 
 		stbi_uc* pixels = stbi_load(name.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+		stbi_set_flip_vertically_on_load(false);
 		extent.width = texWidth;
 		extent.height = texHeight;
 		VkDeviceSize imageSize = extent.width * extent.height * 4;
@@ -216,7 +217,7 @@ namespace mini
 			pixels[i] = stbi_load(filenames[i].c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 			extent.width = texWidth;
 			extent.height = texHeight;
-
+			stbi_set_flip_vertically_on_load(false);
 
 			if (!pixels) {
 				throw Error("Failed to load texture image:" + filenames[i]);
@@ -296,6 +297,7 @@ namespace mini
 			transitionImageLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 6, mipLevels);
 		}
 
+		setName(("cubemap_"+filenames[0]).c_str());
 
 
 	}
@@ -348,6 +350,16 @@ namespace mini
 	VkSampleCountFlagBits Image::getSampleCount() const
 	{
 		return sampleCount;
+	}
+
+	void Image::setName(const char* name)
+	{
+		this->name = name;
+		VkDebugUtilsObjectNameInfoEXT nameInfo{ VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT };
+		nameInfo.objectType = VK_OBJECT_TYPE_IMAGE;
+		nameInfo.objectHandle = reinterpret_cast<uint64_t>(handle);
+		nameInfo.pObjectName = this->name.c_str();
+		vkSetDebugUtilsObjectNameEXT(device.getHandle(), &nameInfo);
 	}
 
 	void Image::generateMipmaps(VkImage image, uint32_t texWidth, uint32_t texHeight, uint32_t mipLevels, uint32_t layers)
