@@ -13,7 +13,8 @@
 #include "Common/camera.h"
 #include "Common/light.h"
 
-#include "Platform/GUIWindow.h"
+#include "UI/GUIWindow.h"
+#include "UI/UI.h"
 
 #include "Rendering/renderContext.h"
 #include "Rendering/postQuad.h"
@@ -76,7 +77,6 @@ public:
 
 
 	void init(int width = 2560, int height = 1440);
-	void initImGUI();
 	void createOffScreenFrameBuffer();
 	void initRayTracingRender();
 
@@ -94,12 +94,6 @@ public:
 	void raytrace(CommandBuffer& cmd, const glm::vec4& clearColor);
 
 	void rasterize(CommandBuffer& cmd, VkClearColorValue defaultClearColor);
-
-	// ui ---------------------
-	void renderUI(std::vector<VkClearValue>& clearValues, VkExtent2D screenSize, bool sizeChange, bool& lightSizeChange);
-	bool uiLights(VkExtent2D screenSize, bool sizeChange, bool& lightSizeChange);
-	bool uiSettings(VkExtent2D screenSize, bool sizeChange);
-	bool uiInstance(VkExtent2D screenSize, bool sizeChange = false);
 
 	// post -----------------
 	void initPostRender(VkFormat postSurfaceColorFormat);
@@ -191,9 +185,6 @@ private:
 
 	unsigned long long frameCount = 0;
 
-	int maxFrames{ 10000 };
-	const int MAX_FRAMES_LIMIT = { 10000 };
-
 	VkFormat defaultSurfaceColorFormat = VK_FORMAT_R8G8B8A8_SRGB;
 	VkFormat defaultSurfaceDepthFormat = VK_FORMAT_X8_D24_UNORM_PACK32;
 
@@ -259,6 +250,8 @@ private:
 	std::unique_ptr<Sampler>                           postRenderImageSampler;
 
 	Camera  camera;
+
+	UI ui;
 
 	void loadBugBox();
 	void loadTestGltf();

@@ -120,4 +120,8 @@ namespace mini
 		TEXTURE_TYPE_LINEAR = 1,
 	};
 
+
+	extern int maxFrames;
+	const int MAX_FRAMES_LIMIT = { 10000 };
+
 } // namespace mini

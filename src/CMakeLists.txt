@@ -17,9 +17,9 @@ file(GLOB_RECURSE COMMON_FILES CONFIGURE_DEPENDS
     "./Common/*.cpp"
 )
 
-file(GLOB_RECURSE PLATFORM_FILES CONFIGURE_DEPENDS
-    "./Platform/*.h"
-    "./Platform/*.cpp"
+file(GLOB_RECURSE UI_FILES CONFIGURE_DEPENDS
+    "./UI/*.h"
+    "./UI/*.cpp"
 )
 
 
@@ -39,7 +39,7 @@ set(SHADER_HEADER
 
 source_group("\\" FILES ${RENDERER_FILES})
 source_group("Common\\" FILES ${COMMON_FILES})
-source_group("Platform\\" FILES ${PLATFORM_FILES})
+source_group("UI\\" FILES ${UI_FILES})
 source_group("Vulkan\\" FILES ${VULKAN_FRAMEWORK_FILES})
 source_group("Rendering\\" FILES ${RENDERING_FILES})
 source_group("ResourceManagement\\" FILES ${RESOURCE_MANAGEMENT_FILES})
@@ -51,7 +51,7 @@ add_executable(miniVulkanRenderer2
     ${RENDERER_FILES}
     ${COMMON_FILES}
     ${VULKAN_FRAMEWORK_FILES}
-    ${PLATFORM_FILES}
+    ${UI_FILES}
     ${RENDERING_FILES}
     ${RESOURCE_MANAGEMENT_FILES}
     ${SHADER_HEADER}
