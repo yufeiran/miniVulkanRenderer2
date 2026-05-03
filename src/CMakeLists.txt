@@ -58,7 +58,6 @@ add_executable(miniVulkanRenderer2
 )
 
 
-find_package(glfw3 REQUIRED)
 set_property(TARGET miniVulkanRenderer2 PROPERTY VS_DEBUGGER_WORKING_DIRECTORY 
 "$<TARGET_FILE_DIR:miniVulkanRenderer2>")
 
@@ -75,3 +74,17 @@ target_link_libraries(miniVulkanRenderer2 glm tinyobjloader tinygltf imgui stb_i
 target_link_libraries(miniVulkanRenderer2 Vulkan::Vulkan glfw)
 
 add_dependencies(miniVulkanRenderer2 Shaders)
+
+add_custom_command(TARGET miniVulkanRenderer2 POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/assets"
+        "$<TARGET_FILE_DIR:miniVulkanRenderer2>/assets"
+    
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/shaders"
+        "$<TARGET_FILE_DIR:miniVulkanRenderer2>/shaders"
+
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/spv"
+        "$<TARGET_FILE_DIR:miniVulkanRenderer2>/spv"
+)

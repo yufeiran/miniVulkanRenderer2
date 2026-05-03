@@ -1,6 +1,6 @@
 find_package(Vulkan REQUIRED)
-find_package(glfw3  REQUIRED)
-
+#find_package(glfw3  REQUIRED)
+add_subdirectory(glfw)
 
 add_library(glm INTERFACE)
 add_library(stb_image INTERFACE)

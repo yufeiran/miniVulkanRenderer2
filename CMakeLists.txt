@@ -6,7 +6,8 @@ cmake_minimum_required( VERSION 3.20)
 
 # if windows, set vcpkg toolchain file
 if(WIN32)
-  set(CMAKE_TOOLCHAIN_FILE C:/src/vcpkg/scripts/buildsystems/vcpkg.cmake)
+  set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE FILEPATH "vcpkg toolchain")
+        message(STATUS "Found vcpkg via VCPKG_ROOT: ${CMAKE_TOOLCHAIN_FILE}")
 endif()
 
 project("miniVulkanRenderer2")
@@ -16,10 +17,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 
-
-#设置多线程编�?
 if (MSVC)
-add_definitions("/MP")
+add_compile_options("$<$<COMPILE_LANGUAGE:C,CXX>:/MP>")
 endif()
 
 if(WIN32)
@@ -31,7 +30,15 @@ endif()
 
 set(CMAKE_CXX_STANDARD 17)
 
-find_package(Vulkan REQUIRED)
+find_package(Vulkan)
+
+if(NOT Vulkan_FOUND)
+    message(FATAL_ERROR 
+    "=====================
+     Vulkan SDK NOT FOUND!
+     Please go to https://vulkan.lunarg.com/sdk/home download it!
+======================")
+endif()
 
 if (MSVC)
     add_compile_options(/utf-8)
