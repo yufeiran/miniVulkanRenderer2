@@ -8,4 +8,5 @@
 
 namespace mini {
 	int maxFrames = 10000;
+	unsigned long long frameCount = 0;
 }

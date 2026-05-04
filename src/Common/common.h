@@ -122,6 +122,8 @@ namespace mini
 
 
 	extern int maxFrames;
+	extern unsigned long long frameCount;
 	const int MAX_FRAMES_LIMIT = { 10000 };
+
 
 } // namespace mini

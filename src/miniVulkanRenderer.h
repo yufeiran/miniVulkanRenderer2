@@ -52,6 +52,7 @@
 #include "Rendering/pbbloomPipelineBuilder.h"
 #include "Rendering/SSRPipelineBuilder.h"
 #include "Rendering/makeCubeMapPipeline.h"
+#include "Rendering/rayTracingPipelineBuilder.h"
 
 
 
@@ -78,20 +79,6 @@ public:
 
 	void init(int width = 2560, int height = 1440);
 	void createOffScreenFrameBuffer();
-	void initRayTracingRender();
-
-
-	// init raytracing -------
-	void buildRayTracing();
-	void buildAS();
-	void createBottomLevelAS();
-	void createTopLevelAS();
-	void createRtDescriptorSet();
-	void updateRtDescriptorSet();
-	void createRtPipeline();
-	void createRtShaderBindingTable();
-
-	void raytrace(CommandBuffer& cmd, const glm::vec4& clearColor);
 
 	void rasterize(CommandBuffer& cmd, VkClearColorValue defaultClearColor);
 
@@ -183,8 +170,6 @@ private:
 	int width, height;
 	VkExtent2D surfaceExtent{};
 
-	unsigned long long frameCount = 0;
-
 	VkFormat defaultSurfaceColorFormat = VK_FORMAT_R8G8B8A8_SRGB;
 	VkFormat defaultSurfaceDepthFormat = VK_FORMAT_X8_D24_UNORM_PACK32;
 
@@ -216,26 +201,8 @@ private:
 	std::unique_ptr<SSRPipelineBuilder>      ssrPipelineBuilder;
 	std::unique_ptr<PBBloomPipelineBuilder>  pbbloomPipelineBuilder;
 	std::unique_ptr<MakeCubeMapPipeline>     makeCubeMapPipeline;
+	std::unique_ptr<RayTracingPipelineBuilder> rayPipe;
 
-	// Raytracing pipeline data
-	VkPhysicalDeviceRayTracingPipelinePropertiesKHR    rtProperties{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR };
-	std::unique_ptr<RayTracingBuilder>                 rayTracingBuilder;
-	DescriptorSetBindings                              rtDescSetBindings;
-	std::vector<std::unique_ptr<ShaderModule>>         rtShaderModules;
-	std::unique_ptr<DescriptorPool>                    rtDescPool;
-	std::unique_ptr<DescriptorSetLayout>               rtDescSetLayout;
-	VkDescriptorSet                                    rtDescSet;
-	std::vector<VkRayTracingShaderGroupCreateInfoKHR>  rtShaderGroups;
-	std::unique_ptr<PipelineLayout>                    rtPipelineLayout;
-	std::unique_ptr<RayTracingPipeline>                rtPipeline;
-
-	std::unique_ptr<Buffer>                            rtSBTBuffer;
-	VkStridedDeviceAddressRegionKHR                    rgenRegion{};
-	VkStridedDeviceAddressRegionKHR                    missRegion{};
-	VkStridedDeviceAddressRegionKHR                    hitRegion{};
-	VkStridedDeviceAddressRegionKHR                    callRegion{};
-	std::vector<VkAccelerationStructureInstanceKHR>    tlas;
-	VkBuildAccelerationStructureFlagsKHR               rtFlags;
 
 	// post pipeline data
 	std::vector<std::unique_ptr<ShaderModule>>         postShaderModules;

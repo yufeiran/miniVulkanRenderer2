@@ -245,8 +245,6 @@ void MiniVulkanRenderer::loadSponza()
 
 	//rm->loadScene("E://yufeiran/model/debug/flower.gltf", objMat);
 
-
-
 	//resourceManager->loadScene("E://yufeiran/model/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",objMat);
 
 	//resourceManager->loadScene(getAssetPath("lightScene.gltf");
@@ -412,28 +410,15 @@ void MiniVulkanRenderer::init(int width, int height)
 	std::string qwantani_moon_noon_puresky_4k_Names = getAssetPath("HDRI/qwantani_moon_noon_puresky_4k.hdr");
 
 
-
-
-
 	Log("Load scene");
 	LogTimerStart("Load scene");
 
 
-
-	//resourceManagement->loadModel("BattleCruiser", getAssetPath("BattleCruiser/BattleCruiser.obj");
-
 	load();
-	//loadSponza();
 	rm->loadCubemap(HornstullsStrandCubeMapNames);
-
-	//rm->loadHDR(dikhololo_night_4k_Names);
 	rm->loadHDR(qwantani_moon_noon_puresky_4k_Names);
 
-
-
 	LogTimerEnd("Load scene");
-
-
 
 	LogSpace();
 
@@ -463,6 +448,7 @@ void MiniVulkanRenderer::init(int width, int height)
 		offscreenColorFormat,
 		pcPost, 5);
 
+	rayPipe = std::make_unique<RayTracingPipelineBuilder>();
 
 	auto& shadowMapRenderTarget = shadowPipelineBuilder->getDirRenderTarget();
 	auto& PointShadowMapRenderPass = shadowPipelineBuilder->getPointRenderTarget();
@@ -489,7 +475,7 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	if (canRaytracing && enableRayTracing)
 	{
-		buildRayTracing();
+		rayPipe->buildRayTracing(*device,*physicalDevice,*rm,*offscreenRenderTarget,*graphicsPipelineBuilder->getDescriptorSetLayout());
 	}
 
 
@@ -541,348 +527,6 @@ auto MiniVulkanRenderer::objModelToVkGeometryKHR(const ObjModel& model)
 
 	return input;
 
-}
-
-void MiniVulkanRenderer::buildRayTracing()
-{
-	initRayTracingRender();
-	buildAS();
-	createRtDescriptorSet();
-	createRtPipeline();
-	createRtShaderBindingTable();
-}
-
-void MiniVulkanRenderer::buildAS()
-{	
-	tlas.clear();
-
-	LogTimerStart("build AS");
-	createBottomLevelAS();
-	createTopLevelAS();
-	LogTimerEnd("build AS");
-}
-
-void MiniVulkanRenderer::createBottomLevelAS()
-{
-	std::vector<RayTracingBuilder::BlasInput> allBlas;
-	//allBlas.reserve(resourceManagement->getModelSum());
-
-	const auto& models = rm->getModels();
-
-	for (const auto& model : models)
-	{
-		auto blas = objModelToVkGeometryKHR(*model);
-
-		allBlas.push_back(blas);
-
-	}
-
-	rayTracingBuilder->buildBlas(allBlas, VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR);
-}
-
-void MiniVulkanRenderer::createTopLevelAS()
-{
-	//Log("start createTLAS");
-
-
-	const auto& instances = rm->getInstances();
-	tlas.clear();
-	tlas.reserve(instances.size());
-
-	for (const ObjInstance& instance : instances)
-	{
-		VkAccelerationStructureInstanceKHR rayInst{};
-		uint32_t modelId = instance.objIndex;
-
-		GltfShadeMaterial& mat = rm->materials[modelId];
-
-		rayInst.transform = toTransformMatrixKHR(instance.transform);
-		rayInst.instanceCustomIndex = modelId;
-		rayInst.accelerationStructureReference = rayTracingBuilder->getBlasDeviceAddress(modelId);
-
-		VkGeometryInstanceFlagsKHR flags{};
-		if (mat.doubleSided == 1)
-		{
-			flags |= VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;
-		}
-
-		rayInst.flags = flags;
-		// Only be hit if rayMask & instance.mask != 0
-		// Light Mask = 0x02 other = 0x01
-		if (instance.type == INSTANCE_TYPE_NORMAL)
-		{
-			rayInst.mask = 0x01;
-		}
-		else if(instance.type == INSTANCE_TYPE_LIGHT_CUBE)
-		{
-			rayInst.mask = 0x02;
-		}
-		else
-		{
-			rayInst.mask = 0x01;
-		}
-
-		rayInst.instanceShaderBindingTableRecordOffset = 0;
-		tlas.emplace_back(rayInst);
-	}
-	rtFlags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR;
-
-	rayTracingBuilder->buildTlas(tlas, rtFlags);
-}
-
-void MiniVulkanRenderer::createRtDescriptorSet()
-{
-	rtDescSetBindings.addBinding(RtBindings::eTlas, VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, 1,
-		VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR); // TLAS
-	rtDescSetBindings.addBinding(RtBindings::eOutImage, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1,
-		VK_SHADER_STAGE_RAYGEN_BIT_KHR);   // Output image
-
-	rtDescPool = rtDescSetBindings.createPool(*device);
-	rtDescSetLayout = rtDescSetBindings.createLayout(*device);
-
-	auto descSetLayout = rtDescSetLayout->getHandle();
-
-	VkDescriptorSetAllocateInfo allocateInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
-	allocateInfo.descriptorPool = rtDescPool->getHandle();
-	allocateInfo.descriptorSetCount = 1;
-	allocateInfo.pSetLayouts = &descSetLayout;
-	vkAllocateDescriptorSets(device->getHandle(), &allocateInfo, &rtDescSet);
-
-	VkAccelerationStructureKHR                         tlas = rayTracingBuilder->getAccelerationStructure();
-	VkWriteDescriptorSetAccelerationStructureKHR       descASInfo{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR };
-	descASInfo.accelerationStructureCount = 1;
-	descASInfo.pAccelerationStructures = &tlas;
-	VkDescriptorImageInfo imageInfo{ {},offscreenRenderTarget->getImageViewByIndex(0).getHandle(),VK_IMAGE_LAYOUT_GENERAL };
-
-	std::vector<VkWriteDescriptorSet> writes;
-	writes.emplace_back(rtDescSetBindings.makeWrite(rtDescSet, RtBindings::eTlas, &descASInfo));
-	writes.emplace_back(rtDescSetBindings.makeWrite(rtDescSet, RtBindings::eOutImage, &imageInfo));
-
-	vkUpdateDescriptorSets(device->getHandle(), static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
-}
-
-void MiniVulkanRenderer::updateRtDescriptorSet()
-{
-
-	VkAccelerationStructureKHR                         tlas = rayTracingBuilder->getAccelerationStructure();
-	VkWriteDescriptorSetAccelerationStructureKHR       descASInfo{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR };
-	descASInfo.accelerationStructureCount = 1;
-	descASInfo.pAccelerationStructures = &tlas;
-	//VkDescriptorImageInfo imageInfo{ {},offscreenRenderTarget->getImageViewByIndex(0).getHandle(),VK_IMAGE_LAYOUT_GENERAL };
-
-
-
-	// update output buffer
-	const auto& offscreenColorImageView = offscreenRenderTarget->getImageViewByIndex(0);
-	VkDescriptorImageInfo imageInfo{};
-	imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-	imageInfo.imageView = offscreenColorImageView.getHandle();
-	imageInfo.sampler = postRenderImageSampler->getHandle();
-	VkWriteDescriptorSet writeDescriptorSets = rtDescSetBindings.makeWrite(rtDescSet, RtBindings::eOutImage, &imageInfo);
-	vkUpdateDescriptorSets(device->getHandle(), 1, &writeDescriptorSets, 0, nullptr);
-
-	std::vector<VkWriteDescriptorSet> writes;
-	writes.emplace_back(rtDescSetBindings.makeWrite(rtDescSet, RtBindings::eTlas, &descASInfo));
-	writes.emplace_back(rtDescSetBindings.makeWrite(rtDescSet, RtBindings::eOutImage, &imageInfo));
-
-	vkUpdateDescriptorSets(device->getHandle(), static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
-
-}
-
-void MiniVulkanRenderer::createRtPipeline()
-{
-	enum StageIndices
-	{
-		eRaygen,
-		eMiss0,
-		eMiss1,
-		eClosetHit,
-		eAnyHit,
-		eShaderGroupCount
-	};
-
-
-	ShaderModule rayGenShader(getSPVPath("raytrace.rgen.spv"), *device, VK_SHADER_STAGE_RAYGEN_BIT_KHR);
-	ShaderModule rayCHitShader(getSPVPath("raytrace.rchit.spv"), *device, VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
-	ShaderModule rayAnyHitShader(getSPVPath("raytrace.rahit.spv"), *device, VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
-	ShaderModule rayMissShader(getSPVPath("raytrace.rmiss.spv"), *device, VK_SHADER_STAGE_MISS_BIT_KHR);
-	ShaderModule rayShadowMissShader(getSPVPath("raytraceShadow.rmiss.spv"), *device, VK_SHADER_STAGE_MISS_BIT_KHR);
-
-
-	// All stages 
-	std::vector<VkPipelineShaderStageCreateInfo> stages{};
-	stages.resize(eShaderGroupCount);
-
-	VkPipelineShaderStageCreateInfo stage{ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
-	stage.pName = "main";  // All the same entry point
-	// Raygen
-	stage.module = rayGenShader.getHandle();
-	stage.stage = VK_SHADER_STAGE_RAYGEN_BIT_KHR;
-	stages[eRaygen] = stage;
-	// Miss0 
-	stage.module = rayMissShader.getHandle();
-	stage.stage = VK_SHADER_STAGE_MISS_BIT_KHR;
-	stages[eMiss0] = stage;
-	// Miss1 shadow pass 
-	stage.module = rayShadowMissShader.getHandle();
-	stage.stage = VK_SHADER_STAGE_MISS_BIT_KHR;
-	stages[eMiss1] = stage;
-	// Hit Group - Closest Hit
-	stage.module = rayCHitShader.getHandle();
-	stage.stage = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
-	stages[eClosetHit] = stage;
-	// Hit Group - Any Hit
-	stage.module = rayAnyHitShader.getHandle();
-	stage.stage = VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
-	stages[eAnyHit] = stage;
-
-	// Shader groups
-	VkRayTracingShaderGroupCreateInfoKHR group{ VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR };
-	group.anyHitShader = VK_SHADER_UNUSED_KHR;
-	group.closestHitShader = VK_SHADER_UNUSED_KHR;
-	group.generalShader = VK_SHADER_UNUSED_KHR;
-	group.intersectionShader = VK_SHADER_UNUSED_KHR;
-
-	// Raygen
-	group.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
-	group.generalShader = eRaygen;
-	rtShaderGroups.push_back(group);
-
-	// Miss0 
-	group.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
-	group.generalShader = eMiss0;
-	rtShaderGroups.push_back(group);
-
-	// Miss1 shadow
-	group.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
-	group.generalShader = eMiss1;
-	rtShaderGroups.push_back(group);
-
-	// closet hit shader
-	group.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR;
-	group.generalShader = VK_SHADER_UNUSED_KHR;
-	group.closestHitShader = eClosetHit;
-	group.anyHitShader = eAnyHit;
-	rtShaderGroups.push_back(group);
-
-	// Push constant
-	VkPushConstantRange pushConstant{ VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR | VK_SHADER_STAGE_MISS_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR ,
-									 0, sizeof(PushConstantRay) };
-	VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
-	pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
-	pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstant;
-
-	// Descriptor sets: set 0 for raytracing , set 1 for global scene
-	std::vector<VkDescriptorSetLayout> rtDescSetLayouts = { rtDescSetLayout->getHandle(),graphicsPipelineBuilder->getDescriptorSetLayout()->getHandle() };
-	pipelineLayoutCreateInfo.setLayoutCount = static_cast<uint32_t> (rtDescSetLayouts.size());
-	pipelineLayoutCreateInfo.pSetLayouts = rtDescSetLayouts.data();
-
-	rtPipelineLayout = std::make_unique<PipelineLayout>(*device, pipelineLayoutCreateInfo);
-
-	// Assemble the shader stages and recursion depth info into the ray tracing pipeline
-	VkRayTracingPipelineCreateInfoKHR rayPipelineInfo{ VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR };
-	rayPipelineInfo.stageCount = static_cast<uint32_t>(stages.size());  // Stages are shaders
-	rayPipelineInfo.pStages = stages.data();
-
-	rayPipelineInfo.groupCount = static_cast<uint32_t>(rtShaderGroups.size());
-	rayPipelineInfo.pGroups = rtShaderGroups.data();
-
-	rayPipelineInfo.maxPipelineRayRecursionDepth = 31; // Ray depth
-	rayPipelineInfo.layout = rtPipelineLayout->getHandle();
-
-	rtPipeline = std::make_unique<RayTracingPipeline>(*device, rayPipelineInfo);
-}
-
-
-
-void MiniVulkanRenderer::createRtShaderBindingTable()
-{
-	uint32_t missCount{ 2 };
-	uint32_t hitCount{ 1 };
-	auto     handleCount = 1 + missCount + hitCount;
-	uint32_t handleSize = rtProperties.shaderGroupHandleSize;
-
-	uint32_t handleSizeAligned = align_up(handleSize, rtProperties.shaderGroupHandleAlignment);
-
-	rgenRegion.stride = align_up(handleSizeAligned, rtProperties.shaderGroupBaseAlignment); //step size
-	rgenRegion.size = rgenRegion.stride;
-	missRegion.stride = handleSizeAligned;
-	missRegion.size = align_up(missCount * handleSizeAligned, rtProperties.shaderGroupBaseAlignment);
-	hitRegion.stride = handleSizeAligned;
-	hitRegion.size = align_up(hitCount * handleSizeAligned, rtProperties.shaderGroupBaseAlignment);
-
-	// Get the shader group handles 
-	uint32_t             dataSize = handleCount * handleSize;
-	std::vector<uint8_t> handles(dataSize);
-	auto result = vkGetRayTracingShaderGroupHandlesKHR(device->getHandle(), rtPipeline->getHandle(), 0, handleCount, dataSize, handles.data());
-	assert(result == VK_SUCCESS);
-
-	// Allocate a buffer for storing the SBT
-	VkDeviceSize sbtSize = rgenRegion.size + missRegion.size + hitRegion.size + callRegion.size;
-	rtSBTBuffer = std::make_unique<Buffer>(*device,
-		sbtSize,
-		VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT
-		| VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-	rtSBTBuffer->setName("RtSBTBuffer");
-
-	// Find the SBT address of each group
-	VkBufferDeviceAddressInfo info{ VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO, nullptr, rtSBTBuffer->getHandle() };
-	VkDeviceAddress           sbtAddress = rtSBTBuffer->getBufferDeviceAddress();
-	rgenRegion.deviceAddress = sbtAddress;
-	missRegion.deviceAddress = sbtAddress + rgenRegion.size;
-	hitRegion.deviceAddress = sbtAddress + rgenRegion.size + missRegion.size;
-
-	// Helper to retrieve the handle data
-	auto getHandle = [&](int i) { return handles.data() + i * handleSize; };
-
-	rtSBTBuffer->persistentMap(sbtSize);
-	// Map the SBT buffer and write in the handles.
-	auto* pSBTBuffer = reinterpret_cast<uint8_t*>(rtSBTBuffer->getMapAddress());
-	uint8_t* pData{ nullptr };
-	uint32_t handleIdx{ 0 };
-
-	// Raygen
-	pData = pSBTBuffer;
-	memcpy(pData, getHandle(handleIdx++), handleSize);
-
-	// Miss
-	pData = pSBTBuffer + rgenRegion.size;
-	for (uint32_t c = 0; c < missCount; c++)
-	{
-		memcpy(pData, getHandle(handleIdx++), handleSize);
-		pData += missRegion.stride;
-	}
-
-	// Hit 
-	pData = pSBTBuffer + rgenRegion.size + missRegion.size;
-	for (uint32_t c = 0; c < hitCount; c++)
-	{
-		memcpy(pData, getHandle(handleIdx++), handleSize);
-	}
-	rtSBTBuffer->unpersistentMap();
-
-}
-
-void MiniVulkanRenderer::raytrace(CommandBuffer& cmd, const glm::vec4& clearColor)
-{
-	updateFrame();
-	if (pcRay.frame >= maxFrames)
-		return;
-
-	// Initializing push constant vulues
-	pcRay.clearColor = clearColor;
-
-
-	std::vector<VkDescriptorSet> descSets{ rtDescSet,graphicsPipelineBuilder->getDescriptorSet() };
-	vkCmdBindPipeline(cmd.getHandle(), VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, rtPipeline->getHandle());
-	vkCmdBindDescriptorSets(cmd.getHandle(), VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, rtPipelineLayout->getHandle(), 0,
-		(uint32_t)descSets.size(), descSets.data(), 0, nullptr);
-	vkCmdPushConstants(cmd.getHandle(), rtPipelineLayout->getHandle(),
-		VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR | VK_SHADER_STAGE_MISS_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR,
-		0, sizeof(PushConstantRay), &pcRay);
-
-	vkCmdTraceRaysKHR(cmd.getHandle(), &rgenRegion, &missRegion, &hitRegion, &callRegion, surfaceExtent.width, surfaceExtent.height, 1);
 }
 
 
@@ -937,9 +581,9 @@ void MiniVulkanRenderer::loop()
 			LogTimerStart("rebuild RT_TLAS");
 			if (useRaytracing)
 			{
-				createTopLevelAS();
-				updateRtDescriptorSet();
-				updateInstances();
+				rayPipe->createTopLevelAS(*rm);
+				rayPipe->updateRtDescriptorSet(*device,*offscreenRenderTarget,*postRenderImageSampler);
+				rayPipe->updateInstances(*rm);
 			}
 
 
@@ -950,7 +594,7 @@ void MiniVulkanRenderer::loop()
 
 		}
 
-		updateInstances();
+		//updateInstances();
 
 
 		auto result = renderContext->beginFrame();
@@ -998,14 +642,18 @@ void MiniVulkanRenderer::loop()
 
 		// Raster render pass
 		{
-
+			
 			if (useRaytracing)
 			{
+				rayPipe->updateFrame(camera, pcRay, window->getFramebufferSize());
+				if (pcRay.frame >= maxFrames)
+					return;
 				glm::vec4 clearColor = { clearValues[0].color.float32[0],
 										clearValues[0].color.float32[1],
 										clearValues[0].color.float32[2],
 										clearValues[0].color.float32[3] };
-				raytrace(cmd, clearColor);
+				rayPipe->raytrace(cmd, clearColor, pcRay, graphicsPipelineBuilder->getDescriptorSet(), surfaceExtent);
+				
 			}
 			else
 			{
@@ -1066,66 +714,6 @@ void MiniVulkanRenderer::loop()
 		processIO();
 	}
 	device->waitIdle();
-}
-
-
-auto start = std::chrono::system_clock::now();
-void MiniVulkanRenderer::updateInstances()
-{
-
-	static std::vector<VkAccelerationStructureInstanceKHR> oldTlas=tlas;
-	
-	//int lightId =resourceManager->getInstanceId("LightCube");
-	auto& instances = rm->getInstances();
-	//if(lightId!= -1)
-	//{
-	//	
-
-	//	auto& lightInstance = instances[lightId];
-
-	//	auto& light = lights[0];
-
-	//	lightInstance.transform = glm::translate(glm::mat4(1.0f),light.getPosition());
-	//}
-
-	if (useRaytracing == false)
-	{
-		return;
-	}
-	auto now = std::chrono::system_clock::now();
-	std::chrono::duration<float> diff = now - start;
-	start = now;
-
-
-	for (int i = 0; i < instances.size(); i++)
-	{
-		auto& inst = instances[i];
-		VkAccelerationStructureInstanceKHR& tinst = tlas[i];
-		tinst.transform = toTransformMatrixKHR(inst.transform);
-	}
-
-	bool needUpdate = false;
-	if (tlas.size() != oldTlas.size())
-	{
-		needUpdate = true;
-	}
-	else {
-		for (int i = 0; i < tlas.size(); i++)
-		{
-			if(memcmp(&tlas[i],&oldTlas[i],sizeof(tlas[i]))!=0)
-			{
-				needUpdate = true;
-				break;
-			}
-		}
-	}
-	if (needUpdate == true)
-	{
-		rayTracingBuilder->buildTlas(tlas, rtFlags, true);
-	}
-
-	oldTlas = tlas;
-
 }
 
 void MiniVulkanRenderer::updateSceneDescriptors()
@@ -1564,7 +1152,7 @@ void MiniVulkanRenderer::dropCallback(GLFWwindow* window, int count, const char*
 	}
 	if (app->canRaytracing == true && app->enableRayTracing == true)
 	{
-		app->buildAS();
+		app->rayPipe->buildAS(*app->rm);
 	}
 	app->graphicsPipelineBuilder->createObjDescriptionBuffer();
 
@@ -1577,7 +1165,7 @@ void MiniVulkanRenderer::dropCallback(GLFWwindow* window, int count, const char*
 	);
 
 	if (app->canRaytracing && app->enableRayTracing) {
-		app->updateRtDescriptorSet();
+		app->rayPipe->updateRtDescriptorSet(*app->device,*app->offscreenRenderTarget,*app->postRenderImageSampler);
 	}
 	app->device->waitIdle();
 	Log("Reload Finish!");
@@ -1600,7 +1188,7 @@ void MiniVulkanRenderer::cleanScene()
 
 
 	createOffScreenFrameBuffer();
-	updateRtDescriptorSet();
+	rayPipe->updateRtDescriptorSet(*device, *offscreenRenderTarget, *postRenderImageSampler);
 	updatePostDescriptorSet();
 
 
@@ -1647,7 +1235,7 @@ void MiniVulkanRenderer::handleSizeChange()
 
 	if (canRaytracing == true && enableRayTracing == true)
 	{
-		updateRtDescriptorSet();
+		rayPipe->updateRtDescriptorSet(*device,*offscreenRenderTarget,*postRenderImageSampler);
 	}
 
 
@@ -1735,23 +1323,6 @@ void MiniVulkanRenderer::createOffScreenFrameBuffer()
    //shadowMapRenderTarget=RenderTarget::DEFAULT_CREATE_FUNC(std::move(*depthImage));
    //auto& rasterRenderPass = graphicsPipelineBuilder->getRasterRenderPass();
    //shadowMapFramebuffer=std::make_unique<FrameBuffer>(*device,*shadowMapRenderTarget,rasterRenderPass);
-
-
-}
-
-
-void MiniVulkanRenderer::initRayTracingRender()
-{
-	if (!rayTracingBuilder)
-	{
-		rayTracingBuilder.reset();
-	}
-	// Requesting ray tracing properties
-	VkPhysicalDeviceProperties2 prop2{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2 };
-	prop2.pNext = &rtProperties;
-	vkGetPhysicalDeviceProperties2(physicalDevice->getHandle(), &prop2);
-	rayTracingBuilder = std::make_unique<RayTracingBuilder>(*device, device->getGraphicQueue().getIndex());
-
 
 }
 
@@ -1972,7 +1543,7 @@ MiniVulkanRenderer::~MiniVulkanRenderer()
 {
 	Log("Renderer shutting down");
 
-	rayTracingBuilder.reset();
+	rayPipe.reset();
 	graphicsPipelineBuilder.reset();
 
 

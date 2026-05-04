@@ -37,7 +37,6 @@ struct Attachment
 *    we keep the minimum amount of information necessary
 *  - Creation of a RenderTarget becomes simpler, becaues the caller can just ask for some 
 *    Attachment (s) without having to create the images
-*  为了方便渲染时候使用的图片？只需要往里面填image或者imageView 它就会自动计算出Attachment和没填的image或者imageView
 */
 
 
