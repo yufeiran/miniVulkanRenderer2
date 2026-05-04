@@ -15,6 +15,7 @@
 
 #include "UI/GUIWindow.h"
 #include "UI/UI.h"
+#include "UI/scene.h"
 
 #include "Rendering/renderContext.h"
 #include "Rendering/postQuad.h"
@@ -112,8 +113,6 @@ public:
 	void handleSizeChange();
 
 	Camera& getCamera();
-
-	auto objModelToVkGeometryKHR(const ObjModel& model);
 
 	PushConstantRaster pcRaster{
 		glm::identity<mat4>(),                 // 
@@ -220,11 +219,7 @@ private:
 
 	UI ui;
 
-	void loadBugBox();
-	void loadTestGltf();
-	void loadShowCase();
-	void loadSponza();
-	void loadFeatures();
+	Scene scene;
 
 };
 

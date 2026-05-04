@@ -55,7 +55,7 @@ add_executable(miniVulkanRenderer2
     ${RENDERING_FILES}
     ${RESOURCE_MANAGEMENT_FILES}
     ${SHADER_HEADER}
-)
+ "UI/scene.cpp")
 
 
 set_property(TARGET miniVulkanRenderer2 PROPERTY VS_DEBUGGER_WORKING_DIRECTORY 

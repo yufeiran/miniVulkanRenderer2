@@ -22,290 +22,10 @@ using namespace std::chrono;
 
 void MiniVulkanRenderer::load()
 {
+
 	int testCase = 2;
-	switch (testCase)
-	{
-	case 0:
-		loadShowCase();
-		break;
-	case 1:
-		loadTestGltf();
-		break;
-	case 2:
-		loadSponza();
-		break;
-	case 3:
-		loadBugBox();
-		break;
-	case 4:
-		loadFeatures();
-		break;
-	}
+	scene.load(testCase, *rm, camera);
 
-}
-
-
-void MiniVulkanRenderer::loadFeatures()
-{
-	glm::mat4 objMat = glm::mat4(1.0f);
-	objMat = glm::mat4(1.0f);
-	//objMat = glm::translate(objMat, glm::vec3(0.0,10.0,0.0));
-	//objMat = glm::rotate(objMat,glm::radians(90.0f),glm::vec3(0.0,1.0,0.0));
-	//objMat = glm::scale(objMat,{0.01,0.01,0.01});
-	//resourceManager->loadScene("E://yufeiran/model/AMD/GI/GI.gltf",objMat);
-	//resourceManager->loadScene("E://yufeiran/model/bug/greenballs.gltf",objMat);
-	//resourceManager->loadScene("E://yufeiran/model/bug/allwithoutcloth.gltf",objMat);
-
-	//resourceManager->loadScene("E://yufeiran/model/bug/clothbackdrop.gltf",objMat);
-	//resourceManager->loadScene("E://yufeiran/model/bug/clothpart1.gltf",objMat);
-
-	// MetalRoughSpheres Test
-	//resourceManager->loadScene("E://yufeiran/model/glTF-Sample-Models/2.0/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf",objMat);
-
-	// TransmissionTest
-	//resourceManager->loadScene("E://yufeiran/model/glTF-Sample-Models/2.0/TransmissionTest/glTF/TransmissionTest.gltf",objMat);
-	//BoomBoxWithAxes
-	//resourceManager->loadScene("E://yufeiran/model/glTF-Sample-Models/2.0/BoomBoxWithAxes/glTF/BoomBoxWithAxes.gltf",objMat);
-
-		// Alpha Test
-	//resourceManager->loadScene("E://yufeiran/model/glTF-Sample-Models/2.0/AlphaBlendModeTest/glTF/AlphaBlendModeTest.gltf",objMat);
-
-	// NegativeScaleTest
-	// resourceManager->loadScene("E://yufeiran/model/glTF-Sample-Models/2.0/NegativeScaleTest/glTF/NegativeScaleTest.gltf",objMat);
-
-	//NormalTangentMirrorTest
-	//resourceManager->loadScene("E://yufeiran/model/glTF-Sample-Models/2.0/NormalTangentMirrorTest/glTF/NormalTangentMirrorTest.gltf",objMat);
-
-	//resourceManager->loadScene("E://yufeiran/model/bug/bugTangentRect.gltf",objMat);
-
-
-	//NormalTangentTest 
-	rm->loadScene("E://yufeiran/model/glTF-Sample-Models/2.0/NormalTangentTest/glTF/NormalTangentTest.gltf", objMat);
-
-
-	// TransmissionTest
-//resourceManager->loadScene("E://yufeiran/model/glTF-Sample-Models/2.0/TransmissionTest/glTF/TransmissionTest.gltf",objMat);
-
-	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat, glm::vec3(0.0, 3.0, 0.0));
-	objMat = glm::rotate(objMat, glm::radians(90.0f), glm::vec3(0.0, 1.0, 0.0));
-
-
-
-
-
-
-	//resourceManager->loadScene(getAssetPath("lightScene.gltf");
-
-	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat, { 0,-1,0 });
-	objMat = glm::scale(objMat, { 3,1,3 });
-	//resourceManager->loadScene( getAssetPath("plane/plane1.gltf",objMat);
-
-}
-
-void MiniVulkanRenderer::loadBugBox()
-{
-	glm::mat4 objMat = glm::mat4(1.0f);
-	objMat = glm::mat4(1.0f);
-	//resourceManager->loadScene("E://yufeiran/model/AMD/Deferred/Deferred.gltf",objMat);
-
-	rm->loadScene("E://yufeiran/model/bugbox/bugbox.gltf", objMat);
-
-	rm->loadScene(getAssetPath("lightScene.gltf"));
-}
-
-void MiniVulkanRenderer::loadTestGltf()
-{
-	glm::mat4 objMat = glm::mat4(1.0f);
-	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat, { 0, 5, -3 });
-	//resourceManager->loadScene("E://yufeiran/model/glTF-Sample-Models/2.0/cube/glTF/cube.gltf", objMat);
-
-	//resourceManager->loadScene("E://yufeiran/model/glTF-Sample-Models/2.0/BoxVertexColors/glTF/BoxVertexColors.gltf", objMat);
-
-	//
-	//resourceManager->loadScene("E://yufeiran/model/AMD/Robot/Robot.gltf");
-
-
-
-
-	objMat = glm::translate(objMat, { 2,0,0 });
-	objMat = glm::scale(objMat, { 5,5,5 });
-	//resourceManager->loadObjModel("bunny", getAssetPath("bunny/bunny.obj",objMat);
-
-	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat, { 4,2.5,0 });
-	objMat = glm::scale(objMat, { 2,2,2 });
-	//resourceManager->loadObjModel("smpl", getAssetPath("smpl/smpl.obj",objMat);
-
-	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat, { 0,2,0 });
-	objMat = glm::scale(objMat, { 1,1,1 });
-	//resourceManager->loadObjModel("backpack", "../../assets/backpack/backpack.obj",objMat, true);
-
-	//resourceManager->loadScene(getAssetPath("glTFBox/Box.gltf",objMat);
-
-	//resourceManager->loadScene(getAssetPath("glTFBox/Box.gltf");
-	//resourceManager->loadScene("E://yufeiran/model/glTF-Sample-Models/2.0/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf");
-
-	//objMat = glm::mat4(1.0f);
-	//objMat = glm::translate(objMat,{-12,5,0});
-	//resourceManager->loadScene(getAssetPath("cornellBox/cornellBox.gltf",objMat);
-	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat, { 0,0,0 });
-	objMat = glm::scale(objMat, { 3,1,3 });
-	rm->loadScene("../../assets/plane/plane1.gltf", objMat);
-
-
-	//resourceManager->loadScene(getAssetPath("lightScene.gltf");
-
-
-	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat, { 0,3,0 });
-	objMat = glm::scale(objMat, { 3,3,3 });
-	rm->loadScene("E://yufeiran/model/glTF-Sample-Models/2.0/BoxTextured/glTF/BoxTextured.gltf", objMat);
-
-
-	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat, { 0,2,0 });
-	objMat = glm::scale(objMat, { 1,1,1 });
-	rm->loadObjModel("backpack", "../../assets/backpack/backpack.obj", objMat, true);
-
-
-
-	//objMat = glm::mat4(1.0f);
-	//objMat = glm::translate(objMat,{0, 8, -3});
-	////resourceManager->loadScene("E://yufeiran/model/glTF-Sample-Models/2.0/cube/glTF/cube.gltf", objMat);
-
-	//resourceManager->loadScene("E://yufeiran/model/glTF-Sample-Models/2.0/Duck/glTF/Duck.gltf", objMat);
-
-	//
-
-
-
-	//objMat = glm::mat4(1.0f);
-	//objMat = glm::translate(objMat,{5, 2, 1});
-	//objMat = glm::scale(objMat, {0.005, 0.005, 0.005});
-
-
-	//resourceManager->loadScene("E://yufeiran/model/glTF-Sample-Models/2.0/cube/glTF/cube.gltf", objMat);
-
-	//resourceManager->loadScene("E://yufeiran/model/glTF-Sample-Models/2.0/2CylinderEngine/glTF/2CylinderEngine.gltf", objMat);
-
-	//objMat = glm::mat4(1.0f);
-	//objMat = glm::translate(objMat,{-15, 0, 0});
-	//objMat = glm::scale(objMat, {0.1, 0.1, 0.1});
-
-	//resourceManager->loadScene("E://yufeiran/model/glTF-Sample-Models/2.0/GearboxAssy/glTF/GearboxAssy.gltf", objMat);
-
-
-	//objMat = glm::mat4(1.0f);
-	//objMat = glm::translate(objMat,{5, 5, 1});
-	//objMat = glm::scale(objMat, {0.01, 0.01, 0.01});
-	//resourceManager->loadScene("E://yufeiran/model/glTF-Sample-Models/2.0/Buggy/glTF/Buggy.gltf",objMat);
-
-
-
-
-	camera.setPos(glm::vec3(-0.0, 0, 15.0));
-	camera.setViewDir(-90, 0);
-	//pcRaster.lightPosition = glm::vec3(0, 4.5f, 0.f);
-
-
-
-	//resourceManagement->loadModel("Medieval_building", getAssetPath("nv_raytracing_tutorial_scene/Medieval_building.obj",true);
-
-	//resourceManagement->loadModel("plane", getAssetPath("nv_raytracing_tutorial_scene/plane.obj",true);
-}
-
-void MiniVulkanRenderer::loadSponza()
-{
-	glm::mat4 objMat = glm::mat4(1.0f);
-	objMat = glm::mat4(1.0f);
-	//objMat = glm::translate(objMat,{-10,-1,0});
-	//rm->loadScene("E://yufeiran/model/AMD/Deferred/Deferred.gltf",objMat);
-
-	//rm->loadScene("E://yufeiran/model/AMD/GI/GI.gltf", objMat);
-
-	rm->loadScene("E://yufeiran/model/AMD/PBR/PBR.gltf", objMat);
-	//rm->loadScene("E://yufeiran/model/AMD/Caustics/Caustics.gltf", objMat);
-	//rm->loadScene("E://yufeiran/model/Inazuma/gltf/Inazuma.gltf", objMat);
-	//rm->loadScene("E://yufeiran/model/mingshen/mingshen/gltf/mingshen.gltf", objMat);
-
-	//rm->loadScene("E://yufeiran/model/Copper/Copper.gltf", objMat);
-	//rm->loadScene("E://yufeiran/model/glass/glass.gltf", objMat);
-
-	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat, { 0,-1.5,0 });
-	objMat = glm::scale(objMat, { 1,1, 1 });
-	//rm->loadScene(getAssetPath("plane/plane.gltf"), objMat);
-
-	//rm->loadScene("E://yufeiran/model/AMD/Shadow/Shadow.gltf", objMat);
-
-	//rm->loadScene("E://yufeiran/model/debug/flower.gltf", objMat);
-
-	//resourceManager->loadScene("E://yufeiran/model/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",objMat);
-
-	//resourceManager->loadScene(getAssetPath("lightScene.gltf");
-}
-
-
-
-void MiniVulkanRenderer::loadShowCase()
-{
-	glm::mat4 objMat = glm::mat4(1.0f);
-	objMat = glm::mat4(1.0f);
-	//objMat = glm::scale(objMat, { 0.01, 0.01, 0.01 });
-
-	objMat = glm::translate(objMat, { 2,0,2 });
-	objMat = glm::scale(objMat, { 50,50,50 });
-	rm->loadScene("E://yufeiran/model/glTF-Sample-Models/2.0/BoomBox/glTF/BoomBox.gltf", objMat);
-	////resourceManager->loadScene("E://yufeiran/model/AMD/GI/GI.gltf",objMat);
-	//resourceManager->loadScene("E://yufeiran/model/glTF-Sample-Models/2.0/GearboxAssy/glTF/GearboxAssy.gltf",objMat);
-	//resourceManager->loadScene("E://yufeiran/model/glTF-Sample-Models/2.0/AntiqueCamera/glTF/AntiqueCamera.gltf",objMat);
-
-	//objMat = glm::mat4(1.0f);
-	//objMat = glm::scale(objMat, { 2, 2, 2 });
-
-	//objMat = glm::translate(objMat, { 0,1,1 });
-	//resourceManager->loadScene("E://yufeiran/model/glTF-Sample-Models/2.0/BarramundiFish/glTF/BarramundiFish.gltf",objMat);
-
-	//objMat = glm::mat4(1.0f);
-	//objMat = glm::translate(objMat,{0,0,3});
-	//objMat = glm::scale(objMat, {20, 20, 20});
-
-
-	//resourceManager->loadScene("E://yufeiran/model/glTF-Sample-Models/2.0/BoomBox/glTF/BoomBox.gltf",objMat);
-
-	////resourceManager->loadScene(getAssetPath("lightScene.gltf");
-
-
-
-	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat, { 0, 0, 0 });
-	////resourceManager->loadScene("E://yufeiran/model/glTF-Sample-Models/2.0/cube/glTF/cube.gltf", objMat);
-
-	rm->loadScene("E://yufeiran/model/glTF-Sample-Models/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf", objMat);
-
-
-
-
-
-	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat, { 0,-1,0 });
-	objMat = glm::scale(objMat, { 5,1,5 });
-	//resourceManager->loadScene(getAssetPath("texturePlane/texturePlane.gltf", objMat);
-
-	objMat = glm::mat4(1.0f);
-	objMat = glm::translate(objMat, { 0,-1,0 });
-	objMat = glm::scale(objMat, { 1,1, 1 });
-	rm->loadScene(getAssetPath("plane/plane.gltf"), objMat);
-
-	//resourceManager->loadScene("E://yufeiran/model/rocky_ground_with_moss/scene.gltf", objMat);
-
-	objMat = glm::mat4(1.0f);
-	//resourceManager->loadScene("E://yufeiran/model/heitaSpace/heitaSpace.gltf", objMat);
 }
 
 MiniVulkanRenderer::MiniVulkanRenderer()
@@ -488,47 +208,6 @@ void MiniVulkanRenderer::init(int width, int height)
 
 	LogTimerEnd("init");
 }
-
-auto MiniVulkanRenderer::objModelToVkGeometryKHR(const ObjModel& model)
-{
-	RayTracingBuilder::BlasInput input;
-
-
-	VkDeviceAddress vertexAddresss = model.vertexBuffer->getBufferDeviceAddress();
-	VkDeviceAddress indexAddress = model.indexBuffer->getBufferDeviceAddress();
-
-	uint32_t maxPrimitiveCount = model.nbIndices / 3;
-
-	VkAccelerationStructureGeometryTrianglesDataKHR triangles{ VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR };
-	triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
-	triangles.vertexData.deviceAddress = vertexAddresss;
-	triangles.vertexStride = sizeof(Vertex);
-
-	triangles.indexType = VK_INDEX_TYPE_UINT32;
-	triangles.indexData.deviceAddress = indexAddress;
-
-	triangles.maxVertex = model.nbVertices - 1;
-
-	VkAccelerationStructureGeometryKHR asGeom{ VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR };
-	asGeom.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
-	asGeom.flags = VK_GEOMETRY_NO_DUPLICATE_ANY_HIT_INVOCATION_BIT_KHR;  //Avoid double hits
-	asGeom.geometry.triangles = triangles;
-
-	VkAccelerationStructureBuildRangeInfoKHR offset = {};
-
-	offset.firstVertex = 0;
-	offset.primitiveCount = maxPrimitiveCount;
-	offset.primitiveOffset = 0;
-	offset.transformOffset = 0;
-
-
-	input.asGeometry.emplace_back(asGeom);
-	input.asBuildOffsetInfo.emplace_back(offset);
-
-	return input;
-
-}
-
 
 void MiniVulkanRenderer::loop()
 {
@@ -969,23 +648,13 @@ void MiniVulkanRenderer::joystickControl()
 				camera.changeDir(cameraSideSpeed * 1000 * deltaTime, -cameraUpSpeed * 1000 * deltaTime);
 
 			}
-
-
 		}
-
-
-
 	}
-
-
 }
-
-
 
 
 void MiniVulkanRenderer::mouseCallBack(GLFWwindow* window, double xpos, double ypos)
 {
-
 	auto app = static_cast<MiniVulkanRenderer*>(glfwGetWindowUserPointer(window));
 
 	static bool firstMouse = true;
@@ -1058,10 +727,7 @@ void MiniVulkanRenderer::mouseCallBack(GLFWwindow* window, double xpos, double y
 			camera.move(DOWN_DIR, offset);
 		}
 
-
 	}
-
-
 }
 
 void MiniVulkanRenderer::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
