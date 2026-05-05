@@ -20,14 +20,6 @@ PBBloomPipelineBuilder::PBBloomPipelineBuilder(
 	rebuild(extent, gBufferRenderTarget, N);
 
 
-
-
-
-
-
-
-
-
 }
 
 PBBloomPipelineBuilder::~PBBloomPipelineBuilder()
@@ -319,7 +311,6 @@ void PBBloomPipelineBuilder::draw(CommandBuffer& cmd)
 
 void PBBloomPipelineBuilder::createRenderTarget()
 {
-
 	renderTargets.clear();
 	downSamplingFramebuffers.clear();
 	upSamplingFramebuffers.clear();

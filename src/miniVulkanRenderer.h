@@ -54,11 +54,7 @@
 #include "Rendering/SSRPipelineBuilder.h"
 #include "Rendering/makeCubeMapPipeline.h"
 #include "Rendering/rayTracingPipelineBuilder.h"
-
-
-
-
-
+#include "Rendering/postPipelineBuilder.h"
 
 
 //miniVulkanRenderer2
@@ -77,18 +73,11 @@ public:
 
 	void load();
 
-
 	void init(int width = 2560, int height = 1440);
 	void createOffScreenFrameBuffer();
 
 	void rasterize(CommandBuffer& cmd, VkClearColorValue defaultClearColor);
 
-	// post -----------------
-	void initPostRender(VkFormat postSurfaceColorFormat);
-	void updatePostDescriptorSet();
-
-	void resetFrame();
-	void updateFrame();
 
 	// main loop -----------------
 	void loop();
@@ -107,8 +96,6 @@ public:
 	static void dropCallback(GLFWwindow* window, int count, const char** path);
 
 	void cleanScene();
-
-	void calFps();
 
 	void handleSizeChange();
 
@@ -166,7 +153,7 @@ private:
 	bool canRaytracing = false;
 	bool enableRayTracing = true;
 	bool useRaytracing = false;
-	int width, height;
+	int width = 0, height = 0;
 	VkExtent2D surfaceExtent{};
 
 	VkFormat defaultSurfaceColorFormat = VK_FORMAT_R8G8B8A8_SRGB;
@@ -194,26 +181,14 @@ private:
 	std::unique_ptr<RenderTarget> offscreenRenderTarget;
 	std::unique_ptr<FrameBuffer> offscreenFramebuffer;
 
-	std::unique_ptr<GraphicsPipelineBuilder> graphicsPipelineBuilder;
-	std::unique_ptr<ShadowPipelineBuilder>   shadowPipelineBuilder;
-	std::unique_ptr<SSAOPipelineBuilder>     ssaoPipelineBuilder;
-	std::unique_ptr<SSRPipelineBuilder>      ssrPipelineBuilder;
-	std::unique_ptr<PBBloomPipelineBuilder>  pbbloomPipelineBuilder;
-	std::unique_ptr<MakeCubeMapPipeline>     makeCubeMapPipeline;
+	std::unique_ptr<GraphicsPipelineBuilder>   graphicsPipelineBuilder;
+	std::unique_ptr<ShadowPipelineBuilder>     shadowPipelineBuilder;
+	std::unique_ptr<SSAOPipelineBuilder>       ssaoPipelineBuilder;
+	std::unique_ptr<SSRPipelineBuilder>        ssrPipelineBuilder;
+	std::unique_ptr<PBBloomPipelineBuilder>    pbbloomPipelineBuilder;
+	std::unique_ptr<MakeCubeMapPipeline>       makeCubeMapPipeline;
 	std::unique_ptr<RayTracingPipelineBuilder> rayPipe;
-
-
-	// post pipeline data
-	std::vector<std::unique_ptr<ShaderModule>>         postShaderModules;
-	std::vector<std::shared_ptr<DescriptorSetLayout>>  postDescriptorSetLayouts;
-	DescriptorSetBindings                              postDescSetBind;
-	std::unique_ptr<DescriptorPool>                    postDescriptorPool;
-	VkDescriptorSet                                    postDescriptorSet;
-	std::unique_ptr<PipelineLayout>                    postPipelineLayout;
-	std::unique_ptr<RenderPass>                        postRenderPass;
-	std::unique_ptr<GraphicsPipeline>                  postPipeline;
-	std::unique_ptr<PostQuad>                          postQuad;
-	std::unique_ptr<Sampler>                           postRenderImageSampler;
+	std::unique_ptr<PostPipelineBuilder>       postPipe;
 
 	Camera  camera;
 

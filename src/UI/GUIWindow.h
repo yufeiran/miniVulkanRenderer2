@@ -31,7 +31,7 @@ public:
 
 	VkExtent2D getWindowSize() const;
 
-	void setTitle(const char* name);
+	void setTitle(const char* name) const;
 
 	void setMouseCallBack(GLFWcursorposfun callback);
 
@@ -58,6 +58,8 @@ public:
 	void hideWindow() const;
 
 	void showWindow() const;
+
+	void calFps() const;
 
 
 private:

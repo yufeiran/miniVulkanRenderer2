@@ -62,6 +62,7 @@ std::vector<char> ShaderModule::loadFile(std::string filename)
 	std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
 	if (!file.is_open()) {
+		Log("Failed to open file:" + filename, ERROR_TYPE);
 		throw Error(std::string("Failed to open file:" + filename).c_str());
 	}
 

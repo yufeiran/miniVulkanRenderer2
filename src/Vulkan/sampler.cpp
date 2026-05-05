@@ -53,7 +53,7 @@ Sampler::~Sampler()
 	}
 }
 
-VkSampler Sampler::getHandle()
+VkSampler Sampler::getHandle() const
 {
 	return handle;
 }

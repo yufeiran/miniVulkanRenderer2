@@ -118,7 +118,7 @@ VkExtent2D GUIWindow::getWindowSize() const
 	return VkExtent2D{ static_cast<uint32_t>(width),static_cast<uint32_t>(height) };
 }
 
-void GUIWindow::setTitle(const char* name)
+void GUIWindow::setTitle(const char* name) const
 {
 	glfwSetWindowTitle(handle, name);
 }
@@ -206,4 +206,37 @@ void GUIWindow::showWindow() const
 	glfwShowWindow(handle);
 }
 
+void GUIWindow::calFps() const
+{
+	static double avgFps = 0;
+
+	static double lastTime = 0;
+	static double lastFrameCount = 0;
+	static auto last = std::chrono::system_clock::now();
+	auto now = std::chrono::system_clock::now();
+	std::chrono::duration<double, std::milli> dur = now - last;
+	double frameTime = double(dur.count()) * 0.001;
+	double fps = 1.0 / frameTime;
+	last = now;
+
+	frameCount++;
+	lastFrameCount++;
+
+	VkExtent2D extent = this->getFramebufferSize();
+
+	std::string title = "miniVulkanRenderer2 " + std::to_string(extent.width) + "x" + std::to_string(extent.height) + " avg fps:";
+
+	lastTime += frameTime;
+
+	if (lastTime >= 1.0)
+	{
+		avgFps = lastFrameCount;
+		lastFrameCount = 0;
+		lastTime = 0;
+	}
+
+	title += toString(avgFps);
+	title += " fps:";
+	title += toString(fps);
+	this->setTitle(title.c_str());
 }

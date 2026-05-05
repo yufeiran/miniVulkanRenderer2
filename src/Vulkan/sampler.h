@@ -15,7 +15,7 @@ public:
 	Sampler(Device& device,const VkSamplerCreateInfo& createInfo);
 	~Sampler();
 
-	VkSampler getHandle();
+	VkSampler getHandle() const;
 private:
 	VkSampler handle{ VK_NULL_HANDLE };
 	Device& device;

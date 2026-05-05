@@ -35,8 +35,6 @@ public:
 	void draw(CommandBuffer& cmd);
 
 private:
-
-
 	Device&                               device;		
 	ResourceManager&                      resourceManager;
 	DescriptorSetBindings                 descSetBindings;

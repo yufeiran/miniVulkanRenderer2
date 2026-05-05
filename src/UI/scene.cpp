@@ -3,7 +3,7 @@
 namespace mini
 {
 
-	void Scene::load(int testCase, ResourceManager& rm, Camera& camera)
+	void Scene::loadScene(int testCase, ResourceManager& rm, Camera& camera)
 	{
 		switch (testCase)
 		{
@@ -277,5 +277,47 @@ namespace mini
 		objMat = glm::translate(objMat, { 0,-1,0 });
 		objMat = glm::scale(objMat, { 3,1,3 });
 		//resourceManager->loadScene( getAssetPath("plane/plane1.gltf",objMat);
+	}
+
+	void Scene::loadCubeMap(ResourceManager& rm)
+	{
+
+		std::vector<std::string> defaultCubeMapNames = {
+		getAssetPath("skybox/default/right.jpg"),
+		getAssetPath("skybox/default/left.jpg"),
+		getAssetPath("skybox/default/top.jpg"),
+		getAssetPath("skybox/default/bottom.jpg"),
+		getAssetPath("skybox/default/front.jpg"),
+		getAssetPath("skybox/default/back.jpg"),
+		};
+
+		std::vector<std::string> yokohamaCubeMapNames = {
+			getAssetPath("skybox/Yokohama3/posx.jpg"),
+			getAssetPath("skybox/Yokohama3/negx.jpg"),
+			getAssetPath("skybox/Yokohama3/posy.jpg"),
+			getAssetPath("skybox/Yokohama3/negy.jpg"),
+			getAssetPath("skybox/Yokohama3/posz.jpg"),
+			getAssetPath("skybox/Yokohama3/negz.jpg")
+		};
+
+
+		std::vector<std::string> HornstullsStrandCubeMapNames = {
+		getAssetPath("skybox/HornstullsStrand/posx.jpg"),
+		getAssetPath("skybox/HornstullsStrand/negx.jpg"),
+		getAssetPath("skybox/HornstullsStrand/posy.jpg"),
+		getAssetPath("skybox/HornstullsStrand/negy.jpg"),
+		getAssetPath("skybox/HornstullsStrand/posz.jpg"),
+		getAssetPath("skybox/HornstullsStrand/negz.jpg")
+		};
+
+		std::string dikhololo_night_4k_Names = getAssetPath("HDRI/dikhololo_night_4k.hdr");
+
+		std::string dikhololo_night_8k_Names = getAssetPath("HDRI/dikhololo_night_8k.hdr");
+
+		std::string qwantani_moon_noon_puresky_4k_Names = getAssetPath("HDRI/qwantani_moon_noon_puresky_4k.hdr");
+
+
+		//rm.loadCubemap(HornstullsStrandCubeMapNames);
+		rm.loadHDR(qwantani_moon_noon_puresky_4k_Names);
 	}
 }
